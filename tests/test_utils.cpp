@@ -1,5 +1,6 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
+#include <span>
 
 #include "core/Utils.h"
 
@@ -8,7 +9,7 @@ using Catch::Matchers::WithinAbs;
 
 TEST_CASE("LE reader extracts values correctly", "[utils]") {
   const uint8_t data[] = {0x64, 0x0A, 0x48, 0x00, 0xFF};
-  auto sv = std::string_view(reinterpret_cast<const char*>(data), sizeof(data));
+  auto sv = std::span{data};
 
   CHECK(Converter::read_le<uint16_t>(sv, 0) == 0x0A64);  // 2660
   CHECK(Converter::read_le<uint16_t>(sv, 2) == 0x0048);  // 72
@@ -16,7 +17,8 @@ TEST_CASE("LE reader extracts values correctly", "[utils]") {
 }
 
 TEST_CASE("LE reader returns zero on out-of-bounds", "[utils]") {
-  auto sv = std::string_view("AB", 2);
+  const uint8_t ab_data[] = {0x41, 0x42};
+  auto sv = std::span{ab_data};
   CHECK(Converter::read_le<uint32_t>(sv, 0) == 0);
   CHECK(Converter::read_le<uint16_t>(sv, 2) == 0);
 }

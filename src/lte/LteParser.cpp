@@ -14,13 +14,13 @@ namespace QCom::Lte {
 // ============================================================================
 
 std::expected<std::vector<Events::RrcEvent>, ParserError> LteParser::parse_mib_metrics(
-    std::string_view payload) {
+    std::span<const uint8_t> payload) {
   if (payload.size() < QCOM_MIB_MIN_SIZE) return std::unexpected(ParserError::PacketTooShort);
 
-  std::string_view mib_asn1 = payload.substr(QCOM_RRC_ASN1_DATA_OFFSET);
+  auto mib_asn1 = payload.subspan(QCOM_RRC_ASN1_DATA_OFFSET);
   if (mib_asn1.empty()) return std::unexpected(ParserError::NoAsn1Payload);
 
-  asn1::cbit_ref bref(reinterpret_cast<const uint8_t*>(mib_asn1.data()), mib_asn1.size());
+  asn1::cbit_ref bref(mib_asn1.data(), mib_asn1.size());
 
   asn1::rrc::mib_s mib_msg;
   if (mib_msg.unpack(bref) != asn1::SRSASN_SUCCESS) {

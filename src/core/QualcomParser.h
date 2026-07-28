@@ -3,7 +3,7 @@
 #include <expected>
 #include <functional>
 #include <memory>
-#include <string_view>
+#include <span>
 #include <unordered_map>
 #include <vector>
 
@@ -30,7 +30,7 @@ public:
   void set_cell_callback(CellCallback cb) { m_cell_cb = std::move(cb); }
 
   // Main entry: raw DIAG frame with 14-byte header
-  std::expected<void, ParserError> on_diag_frame(std::string_view raw_frame);
+  std::expected<void, ParserError> on_diag_frame(std::span<const uint8_t> raw_frame);
 
   // Direct entry: pre-parsed packet (for testing or when header is already stripped)
   std::expected<void, ParserError> on_packet(QualcommPacketView pkt);

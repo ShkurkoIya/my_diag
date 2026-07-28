@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <expected>
 #include <optional>
+#include <span>
 #include <string_view>
 #include <vector>
 
@@ -68,7 +69,8 @@ public:
   NrParser() = default;
   ~NrParser() override = default;
 
-  [[nodiscard]] std::optional<LocalCellKey> parse_metadata(std::string_view metadata) noexcept {
+  [[nodiscard]] std::optional<LocalCellKey> parse_metadata(
+      std::span<const uint8_t> metadata) noexcept {
     if (metadata.size() < QCOM_RRC_METADATA_SIZE) return std::nullopt;
     uint32_t nrarfcn = Utils::Converter::read_le<uint32_t>(metadata, OFF_FREQ);
     uint16_t pci = Utils::Converter::read_le<uint16_t>(metadata, OFF_PCI);
@@ -76,15 +78,15 @@ public:
   }
 
   std::expected<std::vector<Events::RrcEvent>, ParserError> parse_rrc_ota(
-      std::string_view payload) {
+      std::span<const uint8_t> payload) {
     return parse_rrc_ota_base(payload);
   }
 
   std::expected<std::vector<Events::RrcEvent>, ParserError> parse_ml1_metrics(
-      std::string_view payload);
+      std::span<const uint8_t> payload);
 
   std::expected<std::vector<Events::RrcEvent>, ParserError> parse_ml1_serving(
-      std::string_view payload);
+      std::span<const uint8_t> payload);
 
   [[nodiscard]] std::vector<Events::RrcEvent> on_message_unpacked(BcchMsg& msg);
   [[nodiscard]] std::vector<Events::RrcEvent> on_message_unpacked(DlCcchMsg& msg);

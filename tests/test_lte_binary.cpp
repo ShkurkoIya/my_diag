@@ -1,5 +1,6 @@
 #include <catch2/catch_test_macros.hpp>
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
+#include <span>
 
 #include "core/CellIdentity.h"
 #include "core/Events.h"
@@ -41,7 +42,7 @@ TEST_CASE("0xB0C2 v2 — serving cell identity", "[lte][binary]") {
       0x00,                    // allowed_access
   };
 
-  auto sv = std::string_view(reinterpret_cast<const char*>(payload), sizeof(payload));
+  auto sv = std::span{payload};
   auto result = parser.parse_serv_cell_info(sv);
 
   REQUIRE(result.has_value());
@@ -59,7 +60,7 @@ TEST_CASE("0xB0C2 v2 — serving cell identity", "[lte][binary]") {
 TEST_CASE("0xB0C2 — unknown version returns empty", "[lte][binary]") {
   LteParser parser;
   uint8_t payload[] = {0x99, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-  auto sv = std::string_view(reinterpret_cast<const char*>(payload), sizeof(payload));
+  auto sv = std::span{payload};
   auto result = parser.parse_serv_cell_info(sv);
   REQUIRE(result.has_value());
   CHECK(result.value().empty());
@@ -67,7 +68,8 @@ TEST_CASE("0xB0C2 — unknown version returns empty", "[lte][binary]") {
 
 TEST_CASE("0xB0C2 — too short returns error", "[lte][binary]") {
   LteParser parser;
-  auto result = parser.parse_serv_cell_info("x");
+  const uint8_t x[] = {0x00};
+  auto result = parser.parse_serv_cell_info(std::span{x});
   REQUIRE(!result.has_value());
   CHECK(result.error() == ParserError::PacketTooShort);
 }
@@ -102,7 +104,7 @@ TEST_CASE("0xB17F v4 — serving meas with valid RSRP", "[lte][binary]") {
   payload[22] = 0x01;
   payload[23] = 0x00;
 
-  auto sv = std::string_view(reinterpret_cast<const char*>(payload), sizeof(payload));
+  auto sv = std::span{payload};
   auto result = parser.parse_ml1_serving(sv);
 
   REQUIRE(result.has_value());
@@ -129,7 +131,7 @@ TEST_CASE("0xB17F — invalid RSRP is rejected", "[lte][binary]") {
   payload[8] = 0xFF;
   payload[9] = 0x0F;
 
-  auto sv = std::string_view(reinterpret_cast<const char*>(payload), sizeof(payload));
+  auto sv = std::span{payload};
   auto result = parser.parse_ml1_serving(sv);
   REQUIRE(result.has_value());
   CHECK(result.value().empty());

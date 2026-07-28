@@ -24,7 +24,7 @@ void QualcomParser::register_parser(std::shared_ptr<IRatParser> parser) {
   }
 }
 
-std::expected<void, ParserError> QualcomParser::on_diag_frame(std::string_view raw_frame) {
+std::expected<void, ParserError> QualcomParser::on_diag_frame(std::span<const uint8_t> raw_frame) {
   // Qualcomm DIAG LOG_F frame layout:
   //   [0]    cmd_code (0x10 = LOG_F)
   //   [1-3]  padding
@@ -35,7 +35,7 @@ std::expected<void, ParserError> QualcomParser::on_diag_frame(std::string_view r
 
   LogCode log_code = Utils::Converter::read_le<uint16_t>(raw_frame, 4);
   uint64_t timestamp = Utils::Converter::read_le<uint64_t>(raw_frame, 6);
-  std::string_view payload = raw_frame.substr(14);
+  auto payload = raw_frame.subspan(14);
 
   return on_packet(QualcommPacketView{
       .log_code = log_code,

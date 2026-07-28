@@ -1,5 +1,6 @@
 #include <iomanip>
 #include <iostream>
+#include <span>
 
 #include "core/QualcomParser.h"
 
@@ -75,14 +76,12 @@ int main() {
 
   // Feed the ML1 serving cell measurements packet
   std::cout << "[Test] Feeding ML1 serving cell packet (0xB17F)...\n";
-  auto r1 = parser.on_diag_frame(
-      std::string_view(reinterpret_cast<const char*>(raw_ml1_packet), sizeof(raw_ml1_packet)));
+  auto r1 = parser.on_diag_frame(std::span{raw_ml1_packet});
   if (!r1) std::cout << "[Result] " << QCom::to_string(r1.error()) << "\n\n";
 
   // Feed the RRC OTA SIB1 packet
   std::cout << "[Test] Feeding RRC OTA SIB1 packet (0xB0C0)...\n";
-  auto r2 = parser.on_diag_frame(
-      std::string_view(reinterpret_cast<const char*>(raw_rrc_packet), sizeof(raw_rrc_packet)));
+  auto r2 = parser.on_diag_frame(std::span{raw_rrc_packet});
   if (!r2) std::cout << "[Result] " << QCom::to_string(r2.error()) << "\n\n";
 
   // Print final tracker state

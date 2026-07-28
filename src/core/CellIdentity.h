@@ -75,7 +75,7 @@ struct CellPassport {
   uint8_t freq_band_ind{0};  ///< SIB1: frequency band indicator (e.g. 7 = 2600 MHz)
 
   [[nodiscard]] constexpr bool has_identity() const noexcept { return cell_id > 0; }
-  auto operator<=>(const CellPassport&) const = default;
+  bool operator==(const CellPassport&) const = default;
 };
 
 // ============================================================================
@@ -116,7 +116,7 @@ struct LteRadioParams {
   int8_t s_non_intra_search{0};   ///< Threshold for inter-freq meas (dB)
   uint8_t thresh_serving_low{0};  ///< Threshold for serving cell (dB)
 
-  auto operator<=>(const LteRadioParams&) const = default;
+  bool operator==(const LteRadioParams&) const = default;
 };
 
 /// @brief NR radio parameters from SIB1/SIB2/SIB3.
@@ -130,7 +130,7 @@ struct NrRadioParams {
   uint8_t q_hyst{0};
   uint16_t ranac{0};  ///< RAN Area Code (NR specific)
 
-  auto operator<=>(const NrRadioParams&) const = default;
+  bool operator==(const NrRadioParams&) const = default;
 };
 
 /// @brief WCDMA/UMTS radio parameters.
@@ -140,7 +140,7 @@ struct WcdmaRadioParams {
   int8_t q_rx_lev_min_rscp{0};
   int8_t q_qual_min_ecno{0};
 
-  auto operator<=>(const WcdmaRadioParams&) const = default;
+  bool operator==(const WcdmaRadioParams&) const = default;
 };
 
 /// @brief GSM radio parameters.
@@ -150,7 +150,7 @@ struct GsmRadioParams {
   int8_t rxlev_access_min{0};
   uint8_t cell_reselect_hysteresis{0};
 
-  auto operator<=>(const GsmRadioParams&) const = default;
+  bool operator==(const GsmRadioParams&) const = default;
 };
 
 // ============================================================================
@@ -267,8 +267,6 @@ struct CellRadio {
         },
         radio_data);
   }
-
-  auto operator<=>(const CellRadio&) const = default;
 };
 
 // ============================================================================
@@ -278,13 +276,12 @@ struct CellRadio {
 struct GsmSignalParams {
   int8_t rxlev{0};    ///< Received signal level (dBm + 110)
   uint8_t rxqual{0};  ///< BER quality indicator (0-7)
-  auto operator<=>(const GsmSignalParams&) const = default;
+  bool operator==(const GsmSignalParams&) const = default;
 };
 
 struct WcdmaSignalParams {
   float rscp{0.0f};  ///< Received Signal Code Power (dBm)
   float ecio{0.0f};  ///< Ec/Io ratio (dB)
-  auto operator<=>(const WcdmaSignalParams&) const = default;
 };
 
 struct LteSignalParams {
@@ -292,14 +289,12 @@ struct LteSignalParams {
   float rsrq{0.0f};  ///< Reference Signal Received Quality (dB)
   float sinr{0.0f};  ///< Signal to Interference + Noise Ratio (dB)
   float rssi{0.0f};  ///< Received Signal Strength Indicator (dBm)
-  auto operator<=>(const LteSignalParams&) const = default;
 };
 
 struct NrSignalParams {
   float ss_rsrp{0.0f};  ///< SS Reference Signal Received Power (dBm)
   float ss_rsrq{0.0f};  ///< SS Reference Signal Received Quality (dB)
   float ss_sinr{0.0f};  ///< SS Signal to Interference + Noise Ratio (dB)
-  auto operator<=>(const NrSignalParams&) const = default;
 };
 
 struct CellSignal {
@@ -332,8 +327,6 @@ struct CellSignal {
         },
         signal_data);
   }
-
-  auto operator<=>(const CellSignal&) const = default;
 };
 
 // ============================================================================
@@ -388,8 +381,6 @@ public:
   [[nodiscard]] auto* signal_as_if(this auto&& self) noexcept {
     return std::forward<decltype(self)>(self).signal.template get_if<T>();
   }
-
-  auto operator<=>(const CellIdentity&) const = default;
 };
 
 // ============================================================================

@@ -18,7 +18,7 @@
 #include <thread>
 #include <vector>
 
-#include "core/ParserInterface.h"
+#include "core/Types.h"
 #include "core/Utils.h"
 #include "transport/DataSourceInterface.h"
 #include "transport/DiagCommands.h"
@@ -198,8 +198,7 @@ private:
       m_callback(QualcommPacketView{
           .log_code = log_code,
           .timestamp = timestamp,
-          .payload = std::string_view(reinterpret_cast<const char*>(payload_data.data()),
-                                      payload_data.size()),
+          .payload = payload_data,
       });
     }
   }

@@ -25,10 +25,10 @@ using Utils::valid_lte_rsrp;
 // Arrives faster than SIB1 ASN.1 decode — useful as primary identity source.
 
 std::expected<std::vector<Events::RrcEvent>, ParserError> LteParser::parse_serv_cell_info(
-    std::string_view payload) {
+    std::span<const uint8_t> payload) {
   if (payload.size() < 2) return std::unexpected(ParserError::PacketTooShort);
 
-  auto p = reinterpret_cast<const uint8_t*>(payload.data());
+  auto p = payload.data();
   uint8_t version = p[0];
   const uint8_t* body = p + 1;
   size_t body_len = payload.size() - 1;
@@ -84,10 +84,10 @@ std::expected<std::vector<Events::RrcEvent>, ParserError> LteParser::parse_serv_
 // Version 4: 16-bit EARFCN. Version 5: 32-bit EARFCN.
 
 std::expected<std::vector<Events::RrcEvent>, ParserError> LteParser::parse_ml1_serving(
-    std::string_view payload) {
+    std::span<const uint8_t> payload) {
   if (payload.size() < 20) return std::unexpected(ParserError::PacketTooShort);
 
-  auto p = reinterpret_cast<const uint8_t*>(payload.data());
+  auto p = payload.data();
   uint8_t version = p[0];
 
   uint32_t earfcn = 0;
@@ -133,10 +133,10 @@ std::expected<std::vector<Events::RrcEvent>, ParserError> LteParser::parse_ml1_s
 // Per-cell stride: 32 bytes. Up to 16 neighbors.
 
 std::expected<std::vector<Events::RrcEvent>, ParserError> LteParser::parse_ml1_neighbors(
-    std::string_view payload) {
+    std::span<const uint8_t> payload) {
   if (payload.size() < 8) return std::unexpected(ParserError::PacketTooShort);
 
-  auto p = reinterpret_cast<const uint8_t*>(payload.data());
+  auto p = payload.data();
   uint8_t version = p[0];
 
   uint32_t earfcn = 0;
@@ -195,10 +195,10 @@ std::expected<std::vector<Events::RrcEvent>, ParserError> LteParser::parse_ml1_n
 // Only process subpacket id=0x19.
 
 std::expected<std::vector<Events::RrcEvent>, ParserError> LteParser::parse_ml1_meas_resp(
-    std::string_view payload) {
+    std::span<const uint8_t> payload) {
   if (payload.size() < 8) return std::unexpected(ParserError::PacketTooShort);
 
-  auto p = reinterpret_cast<const uint8_t*>(payload.data());
+  auto p = payload.data();
   uint8_t pkt_ver = p[0];
   if (pkt_ver != 1) return std::vector<Events::RrcEvent>{};
 
@@ -291,10 +291,10 @@ std::expected<std::vector<Events::RrcEvent>, ParserError> LteParser::parse_ml1_m
 // Confirms serving EARFCN + PCI. No signal data.
 
 std::expected<std::vector<Events::RrcEvent>, ParserError> LteParser::parse_ml1_serv_info(
-    std::string_view payload) {
+    std::span<const uint8_t> payload) {
   if (payload.size() < 8) return std::unexpected(ParserError::PacketTooShort);
 
-  auto p = reinterpret_cast<const uint8_t*>(payload.data());
+  auto p = payload.data();
   uint8_t version = p[0];
 
   uint32_t earfcn = 0;

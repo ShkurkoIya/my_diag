@@ -12,7 +12,6 @@ find_package(Threads REQUIRED)
 # srsRAN isolated sysroot
 # =============================================================================
 set(SRSRAN_ROOT "${CMAKE_SOURCE_DIR}/thirdparty/srsran_sysroot")
-set(SRSRAN_INCLUDE_DIR "${SRSRAN_ROOT}/include")
 
 set(SRSRAN_LIBS
     "${SRSRAN_ROOT}/lib/librrc_asn1.a"
@@ -23,7 +22,20 @@ set(SRSRAN_LIBS
 )
 
 # =============================================================================
-# Library: qcom_parser (reusable static library)
+# Target 1: qcom_model (INTERFACE — header-only data model, zero deps)
+# =============================================================================
+add_library(qcom_model INTERFACE)
+target_include_directories(qcom_model INTERFACE ${CMAKE_SOURCE_DIR}/src)
+
+# =============================================================================
+# Target 2: qcom_protocol (INTERFACE — CRC16, HDLC, DIAG commands, zero OS deps)
+# =============================================================================
+add_library(qcom_protocol INTERFACE)
+target_include_directories(qcom_protocol INTERFACE ${CMAKE_SOURCE_DIR}/src)
+target_link_libraries(qcom_protocol INTERFACE qcom_model Threads::Threads)
+
+# =============================================================================
+# Target 3: qcom_parser (STATIC — ASN.1 + binary parsers, depends on srsRAN)
 # =============================================================================
 add_library(qcom_parser STATIC
     src/core/QualcomParser.cpp
@@ -34,7 +46,7 @@ add_library(qcom_parser STATIC
 
 target_include_directories(qcom_parser PUBLIC
     ${CMAKE_SOURCE_DIR}/src
-    ${SRSRAN_INCLUDE_DIR}
+    ${SRSRAN_ROOT}/include
 )
 
 target_compile_options(qcom_parser PRIVATE
@@ -43,6 +55,7 @@ target_compile_options(qcom_parser PRIVATE
 )
 
 target_link_libraries(qcom_parser PUBLIC
+    qcom_model
     ${SRSRAN_LIBS}
     Threads::Threads
     ${CMAKE_DL_LIBS}
@@ -74,10 +87,12 @@ if(BUILD_TESTS)
         tests/test_lte_binary.cpp
         tests/test_cell_tracker.cpp
         tests/test_lte_asn1.cpp
+        tests/test_protocol.cpp
     )
 
     target_link_libraries(tests PRIVATE
         qcom_parser
+        qcom_protocol
         Catch2::Catch2WithMain
     )
 

@@ -6,6 +6,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <cstring>
+#include <span>
 #include <string_view>
 
 namespace QCom::Utils {
@@ -14,6 +15,14 @@ class Converter {
 public:
   template <typename T>
   [[nodiscard]] static constexpr T read_le(std::string_view data, size_t offset) noexcept {
+    if (offset + sizeof(T) > data.size()) return T{};
+    T result{};
+    std::memcpy(&result, data.data() + offset, sizeof(T));
+    return result;
+  }
+
+  template <typename T>
+  [[nodiscard]] static constexpr T read_le(std::span<const uint8_t> data, size_t offset) noexcept {
     if (offset + sizeof(T) > data.size()) return T{};
     T result{};
     std::memcpy(&result, data.data() + offset, sizeof(T));

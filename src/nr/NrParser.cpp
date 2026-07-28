@@ -23,10 +23,10 @@ using Utils::valid_nr_pci;
 // Per cell: PCI(10 bits), num_beams(4 bits), then beams of 8 bytes each.
 
 std::expected<std::vector<Events::RrcEvent>, ParserError> NrParser::parse_ml1_metrics(
-    std::string_view payload) {
+    std::span<const uint8_t> payload) {
   if (payload.size() < 8) return std::unexpected(ParserError::PacketTooShort);
 
-  auto p = reinterpret_cast<const uint8_t*>(payload.data());
+  auto p = payload.data();
   uint8_t num_subpkts = p[2];
   size_t pos = 4;
 
@@ -109,10 +109,10 @@ std::expected<std::vector<Events::RrcEvent>, ParserError> NrParser::parse_ml1_me
 // Same container as 0xB97F. Per subpacket: NRARFCN, PCI, RSRP/RSRQ/SINR.
 
 std::expected<std::vector<Events::RrcEvent>, ParserError> NrParser::parse_ml1_serving(
-    std::string_view payload) {
+    std::span<const uint8_t> payload) {
   if (payload.size() < 8) return std::unexpected(ParserError::PacketTooShort);
 
-  auto p = reinterpret_cast<const uint8_t*>(payload.data());
+  auto p = payload.data();
   uint8_t num_subpkts = p[2];
   size_t pos = 4;
 

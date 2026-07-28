@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <cstdint>
 #include <expected>
+#include <span>
 #include <string_view>
 
 #include "core/Events.h"
@@ -17,7 +18,7 @@ template <typename Derived>
 struct LogEntry {
   LogCode code;
   std::expected<std::vector<Events::RrcEvent>, ParserError> (Derived::*handler)(
-      std::string_view payload);
+      std::span<const uint8_t> payload);
   std::string_view name;
 };
 
@@ -63,7 +64,7 @@ public:
   // --- RRC OTA base parsing (shared by LTE and NR) ---
 
   std::expected<std::vector<Events::RrcEvent>, ParserError> parse_rrc_ota_base(
-      std::string_view payload) {
+      std::span<const uint8_t> payload) {
     if (payload.size() < QCOM_RRC_METADATA_SIZE) {
       return std::unexpected(ParserError::PacketTooShort);
     }
@@ -74,14 +75,14 @@ public:
       return std::unexpected(ParserError::UnknownChannelType);
     }
 
-    std::string_view asn1_data = payload.substr(QCOM_RRC_ASN1_DATA_OFFSET);
+    auto asn1_data = payload.subspan(QCOM_RRC_ASN1_DATA_OFFSET);
     if (asn1_data.empty()) return std::unexpected(ParserError::NoAsn1Payload);
 
     auto radio_opt =
-        static_cast<Derived*>(this)->parse_metadata(payload.substr(0, QCOM_RRC_METADATA_SIZE));
+        static_cast<Derived*>(this)->parse_metadata(payload.subspan(0, QCOM_RRC_METADATA_SIZE));
     if (!radio_opt.has_value()) return std::unexpected(ParserError::PacketTooShort);
 
-    asn1::cbit_ref bref(reinterpret_cast<const uint8_t*>(asn1_data.data()), asn1_data.size());
+    asn1::cbit_ref bref(asn1_data.data(), asn1_data.size());
     return dispatch_unpack(channel, bref);
   }
 
@@ -108,7 +109,7 @@ private:
 
   // Dispatch log code to the correct handler via the static table
   std::expected<std::vector<Events::RrcEvent>, ParserError> dispatch_to_handler(
-      LogCode log_code, std::string_view payload) {
+      LogCode log_code, std::span<const uint8_t> payload) {
     constexpr auto& table = Derived::kLogTable;
     auto it = std::find_if(table.begin(), table.end(),
                            [log_code](const auto& e) { return e.code == log_code; });
