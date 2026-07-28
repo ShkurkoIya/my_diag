@@ -15,7 +15,7 @@ public:
   virtual ~IDataSource() = default;
 
   virtual void set_frame_callback(FrameCallback cb) = 0;
-  virtual bool start() = 0;
+  [[nodiscard]] virtual bool start() = 0;
   virtual void stop() = 0;
 };
 
