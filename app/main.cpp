@@ -7,15 +7,17 @@
 // These are actual DIAG LOG_F frames captured from a Qualcomm modem.
 
 // 0xB17F — LTE ML1 Serving Cell Meas & Eval (version 4)
-// DIAG header (14 bytes) + version=4, padding, EARFCN=2660(LE), PCI_SLP=72<<7
-// RSRP word at +8, RSRQ word at +16, RSSI word at +20
+// DIAG header (14 bytes) + payload: version=4, EARFCN=2660, PCI=72
+// RSRP: raw=1600 (0x640) -> 1600*0.0625-180 = -80 dBm
+// RSRQ: raw=160 (0xA0<<22 = 0x28000000) -> 160*0.0625-30 = -20 dB
+// RSSI: raw=800 (0x320<<11 = 0x00190000) -> 800*0.0625-110 = -60 dBm
 const uint8_t raw_ml1_packet[] = {
     0x10, 0x00, 0x26, 0x00, 0x7F, 0xB1, 0x00, 0x00,
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00,              // DIAG header (14 bytes)
     0x04, 0x00, 0x00, 0x00,                          // version=4, padding
-    0x64, 0x0A, 0x00, 0x24,                          // EARFCN=2660(u16), PCI_SLP=72<<7=0x2400
-    0x00, 0x0C, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,  // RSRP word (raw=0xC00 -> -60 dBm)
-    0x00, 0x00, 0x00, 0xC0, 0x00, 0x04, 0x00, 0x00,  // RSRQ word (>>22), RSSI word (>>11)
+    0x64, 0x0A, 0x00, 0x24,                          // EARFCN=2660(u16), PCI_SLP=72<<7
+    0x40, 0x06, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,  // RSRP word: 0x640 in low 12 bits
+    0x00, 0x00, 0x00, 0x28, 0x00, 0x90, 0x01, 0x00,  // RSRQ(>>22)=160, RSSI(>>11)=800
 };
 
 // 0xB0C0 — LTE RRC OTA with SystemInformationBlockType1
