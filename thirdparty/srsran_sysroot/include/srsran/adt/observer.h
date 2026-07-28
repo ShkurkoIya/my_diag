@@ -29,7 +29,7 @@
 
 namespace srsran {
 
-using observer_id                     = std::size_t;
+using observer_id = std::size_t;
 const std::size_t invalid_observer_id = std::numeric_limits<observer_id>::max();
 
 template <typename... Args>
@@ -37,12 +37,11 @@ class observer;
 template <typename T>
 struct is_observer : public std::false_type {};
 template <typename... Args2>
-struct is_observer<observer<Args2...> > : public std::true_type {};
+struct is_observer<observer<Args2...>> : public std::true_type {};
 
 //! Type-erasure of Observer
 template <typename... Args>
-class observer
-{
+class observer {
 public:
   using callback_t = std::function<void(Args...)>;
   template <typename Callable>
@@ -53,26 +52,23 @@ public:
   observer() = default;
 
   //! Subscribe Observer that is a callback
-  template <typename Callable, typename Check = enable_if_callback_t<Callable> >
-  observer(Callable&& callable) : callback(std::forward<Callable>(callable))
-  {}
+  template <typename Callable, typename Check = enable_if_callback_t<Callable>>
+  observer(Callable&& callable) : callback(std::forward<Callable>(callable)) {}
 
   template <typename Observer,
-            typename TCheck =
-                typename std::enable_if<not std::is_convertible<Observer, callback_t>::value, observer_id>::type>
-  observer(Observer& observer) : callback([&observer](Args... args) { observer.trigger(std::forward<Args>(args)...); })
-  {}
+            typename TCheck = typename std::enable_if<
+                not std::is_convertible<Observer, callback_t>::value, observer_id>::type>
+  observer(Observer& observer)
+      : callback([&observer](Args... args) { observer.trigger(std::forward<Args>(args)...); }) {}
 
   template <typename Observer>
-  observer(Observer& observer, void (Observer::*trigger_method)(Args...)) :
-    callback([&observer, trigger_method](Args... args) { (observer.*trigger_method)(std::forward<Args>(args)...); })
-  {}
+  observer(Observer& observer, void (Observer::*trigger_method)(Args...))
+      : callback([&observer, trigger_method](Args... args) {
+        (observer.*trigger_method)(std::forward<Args>(args)...);
+      }) {}
 
-  void operator()(Args... args)
-  {
-    if (callback) {
-      callback(std::forward<Args>(args)...);
-    }
+  void operator()(Args... args) {
+    if (callback) { callback(std::forward<Args>(args)...); }
   }
 
   explicit operator bool() const { return static_cast<bool>(callback); }
@@ -84,15 +80,13 @@ private:
 };
 
 template <typename... Args>
-class base_observable
-{
+class base_observable {
 public:
   using this_observer_t = observer<Args...>;
 
   //! Subscribe Observer that is a callback
   template <typename... Args2>
-  observer_id subscribe(Args2&&... args)
-  {
+  observer_id subscribe(Args2&&... args) {
     std::size_t id = 0;
     for (auto& slot : observers) {
       if (not static_cast<bool>(slot)) {
@@ -108,8 +102,7 @@ public:
   }
 
   //! Unsubscribe Observer
-  bool unsubscribe(observer_id id)
-  {
+  bool unsubscribe(observer_id id) {
     if (id < observers.size() and static_cast<bool>(observers[id])) {
       observers[id] = nullptr;
       return true;
@@ -117,23 +110,17 @@ public:
     return false;
   }
 
-  std::size_t nof_observers() const
-  {
+  std::size_t nof_observers() const {
     std::size_t count = 0;
-    for (auto& slot : observers) {
-      count += static_cast<bool>(slot) ? 1 : 0;
-    }
+    for (auto& slot : observers) { count += static_cast<bool>(slot) ? 1 : 0; }
     return count;
   }
 
   void unsubscribe_all() { observers.clear(); }
 
   //! Signal result to observers
-  void dispatch(Args... args)
-  {
-    for (auto& obs_callback : observers) {
-      obs_callback(std::forward<Args>(args)...);
-    }
+  void dispatch(Args... args) {
+    for (auto& obs_callback : observers) { obs_callback(std::forward<Args>(args)...); }
   }
 
 protected:
@@ -145,35 +132,28 @@ protected:
 };
 
 template <typename... Args>
-class observable : public base_observable<Args...>
-{};
+class observable : public base_observable<Args...> {};
 
 template <typename Event>
 using event_observer = observer<const Event&>;
 
 //! Special case of observable for event types
 template <typename Event>
-class event_dispatcher : public base_observable<const Event&>
-{};
+class event_dispatcher : public base_observable<const Event&> {};
 
 //! Event Subject that enqueues events and only signals observers when ::process() is called
 template <typename Event>
-class event_queue : public base_observable<const Event&>
-{
+class event_queue : public base_observable<const Event&> {
   using base_t = base_observable<const Event&>;
 
 public:
   template <typename... Args>
-  void enqueue(Args&&... args)
-  {
+  void enqueue(Args&&... args) {
     pending_events.emplace_back(std::forward<Args>(args)...);
   }
 
-  void process()
-  {
-    for (auto& ev : pending_events) {
-      base_t::dispatch(ev);
-    }
+  void process() {
+    for (auto& ev : pending_events) { base_t::dispatch(ev); }
     pending_events.clear();
   }
 
@@ -186,58 +166,50 @@ private:
 
 //! RAII class to automatically unsubscribe an observer from an Event
 template <typename Event>
-class unique_observer_id
-{
+class unique_observer_id {
   using subject_t = base_observable<const Event&>;
 
 public:
   unique_observer_id(subject_t& parent_, observer_id id_) : parent(&parent_), id(id_) {}
   template <typename T>
-  unique_observer_id(subject_t& parent_, T&& callable) : parent(&parent_)
-  {
+  unique_observer_id(subject_t& parent_, T&& callable) : parent(&parent_) {
     id = parent->subscribe(std::forward<T>(callable));
   }
   template <typename Observer>
-  unique_observer_id(subject_t& parent_, Observer& observer, void (Observer::*trigger_method)(const Event&)) :
-    parent(&parent_)
-  {
+  unique_observer_id(subject_t& parent_, Observer& observer,
+                     void (Observer::*trigger_method)(const Event&))
+      : parent(&parent_) {
     id = parent->subscribe(observer, trigger_method);
   }
-  unique_observer_id(unique_observer_id&& other) noexcept : parent(other.parent), id(other.id)
-  {
+  unique_observer_id(unique_observer_id&& other) noexcept : parent(other.parent), id(other.id) {
     other.parent = nullptr;
   }
   unique_observer_id(const unique_observer_id& other) = delete;
 
-  unique_observer_id& operator=(unique_observer_id&& other) noexcept
-  {
-    parent   = other.parent;
-    id       = other.id;
+  unique_observer_id& operator=(unique_observer_id&& other) noexcept {
+    parent = other.parent;
+    id = other.id;
     other.id = invalid_observer_id;
     return *this;
   }
   unique_observer_id& operator=(const unique_observer_id& other) = delete;
-  ~unique_observer_id()
-  {
-    if (id != invalid_observer_id) {
-      parent->unsubscribe(id);
-    }
+  ~unique_observer_id() {
+    if (id != invalid_observer_id) { parent->unsubscribe(id); }
   }
 
   observer_id get_id() const { return id; }
-  bool        is_valid() const { return id != invalid_observer_id; }
-  observer_id release()
-  {
+  bool is_valid() const { return id != invalid_observer_id; }
+  observer_id release() {
     observer_id ret = id;
-    id              = invalid_observer_id;
+    id = invalid_observer_id;
     return ret;
   }
 
 private:
-  subject_t*  parent;
+  subject_t* parent;
   observer_id id;
 };
 
-} // namespace srsran
+}  // namespace srsran
 
-#endif // SRSRAN_OBSERVER_H
+#endif  // SRSRAN_OBSERVER_H

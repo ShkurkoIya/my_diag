@@ -59,50 +59,50 @@ void trace_duration_begin(const std::string& category, const std::string& name);
 /// Generates the end phase of a duration event.
 void trace_duration_end(const std::string& category, const std::string& name);
 
-#define SRSLOG_TRACE_COMBINE1(X, Y) X##Y
-#define SRSLOG_TRACE_COMBINE(X, Y) SRSLOG_TRACE_COMBINE1(X, Y)
+#  define SRSLOG_TRACE_COMBINE1(X, Y) X##Y
+#  define SRSLOG_TRACE_COMBINE(X, Y) SRSLOG_TRACE_COMBINE1(X, Y)
 
 /// Generates a complete event.
-#define trace_complete_event(C, N)                                                                                     \
-  auto SRSLOG_TRACE_COMBINE(scoped_complete_event, __LINE__) = srslog::detail::scoped_complete_event(C, N)
+#  define trace_complete_event(C, N)                             \
+    auto SRSLOG_TRACE_COMBINE(scoped_complete_event, __LINE__) = \
+        srslog::detail::scoped_complete_event(C, N)
 
-/// Generates a complete event but only is recorded if the event duration exceeds a certain threshold in microseconds.
-#define trace_threshold_complete_event(C, N, T)                                                                        \
-  auto SRSLOG_TRACE_COMBINE(scoped_complete_event, __LINE__) = srslog::detail::scoped_complete_event(C, N, T)
+/// Generates a complete event but only is recorded if the event duration exceeds a certain
+/// threshold in microseconds.
+#  define trace_threshold_complete_event(C, N, T)                \
+    auto SRSLOG_TRACE_COMBINE(scoped_complete_event, __LINE__) = \
+        srslog::detail::scoped_complete_event(C, N, T)
 
 #else
 
 /// No-ops.
-#define trace_duration_begin(C, N)
-#define trace_duration_end(C, N)
-#define trace_complete_event(C, N)
-#define trace_threshold_complete_event(C, N, T)
+#  define trace_duration_begin(C, N)
+#  define trace_duration_end(C, N)
+#  define trace_complete_event(C, N)
+#  define trace_threshold_complete_event(C, N, T)
 
 #endif
 
 namespace detail {
 
 /// Scoped type object for implementing a complete event.
-class scoped_complete_event
-{
+class scoped_complete_event {
 public:
-  scoped_complete_event(const char*               cat,
-                        const char*               n,
-                        std::chrono::microseconds threshold = std::chrono::microseconds::zero()) :
-    category(cat), name(n), start(std::chrono::steady_clock::now()), threshold(threshold)
-  {}
+  scoped_complete_event(const char* cat, const char* n,
+                        std::chrono::microseconds threshold = std::chrono::microseconds::zero())
+      : category(cat), name(n), start(std::chrono::steady_clock::now()), threshold(threshold) {}
 
   ~scoped_complete_event();
 
 private:
-  const char* const                                  category;
-  const char* const                                  name;
+  const char* const category;
+  const char* const name;
   std::chrono::time_point<std::chrono::steady_clock> start;
-  std::chrono::microseconds                          threshold;
+  std::chrono::microseconds threshold;
 };
 
-} // namespace detail
+}  // namespace detail
 
-} // namespace srslog
+}  // namespace srslog
 
-#endif // SRSLOG_EVENT_TRACE_H
+#endif  // SRSLOG_EVENT_TRACE_H

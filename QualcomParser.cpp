@@ -1,30 +1,25 @@
-#include "QualcomParser.h"
-#include "CellIdentity.h"
-#include "lte/LteRrcParser.h"
 #include <algorithm>
 #include <cstdint>
 #include <expected>
 #include <iostream>
 #include <memory>
 
-namespace observer_qcom_parser {
+#include "CellIdentity.h"
+#include "QualcomParser.h"
+#include "lte/LteParser.h"
 
-QualcommParser::QualcommParser(
-    std::vector<std::shared_ptr<IRatParser>> initial_modules) {
+namespace QCommParser {
 
+QualcommParser::QualcommParser(std::vector<std::shared_ptr<IRatParser>> initial_modules) {
   if (initial_modules.empty()) {
-    register_parser_module(std::make_shared<lte::LteRrcParser>());
+    register_parser_module(std::make_shared<Lte::LteRrcParser>());
   } else {
-    for (auto &module : initial_modules) {
-      register_parser_module(module);
-    }
+    for (auto& module : initial_modules) { register_parser_module(module); }
   }
 }
 
-void QualcommParser::register_parser_module(
-    std::shared_ptr<IRatParser> parser_module) {
-  if (!parser_module)
-    return;
+void QualcommParser::register_parser_module(std::shared_ptr<IRatParser> parser_module) {
+  if (!parser_module) return;
 
   for (LogCode code : parser_module->get_supported_codes()) {
     if (m_parsers.find(code) != m_parsers.end()) {
@@ -36,10 +31,8 @@ void QualcommParser::register_parser_module(
   }
 }
 
-std::expected<void, ParserError>
-QualcommParser::on_log_packet(std::string_view raw_frame) {
-  if (raw_frame.size() < 14)
-    return std::unexpected(ParserError::PacketTooShort);
+std::expected<void, ParserError> QualcommParser::on_log_packet(std::string_view raw_frame) {
+  if (raw_frame.size() < 14) return std::unexpected(ParserError::PacketTooShort);
 
   uint8_t byte_four = static_cast<uint8_t>(raw_frame[4]);
   uint8_t byte_five = static_cast<uint8_t>(raw_frame[5]);
@@ -62,35 +55,31 @@ QualcommParser::on_log_packet(std::string_view raw_frame) {
 }
 
 void QualcommParser::emit_update() {
-  if (!m_monitor_cb)
-    return;
+  if (!m_monitor_cb) return;
 
   std::vector<CellIdentity> all_cells;
 
-  for (const auto &[code, parser] : m_parsers) {
+  for (const auto& [code, parser] : m_parsers) {
     auto cells = parser->get_cells();
-    for (const auto &cell : cells) {
+    for (const auto& cell : cells) {
       // Ищем соту в итоговом векторе по PCI и частоте
-      auto it = std::find_if(
-          all_cells.begin(), all_cells.end(), [&cell](const CellIdentity &c) {
-            return c.pci_bsic == cell.pci_bsic && c.freq == cell.freq;
-          });
+      auto it = std::find_if(all_cells.begin(), all_cells.end(), [&cell](const CellIdentity& c) {
+        return c.radio.pci_bsic() == cell.radio.pci_bsic() && c.radio.freq() == cell.radio.freq();
+      });
 
       // Собираем и дедуплицируем соты со всех активных плагинов
       if (it == all_cells.end()) {
         all_cells.push_back(cell);
       } else {
         // Если физика уже была в базе, дополняем её паспортом RRC из SIB1
-        if (cell.cell_id > 0) {
-          it->cell_id = cell.cell_id;
-          it->tac = cell.tac;
+        if (cell.passport.has_identity()) {
+          it->passport.cell_id = cell.passport.cell_id;
+          it->passport.tac = cell.passport.tac;
           it->rat = cell.rat;
-          it->mcc = cell.mcc;
-          it->mnc = cell.mnc;
+          it->passport.mcc = cell.passport.mcc;
+          it->passport.mnc = cell.passport.mnc;
         }
-        if (cell.is_serving) {
-          it->is_serving = true;
-        }
+        if (cell.is_serving) { it->is_serving = true; }
       }
     }
   }
@@ -98,4 +87,4 @@ void QualcommParser::emit_update() {
   m_monitor_cb(all_cells);
 }
 
-} // namespace observer_qcom_parser
+}  // namespace QCommParser

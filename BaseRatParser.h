@@ -1,98 +1,179 @@
+#pragma once
+
 #include <cstdint>
 #include <expected>
-#include <mutex>
 #include <string_view>
 #include <tuple>
-#include <vector>
 
-#include "CellIdentity.h"
+#include "Events.h"
 #include "ParserInterface.h"
+#include "Utils.h"
 #include "srsran/asn1/asn1_utils.h"
 
-namespace observer_qcom_parser {
-template <typename Derived> class BaseRatParser : public IRatParser {
-public:
-  std::expected<void, ParserError> parse(LogCode log_code,
-                                         std::string_view payload,
-                                         uint64_t timestamp) override {
-    if (log_code == m_rrc_code) {
-      return parse_rrc_ota(payload);
-    } else if (log_code == m_ml1_code) {
-      return static_cast<Derived *>(this)->parse_ml1_metrics(payload);
-    }
-    return std::unexpected(ParserError::WrongLogCode);
-  }
+namespace QCommParser {
 
-  std::vector<CellIdentity> get_cells() const override {
-    std::lock_guard<std::mutex> lock(m_mutex);
-    return m_captured_cells;
-  }
+template <typename Derived>
+using ParserSlotPtr =
+    std::expected<std::vector<Events::RrcEvent>, ParserError> (Derived::*)(std::string_view);
+
+template <typename Derived>
+struct LogCodeMapping {
+  LogCode code;
+  ParserSlotPtr<Derived> slot_ptr;
+  std::string_view name;
+};
+
+template <typename T>
+struct ParserTraits;
+
+template <typename T>
+concept ValidRatParserDerived = requires {
+  // 1. ПРОВЕРКА СЛОЯ ТИПОВ:
+  typename ParserTraits<T>::MessageTuple;  // Обязан быть srsRAN кортеж!
+
+  // 2. ПРОВЕРКА СЛОЯ МЕТОДОВ (КОНТРАКТ ПЛAГИНА):
+  // База жестко требует, чтобы плагин умел выкусывать частоту и PCI из 7 байт Qualcomm!
+  // { parser.parse_metadata(metadata) } -> std::same_as<std::optional<LocalCellKey>>;
+
+  // автоматически и гарантированно генерирует наш макрос QCOM_REGISTER_LOG_CODES!
+};
+template <typename Derived>
+  requires ValidRatParserDerived<Derived>
+class BaseRatParser : public IRatParser {
+public:
+  // Первые 7 байт — это всегда метаданные чипсета (EARFCN, PCI, Системные флаги)
+  static constexpr size_t QCOM_RRC_METADATA_SIZE = 7;
+  // Тип логического 3GPP канала (BCCH, DL-CCCH и т.д.) лежит строго на 7-м байте (индекс 6)
+  static constexpr size_t QCOM_RRC_CHANNEL_TYPE_OFFSET = 6;
+  // Чистый бинарный ASN.1 payload для srsRAN начинается сразу за метаданными
+  static constexpr size_t QCOM_RRC_ASN1_DATA_OFFSET = 7;
 
 protected:
-  BaseRatParser(LogCode rrc_code, LogCode ml1_code, RatType rat)
-      : m_rrc_code(rrc_code), m_ml1_code(ml1_code), m_rat(rat) {}
+  BaseRatParser() = default;
+  virtual ~BaseRatParser() = default;
 
-  mutable std::mutex m_mutex;
-  std::vector<CellIdentity> m_captured_cells;
-  RatType m_rat;
+  std::expected<std::vector<Events::RrcEvent>, ParserError> parse_rrc_ota_base(
+      std::string_view payload) {
+    if (payload.size() < QCOM_RRC_METADATA_SIZE) {
+      return std::unexpected(ParserError::PacketTooShort);
+    }
+
+    // Выкусываем тип канала из первого байта payload Qualcomm
+    ChannelType channel =
+        to_channel_type(Utils::Converter::read_le<uint8_t>(payload, QCOM_RRC_CHANNEL_TYPE_OFFSET));
+
+    if (channel == ChannelType::UNKNOWN) {
+      return std::unexpected(ParserError::UnknownChannelType);
+    }
+
+    std::string_view asn1_data = payload.substr(QCOM_RRC_ASN1_DATA_OFFSET);
+    if (asn1_data.empty()) { return std::unexpected(ParserError::NoAsn1Payload); }
+
+    asn1::cbit_ref bref(reinterpret_cast<const uint8_t*>(asn1_data.data()), asn1_data.size());
+
+    // Просим наследника проверить заголовок (выкусить Freq/PCI для валидации пакета)
+    auto radio_opt =
+        static_cast<Derived*>(this)->parse_metadata(payload.substr(0, QCOM_RRC_METADATA_SIZE));
+    if (!radio_opt.has_value()) { return std::unexpected(ParserError::PacketTooShort); }
+
+    return dispatch_unpack(channel, bref);
+  }
 
 private:
-  LogCode m_rrc_code;
-  LogCode m_ml1_code;
-
   template <size_t Index = 1>
-  bool dispatch_unpack(ChannelType channel, asn1::cbit_ref &bref,
-                       asn1::json_writer &j_writer) {
+  std::vector<Events::RrcEvent> dispatch_unpack(ChannelType channel, asn1::cbit_ref& bref) {
     using TupleType = typename Derived::MessageTuple;
 
     if constexpr (Index >= std::tuple_size_v<TupleType>) {
-      return false;
+      return {};
     } else {
       if (static_cast<uint8_t>(channel) == Index) {
-        using MsgType = std::tuple_element<Index, TupleType>;
+        using MsgType = std::tuple_element_t<Index, TupleType>;
         MsgType msg;
 
+        // srsRAN распаковывает биты прямо в C++ структуру на стеке
         if (msg.unpack(bref) == asn1::SRSASN_SUCCESS) {
-          msg.to_json(j_writer);
-
-          // Даем дочернему классу шанс залезть внутрь (например, выковырять
-          // SIB1)
-          static_cast<Derived *>(this)->on_message_unpacked(msg);
-          return true;
+          // Мгновенно отдаем структуру наследнику (LteParser), собираем события и летим наверх
+          return static_cast<Derived*>(this)->on_message_unpacked(msg);
         }
-        return false;
+        return {};
       }
-      return dispatch_unpack<Index + 1>(channel, bref, j_writer);
+      return dispatch_unpack<Index + 1>(channel, bref);
     }
-  }
-
-  std::expected<void, ParserError> parse_rrc_ota(std::string_view payload) {
-    if (payload.size() < 7)
-      return std::unexpected(ParserError::PacketTooShort);
-
-    ChannelType channel = to_channel_type(static_cast<uint8_t>(payload[0]));
-    std::string_view asn1_data = payload.substr(7);
-
-    if (asn1_data.empty())
-      return std::unexpected(ParserError::NoAsn1Payload);
-
-    asn1::cbit_ref bref(reinterpret_cast<const uint8_t *>(asn1_data.data()),
-                        asn1_data.size());
-
-    asn1::json_writer j_writer;
-
-    // Даем наследнику выкусить свою физику (EARFCN/PCI) из первых 7 байт
-    // заголовка Qualcomm
-    static_cast<Derived *>(this)->on_pre_parse(payload.substr(0, 7));
-
-    if (!dispatch_unpack(channel, bref, j_writer)) {
-      return std::unexpected(ParserError::SrsranUnpackFailed);
-    }
-
-    static_cast<Derived *>(this)->on_post_parse();
-
-    return {};
   }
 };
 
-} // namespace observer_qcom_parser
+// =========================================================================
+// Вспомогательные макросы для использования в наследниках BaseRatParser<Derived>
+// =========================================================================
+
+#define QCOM_MAP_ENUM(name, val, slot, desc) name = val,
+#define QCOM_MAP_VECTOR(name, val, slot, desc) val,
+#define QCOM_MAP_ARRAY(name, val, slot, desc) LogCodeMapping<Derived>{val, &Derived::slot, desc},
+
+// =========================================================================
+// МАКРОС 1: СЛУЖЕБНАЯ ОБВЯЗКА (Вставляется в начале класса наследника)
+// =========================================================================
+#define QCOM_PARSER(ClassName)                                                               \
+private:                                                                                     \
+  static_assert(std::is_base_of_v<QCommParser::BaseRatParser<ClassName>, ClassName>,         \
+                "🛑 БРО: Твой класс должен наследоваться от BaseRatParser!");                \
+                                                                                             \
+public:                                                                                      \
+  std::expected<std::vector<QCommParser::Events::RrcEvent>, QCommParser::ParserError> parse( \
+      QCommParser::QualcommPacketView pkt) override {                                        \
+    return dispatch_execute<ClassName>(pkt.log_code, pkt.payload);                           \
+  }
+// =========================================================================
+// МАКРОС 2: ДЕКЛАРАТИВНЫЙ РЕГИСТРАТОР КОДОВ И СЛOТОВ
+// =========================================================================
+#define QCOM_REGISTER_LOG_CODES(ClassName, LogListMacro)                                    \
+public:                                                                                     \
+  /* 🤖 Авто-генерация локального анонимного энума */                                       \
+  enum { LogListMacro(QCOM_MAP_ENUM) };                                                     \
+                                                                                            \
+  /* Авто-список лог кодов */                                                               \
+  std::vector<QCommParser::LogCode> get_supported_codes() const override {                  \
+    return {LogListMacro(QCOM_MAP_VECTOR)};                                                 \
+  }                                                                                         \
+                                                                                            \
+  template <typename Derived>                                                               \
+  static constexpr auto get_local_log_map() noexcept {                                      \
+    constexpr std::array<LocalLogCodeMapping<Derived>,                                      \
+                         []() constexpr {                                                   \
+                           size_t count = 0;                                                \
+                           return (LogListMacro(++count - count +) 0);                      \
+                         }()>                                                               \
+        map_data{{LogListMacro(QCOM_MAP_ARRAY)}};                                           \
+    return map_data;                                                                        \
+  }                                                                                         \
+                                                                                            \
+  [[nodiscard]] bool can_handle(QCommParser::LogCode log_code) const noexcept {             \
+    constexpr auto map_data = get_local_log_map<ClassName>();                               \
+    return std::any_of(map_data.begin(), map_data.end(),                                    \
+                       [log_code](const auto& item) { return item.code == log_code; });     \
+  }                                                                                         \
+                                                                                            \
+  std::string_view log_to_string(QCommParser::LogCode log_code) const noexcept override {   \
+    constexpr auto map_data = get_local_log_map<ClassName>();                               \
+    auto it = std::find_if(map_data.begin(), map_data.end(),                                \
+                           [log_code](const auto& item) { return item.code == log_code; }); \
+    if (it != map_data.end()) { return it->name; }                                          \
+    return "Unknown Log Code for " #ClassName;                                              \
+  }                                                                                         \
+                                                                                            \
+  /* Табличный маршрутизатор указателей на методы */                                        \
+  template <typename Derived>                                                               \
+  std::expected<std::vector<QCommParser::Events::RrcEvent>, QCommParser::ParserError>       \
+  dispatch_execute(QCommParser::LogCode log_code, std::string_view payload) {               \
+    constexpr auto map_data = get_local_log_map<Derived>();                                 \
+    auto it = std::find_if(map_data.begin(), map_data.end(),                                \
+                           [log_code](const auto& item) { return item.code == log_code; }); \
+    if (it != map_data.end()) {                                                             \
+      auto slot = it->slot_ptr;                                                             \
+      return (static_cast<Derived*>(this)->*slot)(payload);                                 \
+    }                                                                                       \
+    return std::unexpected(QCommParser::ParserError::WrongLogCode);                         \
+  }
+
+}  // namespace QCommParser

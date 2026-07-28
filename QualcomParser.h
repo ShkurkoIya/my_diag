@@ -11,16 +11,16 @@
 #include "LogCodes.h"
 #include "ParserInterface.h"
 
-namespace observer_qcom_parser {
+namespace QCommParser {
 class QualcommParser {
 public:
-  using CellCallback = std::function<void(const std::vector<CellIdentity> &)>;
+  using CellCallback = std::function<void(const std::vector<CellIdentity>&)>;
 
   QualcommParser(std::vector<std::shared_ptr<IRatParser>> initial_modules = {});
   ~QualcommParser() = default;
 
-  QualcommParser(const QualcommParser &) = delete;
-  QualcommParser &operator=(const QualcommParser &) = delete;
+  QualcommParser(const QualcommParser&) = delete;
+  QualcommParser& operator=(const QualcommParser&) = delete;
 
   void register_parser_module(std::shared_ptr<IRatParser> parser_module);
 
@@ -34,4 +34,4 @@ private:
 
   void emit_update();
 };
-} // namespace observer_qcom_parser
+}  // namespace QCommParser
