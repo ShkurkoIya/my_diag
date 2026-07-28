@@ -42,6 +42,8 @@ add_library(qcom_parser STATIC
     src/lte/LteParser.cpp
     src/lte/LteQcomBinary.cpp
     src/nr/NrParser.cpp
+    src/gsm/GsmParser.cpp
+    src/wcdma/WcdmaParser.cpp
 )
 
 target_include_directories(qcom_parser PUBLIC

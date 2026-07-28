@@ -59,10 +59,13 @@ struct LocalCellKey {
 ///   - IMSI catcher detection: cell_barred, csg_ind, csg_id
 ///   - Network analysis: q_rx_lev_min, intra_freq_reselection_allowed
 struct CellPassport {
-  uint32_t tac{0};      ///< Tracking Area Code (16-bit LTE / 24-bit NR)
-  uint64_t cell_id{0};  ///< Cell Identity (28-bit ECI for LTE, 36-bit NCI for NR)
+  uint32_t tac{0};      ///< TAC (LTE/NR) or LAC (GSM/WCDMA) — same semantic role
+  uint64_t cell_id{0};  ///< Cell Identity (16-bit GSM CID / 28-bit ECI / 36-bit NCI)
   uint16_t mcc{0};      ///< Mobile Country Code (e.g. 250 = Russia)
   uint16_t mnc{0};      ///< Mobile Network Code (e.g. 01 = MTS)
+
+  /// Alias for GSM/WCDMA compatibility
+  [[nodiscard]] constexpr uint32_t lac() const noexcept { return tac; }
 
   bool cell_barred{false};  ///< SIB1: cell is barred for access
   int8_t q_rx_lev_min{0};   ///< SIB1: minimum required RSRP (dBm * 2)
@@ -133,22 +136,33 @@ struct NrRadioParams {
   bool operator==(const NrRadioParams&) const = default;
 };
 
-/// @brief WCDMA/UMTS radio parameters.
+/// @brief WCDMA/UMTS radio parameters from 0x4027 and SIBs.
 struct WcdmaRadioParams {
-  uint32_t uarfcn{0};  ///< UTRA Absolute Radio Freq Channel Number
-  uint16_t psc{0};     ///< Primary Scrambling Code
+  uint32_t dl_uarfcn{0};  ///< DL UTRA Absolute Radio Freq Channel Number
+  uint32_t ul_uarfcn{0};  ///< UL UARFCN
+  uint16_t psc{0};        ///< Primary Scrambling Code (0-511)
   int8_t q_rx_lev_min_rscp{0};
   int8_t q_qual_min_ecno{0};
 
   bool operator==(const WcdmaRadioParams&) const = default;
 };
 
-/// @brief GSM radio parameters.
+/// @brief GSM radio parameters from SI-3/SI-4 and Cell Info.
 struct GsmRadioParams {
   uint32_t arfcn{0};  ///< Absolute Radio Freq Channel Number
-  uint16_t bsic{0};   ///< Base Station Identity Code
-  int8_t rxlev_access_min{0};
-  uint8_t cell_reselect_hysteresis{0};
+  uint16_t bsic{0};   ///< Base Station Identity Code (NCC<<3 | BCC)
+  uint8_t ncc{0};     ///< Network Colour Code (3 bits)
+  uint8_t bcc{0};     ///< Base Station Colour Code (3 bits)
+
+  // SI-3 Cell Selection Parameters (TS 44.018 §10.5.2.4)
+  uint8_t rxlev_access_min{0};  ///< Minimum RxLev for cell access (0-63)
+  uint8_t ms_txpwr_max_cch{0};  ///< Max TX power for RACH (power class)
+  uint8_t ncc_permitted{0xFF};  ///< Bitmask of allowed NCC values
+
+  // SI-3 Rest Octets — Cell Reselection Parameters
+  uint8_t cell_reselect_offset{0};  ///< CRO in 2 dB steps (0-63)
+  uint8_t temporary_offset{0};      ///< 10 dB steps, 7 = infinity
+  uint8_t penalty_time{0};          ///< 0-31, 31 = infinity
 
   bool operator==(const GsmRadioParams&) const = default;
 };
@@ -204,6 +218,24 @@ struct NeighborMeasResult {
   auto operator<=>(const NeighborMeasResult&) const = default;
 };
 
+/// @brief GSM neighbor from BA list / surround measurements.
+struct GsmNeighborCell {
+  uint16_t arfcn{0};
+  uint8_t bsic{0};
+  bool bsic_valid{false};
+  int16_t rxlev{0};  ///< RxLev in dBm (0.0625 resolution from raw)
+  auto operator<=>(const GsmNeighborCell&) const = default;
+};
+
+/// @brief WCDMA neighbor from 0x4005 reselection rank or 0x4111 monitored set.
+struct WcdmaNeighborCell {
+  uint16_t uarfcn{0};
+  uint16_t psc{0};
+  int16_t rscp{0};  ///< RSCP in dBm
+  int16_t ecio{0};  ///< Ec/Io in 0.5 dB steps
+  auto operator<=>(const WcdmaNeighborCell&) const = default;
+};
+
 // ============================================================================
 // CellRadio — variant container for RAT-specific radio + neighbor lists
 // ============================================================================
@@ -220,6 +252,10 @@ struct CellRadio {
 
   // Live neighbor measurements from MeasurementReport (UL-DCCH)
   std::vector<NeighborMeasResult> meas_neighbors;
+
+  // GSM/WCDMA neighbor cells (from proprietary Qualcomm binary logs)
+  std::vector<GsmNeighborCell> gsm_neighbors;
+  std::vector<WcdmaNeighborCell> wcdma_neighbors;
 
   template <typename T>
   [[nodiscard]] auto& get(this auto&& self) {
@@ -243,8 +279,8 @@ struct CellRadio {
             return arg.earfcn;
           else if constexpr (requires { arg.nrarfcn; })
             return arg.nrarfcn;
-          else if constexpr (requires { arg.uarfcn; })
-            return arg.uarfcn;
+          else if constexpr (requires { arg.dl_uarfcn; })
+            return arg.dl_uarfcn;
           else if constexpr (requires { arg.arfcn; })
             return arg.arfcn;
           else

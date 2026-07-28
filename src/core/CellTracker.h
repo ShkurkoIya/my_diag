@@ -53,6 +53,10 @@ public:
             update_cell_signal(cell, e.signal);
           } else if constexpr (std::is_same_v<T, Events::NeighborMeasEvent>) {
             cell.radio.meas_neighbors = e.neighbors;
+          } else if constexpr (std::is_same_v<T, Events::GsmNeighborsEvent>) {
+            cell.radio.gsm_neighbors = e.neighbors;
+          } else if constexpr (std::is_same_v<T, Events::WcdmaNeighborsEvent>) {
+            cell.radio.wcdma_neighbors = e.neighbors;
           } else if constexpr (std::is_same_v<T, Events::GenericRadioParamsEvent>) {
             apply_radio_params(cell, e);
           }
@@ -92,8 +96,8 @@ private:
       params.earfcn = key.freq;
     else if constexpr (requires { params.nrarfcn; })
       params.nrarfcn = key.freq;
-    else if constexpr (requires { params.uarfcn; })
-      params.uarfcn = key.freq;
+    else if constexpr (requires { params.dl_uarfcn; })
+      params.dl_uarfcn = key.freq;
     else if constexpr (requires { params.arfcn; })
       params.arfcn = key.freq;
 

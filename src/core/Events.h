@@ -57,9 +57,18 @@ struct SignalUpdateEvent {
 };
 
 /// @brief Neighbor measurement results from UL-DCCH MeasurementReport.
-/// Source: UL-DCCH -> MeasurementReport -> measResultNeighCells
 struct NeighborMeasEvent {
   std::vector<NeighborMeasResult> neighbors;
+};
+
+/// @brief GSM neighbor cells from 0x5071 surround DB or BA list.
+struct GsmNeighborsEvent {
+  std::vector<GsmNeighborCell> neighbors;
+};
+
+/// @brief WCDMA neighbor cells from 0x4005 resel rank or 0x4111 monitored set.
+struct WcdmaNeighborsEvent {
+  std::vector<WcdmaNeighborCell> neighbors;
 };
 
 /// @brief Generic radio parameters update (SIB2/SIB3/MIB).
@@ -79,9 +88,10 @@ using GenericRadioParamsEvent =
                  RadioParamsEvent<LteRadioParams>, RadioParamsEvent<NrRadioParams>>;
 
 /// @brief Union of all possible parser output events.
-using RrcEvent = std::variant<PassportEvent, IntraNeighborsEvent, InterFreqCarriersEvent,
-                              UtraNeighborsEvent, GeranNeighborsEvent, GenericRadioParamsEvent,
-                              ServingChangedEvent, SignalUpdateEvent, NeighborMeasEvent>;
+using RrcEvent =
+    std::variant<PassportEvent, IntraNeighborsEvent, InterFreqCarriersEvent, UtraNeighborsEvent,
+                 GeranNeighborsEvent, GenericRadioParamsEvent, ServingChangedEvent,
+                 SignalUpdateEvent, NeighborMeasEvent, GsmNeighborsEvent, WcdmaNeighborsEvent>;
 
 /// @brief Envelope wrapping an event with routing metadata.
 struct RrcEventEnvelope {
