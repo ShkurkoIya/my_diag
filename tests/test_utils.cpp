@@ -11,7 +11,7 @@ TEST_CASE("LE reader extracts values correctly", "[utils]") {
   auto sv = std::string_view(reinterpret_cast<const char*>(data), sizeof(data));
 
   CHECK(Converter::read_le<uint16_t>(sv, 0) == 0x0A64);  // 2660
-  CHECK(Converter::read_le<uint16_t>(sv, 2) == 0x0048);   // 72
+  CHECK(Converter::read_le<uint16_t>(sv, 2) == 0x0048);  // 72
   CHECK(Converter::read_le<uint8_t>(sv, 4) == 0xFF);
 }
 
@@ -29,18 +29,10 @@ TEST_CASE("bits() extracts bitfields", "[utils]") {
 }
 
 TEST_CASE("ML1 conversion formulas", "[utils]") {
-  SECTION("RSRP: raw=1600 -> -80 dBm") {
-    CHECK_THAT(ml1_rsrp(1600), WithinAbs(-80.0, 0.1));
-  }
-  SECTION("RSRQ: raw=160 -> -20 dB") {
-    CHECK_THAT(ml1_rsrq(160), WithinAbs(-20.0, 0.1));
-  }
-  SECTION("RSSI: raw=800 -> -60 dBm") {
-    CHECK_THAT(ml1_rssi(800), WithinAbs(-60.0, 0.1));
-  }
-  SECTION("NR SINR: raw=320 -> 0 dB") {
-    CHECK_THAT(ml1_nr_sinr(320), WithinAbs(0.0, 0.1));
-  }
+  SECTION("RSRP: raw=1600 -> -80 dBm") { CHECK_THAT(ml1_rsrp(1600), WithinAbs(-80.0, 0.1)); }
+  SECTION("RSRQ: raw=160 -> -20 dB") { CHECK_THAT(ml1_rsrq(160), WithinAbs(-20.0, 0.1)); }
+  SECTION("RSSI: raw=800 -> -60 dBm") { CHECK_THAT(ml1_rssi(800), WithinAbs(-60.0, 0.1)); }
+  SECTION("NR SINR: raw=320 -> 0 dB") { CHECK_THAT(ml1_nr_sinr(320), WithinAbs(0.0, 0.1)); }
 }
 
 TEST_CASE("Validity checks", "[utils]") {

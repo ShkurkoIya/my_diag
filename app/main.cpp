@@ -30,8 +30,10 @@ const uint8_t
             0x40, 0x00, 0x10, 0x04, 0x61, 0x76, 0x40, 0x00, 0x3d, 0xf0,
 };
 
+namespace {
+
 void print_cell(const QCom::CellIdentity& cell) {
-  std::cout << "  RAT=" << static_cast<int>(cell.rat) << " serving=" << cell.is_serving
+  std::cout << "  RAT=" << QCom::to_string(cell.rat) << " serving=" << cell.is_serving
             << " freq=" << cell.radio.freq() << " pci=" << cell.radio.pci_bsic();
 
   if (cell.passport.has_identity()) {
@@ -56,6 +58,8 @@ void print_cell(const QCom::CellIdentity& cell) {
   std::cout << "\n";
 }
 
+}  // namespace
+
 int main() {
   std::cout << "=== QCom Scanner — srsRAN ASN.1 Pipeline Test ===\n\n";
 
@@ -68,7 +72,7 @@ int main() {
   });
 
   // Feed the ML1 serving cell measurements packet
-  std::cout << "[Test] Feeding ML1 serving cell packet (0xB193)...\n";
+  std::cout << "[Test] Feeding ML1 serving cell packet (0xB17F)...\n";
   auto r1 = parser.on_diag_frame(
       std::string_view(reinterpret_cast<const char*>(raw_ml1_packet), sizeof(raw_ml1_packet)));
   if (!r1) std::cout << "[Result] " << QCom::to_string(r1.error()) << "\n\n";

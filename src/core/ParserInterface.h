@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <cstdio>
 #include <expected>
 #include <string>
 #include <string_view>
@@ -12,7 +13,7 @@ namespace QCom {
 
 using LogCode = uint16_t;
 
-struct alignas(8) QualcommPacketView {
+struct QualcommPacketView {
   LogCode log_code{0};
   uint64_t timestamp{0};
   std::string_view payload;
@@ -27,7 +28,7 @@ enum class ChannelType : uint8_t {
   UNKNOWN = 0
 };
 
-inline ChannelType to_channel_type(uint8_t raw) {
+[[nodiscard]] inline constexpr ChannelType to_channel_type(uint8_t raw) noexcept {
   if (raw >= 1 && raw <= 5) return static_cast<ChannelType>(raw);
   return ChannelType::UNKNOWN;
 }

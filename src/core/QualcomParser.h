@@ -41,6 +41,10 @@ private:
   std::unordered_map<LogCode, std::shared_ptr<IRatParser>> m_dispatch;
   CellTracker m_tracker;
   CellCallback m_cell_cb;
+
+  [[nodiscard]] static RatType classify_rat(LogCode code) noexcept;
+  [[nodiscard]] static LocalCellKey extract_cell_key(const QualcommPacketView& pkt,
+                                                     RatType rat) noexcept;
 };
 
 }  // namespace QCom

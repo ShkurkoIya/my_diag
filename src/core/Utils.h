@@ -2,8 +2,10 @@
 /// @brief Binary parsing utilities: LE readers, bitfield extraction, validity checks.
 #pragma once
 
-#include <bit>
+#include <cassert>
+#include <cstddef>
 #include <cstdint>
+#include <cstring>
 #include <string_view>
 
 namespace QCom::Utils {
@@ -14,28 +16,33 @@ public:
   [[nodiscard]] static constexpr T read_le(std::string_view data, size_t offset) noexcept {
     if (offset + sizeof(T) > data.size()) return T{};
     T result{};
-    __builtin_memcpy(&result, data.data() + offset, sizeof(T));
+    std::memcpy(&result, data.data() + offset, sizeof(T));
     return result;
   }
 
-  /// Read LE value from raw uint8_t pointer
+  /// @pre offset + sizeof(T) must be within valid readable range.
   template <typename T>
-  [[nodiscard]] static constexpr T read_le(const uint8_t* data, size_t offset) noexcept {
+  [[nodiscard]] static T read_le(const uint8_t* data, size_t offset) noexcept {
     T result{};
-    __builtin_memcpy(&result, data + offset, sizeof(T));
+    std::memcpy(&result, data + offset, sizeof(T));
     return result;
   }
 
   template <typename Container>
   [[nodiscard]] static constexpr uint16_t digits_to_number(const Container& digits) noexcept {
     uint16_t result = 0;
-    for (size_t i = 0; i < digits.size(); ++i) result = result * 10 + digits[i];
+    for (size_t i = 0; i < digits.size(); ++i) {
+      assert(digits[i] <= 9);
+      result = result * 10 + digits[i];
+    }
     return result;
   }
 };
 
-/// Qualcomm bitfield extraction: extract `nbits` starting at `lsb` from a word
-[[nodiscard]] inline constexpr uint32_t bits(uint32_t word, int lsb, int nbits) noexcept {
+/// Extract `nbits` starting at bit position `lsb` from a 32-bit word.
+[[nodiscard]] inline constexpr uint32_t bits(uint32_t word, unsigned lsb, unsigned nbits) noexcept {
+  if (nbits == 0) return 0;
+  if (nbits >= 32) return word >> lsb;
   return (word >> lsb) & ((1u << nbits) - 1);
 }
 

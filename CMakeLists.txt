@@ -3,13 +3,10 @@ project(qcom_scanner CXX)
 
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-# Suppress warnings from srsRAN headers under GCC 16 / C++23
-add_compile_options(
-    -Wno-error -Wno-stringop-overflow -Wno-unused-parameter
-    -Wno-unused-variable -Wno-deprecated-declarations -Wno-deprecated
-)
+find_package(Threads REQUIRED)
 
 # =============================================================================
 # srsRAN isolated sysroot
@@ -26,7 +23,7 @@ set(SRSRAN_LIBS
 )
 
 # =============================================================================
-# Library: qcom_parser (the core reusable component)
+# Library: qcom_parser (reusable static library)
 # =============================================================================
 add_library(qcom_parser STATIC
     src/core/QualcomParser.cpp
@@ -40,13 +37,19 @@ target_include_directories(qcom_parser PUBLIC
     ${SRSRAN_INCLUDE_DIR}
 )
 
+target_compile_options(qcom_parser PRIVATE
+    -Wno-error -Wno-stringop-overflow -Wno-unused-parameter
+    -Wno-unused-variable -Wno-deprecated-declarations -Wno-deprecated
+)
+
 target_link_libraries(qcom_parser PUBLIC
     ${SRSRAN_LIBS}
-    pthread m dl
+    Threads::Threads
+    ${CMAKE_DL_LIBS}
 )
 
 # =============================================================================
-# Executable: scanner (CLI demo / manual testing)
+# Executable: scanner (CLI demo)
 # =============================================================================
 add_executable(scanner app/main.cpp)
 target_link_libraries(scanner PRIVATE qcom_parser)
@@ -78,6 +81,7 @@ if(BUILD_TESTS)
         Catch2::Catch2WithMain
     )
 
+    list(APPEND CMAKE_MODULE_PATH ${catch2_SOURCE_DIR}/extras)
     include(CTest)
     include(Catch)
     catch_discover_tests(tests)

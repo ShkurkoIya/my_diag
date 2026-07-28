@@ -190,7 +190,7 @@ std::vector<Events::RrcEvent> NrParser::extract_sib1(const asn1::rrc_nr::sib1_s&
   CellPassport passport;
 
   if (first.tac_present) passport.tac = static_cast<uint32_t>(first.tac.to_number());
-  passport.cell_id = static_cast<uint32_t>(first.cell_id.to_number());
+  passport.cell_id = static_cast<uint64_t>(first.cell_id.to_number());
 
   if (first.plmn_id_list.size() > 0) {
     const auto& plmn = first.plmn_id_list[0];

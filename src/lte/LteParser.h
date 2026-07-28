@@ -2,6 +2,7 @@
 /// @brief LTE DIAG parser — ASN.1 (srsRAN) + proprietary Qualcomm binary formats.
 #pragma once
 
+#include <array>
 #include <cstdint>
 #include <expected>
 #include <optional>

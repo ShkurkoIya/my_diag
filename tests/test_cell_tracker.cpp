@@ -61,10 +61,14 @@ TEST_CASE("CellTracker: serving change clears old serving", "[tracker]") {
   LocalCellKey key1{.freq = 2660, .pci_bsic = 72};
   LocalCellKey key2{.freq = 2660, .pci_bsic = 100};
 
-  tracker.handle_rrc_event(Events::RrcEventEnvelope{
-      .key = key1, .rat = RatType::LTE, .event_data = Events::ServingChangedEvent{true}});
-  tracker.handle_rrc_event(Events::RrcEventEnvelope{
-      .key = key2, .rat = RatType::LTE, .event_data = Events::ServingChangedEvent{true}});
+  tracker.handle_rrc_event(
+      Events::RrcEventEnvelope{.key = key1,
+                               .rat = RatType::LTE,
+                               .event_data = Events::ServingChangedEvent{.is_serving = true}});
+  tracker.handle_rrc_event(
+      Events::RrcEventEnvelope{.key = key2,
+                               .rat = RatType::LTE,
+                               .event_data = Events::ServingChangedEvent{.is_serving = true}});
 
   auto snap = tracker.get_snapshot();
   REQUIRE(snap.size() == 2);
@@ -106,8 +110,8 @@ TEST_CASE("CellTracker: intra-freq neighbors stored", "[tracker]") {
   Events::IntraNeighborsEvent nev;
   nev.neighbors = {{.pci = 100, .q_offset = -3}, {.pci = 200, .q_offset = 0}};
 
-  tracker.handle_rrc_event(Events::RrcEventEnvelope{
-      .key = key, .rat = RatType::LTE, .event_data = std::move(nev)});
+  tracker.handle_rrc_event(
+      Events::RrcEventEnvelope{.key = key, .rat = RatType::LTE, .event_data = std::move(nev)});
 
   auto snap = tracker.get_snapshot();
   REQUIRE(snap.size() == 1);
@@ -122,8 +126,8 @@ TEST_CASE("CellTracker: inter-freq carriers stored", "[tracker]") {
   Events::InterFreqCarriersEvent ev;
   ev.carriers = {{.earfcn = 1300, .thresh_x_high = 10}, {.earfcn = 3500, .thresh_x_high = 8}};
 
-  tracker.handle_rrc_event(Events::RrcEventEnvelope{
-      .key = key, .rat = RatType::LTE, .event_data = std::move(ev)});
+  tracker.handle_rrc_event(
+      Events::RrcEventEnvelope{.key = key, .rat = RatType::LTE, .event_data = std::move(ev)});
 
   auto snap = tracker.get_snapshot();
   REQUIRE(snap.size() == 1);

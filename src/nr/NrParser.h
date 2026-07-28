@@ -1,5 +1,6 @@
 #pragma once
 
+#include <array>
 #include <cstdint>
 #include <expected>
 #include <optional>
@@ -69,7 +70,7 @@ public:
 
   [[nodiscard]] std::optional<LocalCellKey> parse_metadata(std::string_view metadata) noexcept {
     if (metadata.size() < QCOM_RRC_METADATA_SIZE) return std::nullopt;
-    uint32_t nrarfcn = Utils::Converter::read_le<uint16_t>(metadata, OFF_FREQ);
+    uint32_t nrarfcn = Utils::Converter::read_le<uint32_t>(metadata, OFF_FREQ);
     uint16_t pci = Utils::Converter::read_le<uint16_t>(metadata, OFF_PCI);
     return LocalCellKey{.freq = nrarfcn, .pci_bsic = pci};
   }

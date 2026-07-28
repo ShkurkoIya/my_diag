@@ -37,7 +37,7 @@ struct GlobalCellKey {
   uint16_t mcc{0};
   uint16_t mnc{0};
   uint32_t tac{0};
-  uint32_t cell_id{0};
+  uint64_t cell_id{0};
   auto operator<=>(const GlobalCellKey&) const = default;
 };
 
@@ -60,7 +60,7 @@ struct LocalCellKey {
 ///   - Network analysis: q_rx_lev_min, intra_freq_reselection_allowed
 struct CellPassport {
   uint32_t tac{0};      ///< Tracking Area Code (16-bit LTE / 24-bit NR)
-  uint32_t cell_id{0};  ///< Cell Identity (28-bit ECI for LTE, 36-bit NCI for NR)
+  uint64_t cell_id{0};  ///< Cell Identity (28-bit ECI for LTE, 36-bit NCI for NR)
   uint16_t mcc{0};      ///< Mobile Country Code (e.g. 250 = Russia)
   uint16_t mnc{0};      ///< Mobile Network Code (e.g. 01 = MTS)
 

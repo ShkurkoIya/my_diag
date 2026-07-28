@@ -6,8 +6,8 @@
 
 #include "core/CellIdentity.h"
 #include "core/CellTracker.h"
-#include "transport/DataSourceInterface.h"
 #include "core/QualcomParser.h"
+#include "transport/DataSourceInterface.h"
 
 namespace QCom {
 

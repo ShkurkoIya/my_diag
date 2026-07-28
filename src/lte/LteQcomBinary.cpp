@@ -4,7 +4,6 @@
 /// All formats here are reverse-engineered from scat/QCSuper/dia_vldos.
 /// Layouts are version-dependent — unknown versions are silently skipped (fail-closed).
 #include <cstdint>
-#include <iostream>
 
 #include "lte/LteParser.h"
 
