@@ -1,0 +1,29 @@
+CompileFlags:
+  CompilationDatabase: build/
+  Add:
+    - "-std=c++23"
+    - "-Wno-deprecated-declarations"
+    - "-Wno-deprecated"
+    - "-Wno-unused-parameter"
+
+Diagnostics:
+  Suppress:
+    - "pp_file_not_found"        # missing includes in srsRAN internals
+    - "drv_unsupported_option*"  # GCC-specific flags clangd doesn't know
+  ClangTidy:
+    Remove:
+      - "modernize-*"           # srsRAN uses old patterns, not our problem
+      - "bugprone-*"            # too noisy on srsRAN generated code
+      - "cppcoreguidelines-*"
+      - "readability-*"
+      - "performance-*"
+      - "cert-*"
+      - "hicpp-*"
+
+InlayHints:
+  Enabled: true
+  ParameterNames: true
+  DeducedTypes: true
+
+Hover:
+  ShowAKA: true

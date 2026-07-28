@@ -1,90 +1,95 @@
-#include <algorithm>
-#include <cstdint>
-#include <expected>
+#include "QualcomParser.h"
+
 #include <iostream>
 #include <memory>
 
-#include "CellIdentity.h"
-#include "QualcomParser.h"
+#include "gsm/GsmParser.h"
 #include "lte/LteParser.h"
+#include "nr/NrParser.h"
+#include "wcdma/WcdmaParser.h"
 
-namespace QCommParser {
+namespace QCom {
 
-QualcommParser::QualcommParser(std::vector<std::shared_ptr<IRatParser>> initial_modules) {
-  if (initial_modules.empty()) {
-    register_parser_module(std::make_shared<Lte::LteRrcParser>());
-  } else {
-    for (auto& module : initial_modules) { register_parser_module(module); }
-  }
+QualcomParser::QualcomParser() {
+  register_parser(std::make_shared<Lte::LteParser>());
+  register_parser(std::make_shared<Nr::NrParser>());
+  register_parser(std::make_shared<Gsm::GsmParser>());
+  register_parser(std::make_shared<Wcdma::WcdmaParser>());
 }
 
-void QualcommParser::register_parser_module(std::shared_ptr<IRatParser> parser_module) {
-  if (!parser_module) return;
+void QualcomParser::register_parser(std::shared_ptr<IRatParser> parser) {
+  if (!parser) return;
 
-  for (LogCode code : parser_module->get_supported_codes()) {
-    if (m_parsers.find(code) != m_parsers.end()) {
-      std::clog << "[Warning] Collision detected! LogCode " << to_string(code)
-                << " is already occupied. Skipping duplicate registration.\n";
+  for (LogCode code : parser->get_supported_codes()) {
+    if (m_dispatch.contains(code)) {
+      std::clog << "[QualcomParser] LogCode collision: " << to_string(code)
+                << " already registered, skipping\n";
       continue;
     }
-    m_parsers[code] = parser_module;
+    m_dispatch[code] = parser;
   }
 }
 
-std::expected<void, ParserError> QualcommParser::on_log_packet(std::string_view raw_frame) {
+std::expected<void, ParserError> QualcomParser::on_diag_frame(std::string_view raw_frame) {
+  // Qualcomm DIAG LOG_F frame layout:
+  //   [0]    cmd_code (0x10 = LOG_F)
+  //   [1-3]  padding
+  //   [4-5]  log_code (LE16)
+  //   [6-13] timestamp + misc
+  //   [14+]  payload
   if (raw_frame.size() < 14) return std::unexpected(ParserError::PacketTooShort);
 
-  uint8_t byte_four = static_cast<uint8_t>(raw_frame[4]);
-  uint8_t byte_five = static_cast<uint8_t>(raw_frame[5]);
-
-  LogCode log_code = static_cast<LogCode>(byte_four | (byte_five << 8));
-
+  LogCode log_code = Utils::Converter::read_le<uint16_t>(raw_frame, 4);
+  uint64_t timestamp = Utils::Converter::read_le<uint64_t>(raw_frame, 6);
   std::string_view payload = raw_frame.substr(14);
 
-  if (auto it = m_parsers.find(log_code); it != m_parsers.end()) {
-    auto result = it->second->parse(log_code, payload, 0);
-
-    if (result.has_value()) {
-      emit_update();
-      return {};
-    }
-    return result;
-  }
-
-  return std::unexpected(ParserError::WrongLogCode);
+  return on_packet(QualcommPacketView{
+      .log_code = log_code,
+      .timestamp = timestamp,
+      .payload = payload,
+  });
 }
 
-void QualcommParser::emit_update() {
-  if (!m_monitor_cb) return;
+std::expected<void, ParserError> QualcomParser::on_packet(QualcommPacketView pkt) {
+  auto it = m_dispatch.find(pkt.log_code);
+  if (it == m_dispatch.end()) return std::unexpected(ParserError::WrongLogCode);
 
-  std::vector<CellIdentity> all_cells;
+  auto result = it->second->parse(pkt);
+  if (!result.has_value()) return std::unexpected(result.error());
 
-  for (const auto& [code, parser] : m_parsers) {
-    auto cells = parser->get_cells();
-    for (const auto& cell : cells) {
-      // Ищем соту в итоговом векторе по PCI и частоте
-      auto it = std::find_if(all_cells.begin(), all_cells.end(), [&cell](const CellIdentity& c) {
-        return c.radio.pci_bsic() == cell.radio.pci_bsic() && c.radio.freq() == cell.radio.freq();
-      });
-
-      // Собираем и дедуплицируем соты со всех активных плагинов
-      if (it == all_cells.end()) {
-        all_cells.push_back(cell);
-      } else {
-        // Если физика уже была в базе, дополняем её паспортом RRC из SIB1
-        if (cell.passport.has_identity()) {
-          it->passport.cell_id = cell.passport.cell_id;
-          it->passport.tac = cell.passport.tac;
-          it->rat = cell.rat;
-          it->passport.mcc = cell.passport.mcc;
-          it->passport.mnc = cell.passport.mnc;
-        }
-        if (cell.is_serving) { it->is_serving = true; }
-      }
-    }
+  // Extract LocalCellKey from metadata if this is an RRC OTA packet
+  // For ML1 packets, the key comes from the payload itself
+  LocalCellKey key;
+  if (pkt.payload.size() >= 7) {
+    key.freq = Utils::Converter::read_le<uint16_t>(pkt.payload, 2);
+    key.pci_bsic = Utils::Converter::read_le<uint16_t>(pkt.payload, 4);
   }
 
-  m_monitor_cb(all_cells);
+  // Determine RAT from log code range
+  RatType rat = RatType::UNKNOWN;
+  uint8_t equipment_id = static_cast<uint8_t>((pkt.log_code >> 12) & 0x0F);
+  switch (equipment_id) {
+    case 0x0B: rat = RatType::LTE; break;
+    case 0x05: rat = RatType::GSM; break;
+    case 0x04: rat = RatType::WCDMA; break;
+    default:
+      // NR log codes use 0xB8xx / 0xB9xx range
+      if (pkt.log_code >= 0xB800) rat = RatType::NR;
+      break;
+  }
+
+  for (auto& event : result.value()) {
+    m_tracker.handle_rrc_event(Events::RrcEventEnvelope{
+        .key = key,
+        .rat = rat,
+        .timestamp = pkt.timestamp,
+        .event_data = std::move(event),
+    });
+  }
+
+  if (m_cell_cb) { m_cell_cb(m_tracker.get_snapshot()); }
+
+  return {};
 }
 
-}  // namespace QCommParser
+}  // namespace QCom

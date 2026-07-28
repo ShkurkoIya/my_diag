@@ -8,30 +8,39 @@
 #include <vector>
 
 #include "CellIdentity.h"
-#include "LogCodes.h"
+#include "CellTracker.h"
 #include "ParserInterface.h"
 
-namespace QCommParser {
-class QualcommParser {
+namespace QCom {
+
+// Top-level Qualcomm DIAG packet router.
+// Receives raw DIAG frames, extracts LogCode, dispatches to the correct
+// RAT parser, and forwards resulting events to CellTracker.
+class QualcomParser {
 public:
   using CellCallback = std::function<void(const std::vector<CellIdentity>&)>;
 
-  QualcommParser(std::vector<std::shared_ptr<IRatParser>> initial_modules = {});
-  ~QualcommParser() = default;
+  QualcomParser();
+  ~QualcomParser() = default;
 
-  QualcommParser(const QualcommParser&) = delete;
-  QualcommParser& operator=(const QualcommParser&) = delete;
+  QualcomParser(const QualcomParser&) = delete;
+  QualcomParser& operator=(const QualcomParser&) = delete;
 
-  void register_parser_module(std::shared_ptr<IRatParser> parser_module);
+  void register_parser(std::shared_ptr<IRatParser> parser);
+  void set_cell_callback(CellCallback cb) { m_cell_cb = std::move(cb); }
 
-  void set_monitor_callback(CellCallback cb) { m_monitor_cb = std::move(cb); }
+  // Main entry: raw DIAG frame with 14-byte header
+  std::expected<void, ParserError> on_diag_frame(std::string_view raw_frame);
 
-  std::expected<void, ParserError> on_log_packet(std::string_view raw_frame);
+  // Direct entry: pre-parsed packet (for testing or when header is already stripped)
+  std::expected<void, ParserError> on_packet(QualcommPacketView pkt);
+
+  [[nodiscard]] const CellTracker& tracker() const noexcept { return m_tracker; }
 
 private:
-  std::unordered_map<LogCode, std::shared_ptr<IRatParser>> m_parsers;
-  CellCallback m_monitor_cb;
-
-  void emit_update();
+  std::unordered_map<LogCode, std::shared_ptr<IRatParser>> m_dispatch;
+  CellTracker m_tracker;
+  CellCallback m_cell_cb;
 };
-}  // namespace QCommParser
+
+}  // namespace QCom

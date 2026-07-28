@@ -8,7 +8,7 @@
 
 #include "Events.h"
 
-namespace QCommParser {
+namespace QCom {
 
 using LogCode = uint16_t;
 
@@ -19,16 +19,16 @@ struct alignas(8) QualcommPacketView {
 };
 
 enum class ChannelType : uint8_t {
-  BCCH_DL_SCH = 1,  // Системная информация / SIB
-  DL_CCCH = 2,      // Контроль соты (Downlink)
-  DL_DCCH = 3,      // Выделенные команды (Handover, Reconfig)
-  UL_CCCH = 4,      // Контроль соты (Uplink)
-  UL_DCCH = 5,      // Выделенные отчеты модема (MeasurementReport)
+  BCCH_DL_SCH = 1,
+  DL_CCCH = 2,
+  DL_DCCH = 3,
+  UL_CCCH = 4,
+  UL_DCCH = 5,
   UNKNOWN = 0
 };
 
 inline ChannelType to_channel_type(uint8_t raw) {
-  if (raw >= 1 && raw <= 5) { return static_cast<ChannelType>(raw); }
+  if (raw >= 1 && raw <= 5) return static_cast<ChannelType>(raw);
   return ChannelType::UNKNOWN;
 }
 
@@ -37,7 +37,8 @@ enum class ParserError {
   WrongLogCode,
   NoAsn1Payload,
   UnknownChannelType,
-  SrsranUnpackFailed
+  SrsranUnpackFailed,
+  NotImplemented
 };
 
 inline std::string to_string(ParserError err) {
@@ -47,19 +48,26 @@ inline std::string to_string(ParserError err) {
     case ParserError::NoAsn1Payload: return "No ASN1 payload found";
     case ParserError::UnknownChannelType: return "Unknown 3GPP channel type";
     case ParserError::SrsranUnpackFailed: return "srsRAN ASN1 unpack failed";
+    case ParserError::NotImplemented: return "Not implemented";
   }
   return "Unknown error";
+}
+
+inline std::string to_string(LogCode code) {
+  char buf[16];
+  snprintf(buf, sizeof(buf), "0x%04X", code);
+  return buf;
 }
 
 class IRatParser {
 public:
   virtual ~IRatParser() = default;
 
-  virtual std::expected<std::vector<Events::RrcEvent>, ParserError> parse(LogCode log_code,
-                                                                          std::string_view payload,
-                                                                          uint64_t timestamp) = 0;
+  virtual std::expected<std::vector<Events::RrcEvent>, ParserError> parse(
+      QualcommPacketView pkt) = 0;
+
   virtual std::vector<LogCode> get_supported_codes() const = 0;
   virtual std::string_view log_to_string(LogCode log_code) const noexcept = 0;
 };
 
-}  // namespace QCommParser
+}  // namespace QCom

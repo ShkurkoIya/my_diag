@@ -6,11 +6,11 @@
 
 #include "ParserInterface.h"
 
-namespace QComScanner {
+namespace QCom {
 
 class IDataSource {
 public:
-  using FrameCallback = std::function<void(QCommParser::QualcommPacketView pkt)>;
+  using FrameCallback = std::function<void(QualcommPacketView pkt)>;
 
   virtual ~IDataSource() = default;
 
@@ -19,4 +19,4 @@ public:
   virtual void stop() = 0;
 };
 
-}  // namespace QComScanner
+}  // namespace QCom

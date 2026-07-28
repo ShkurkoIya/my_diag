@@ -1,25 +1,23 @@
 #pragma once
 
-#include <iostream>
-
 #include "DataSourceInterface.h"
 
-namespace QComScanner {
+namespace QCom {
+
+// Android DCI data source stub.
+// In production: dlopen(libdiag.so), register DCI client, set log masks.
+// See dia_vldos/core/DiagDciClient for reference implementation.
 class AndroidSource : public IDataSource {
 public:
   AndroidSource() = default;
   ~AndroidSource() override = default;
 
   void set_frame_callback(FrameCallback cb) override { m_callback = std::move(cb); }
-
-  bool start() override {
-    std::cout << "[AndroidSource] Симуляция: Подключение к локальному Unix сокету рут-демона...\n";
-    return true;
-  }
-
-  void stop() override { std::cout << "[AndroidSource] Симуляция: Сессия сокета остановлена.\n"; }
+  bool start() override { return false; }
+  void stop() override {}
 
 private:
   FrameCallback m_callback;
 };
-}  // namespace QComScanner
+
+}  // namespace QCom
