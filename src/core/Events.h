@@ -10,7 +10,7 @@
 #include <variant>
 #include <vector>
 
-#include "CellIdentity.h"
+#include "core/CellIdentity.h"
 
 namespace QCom::Events {
 

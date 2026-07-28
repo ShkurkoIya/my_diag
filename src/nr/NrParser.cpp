@@ -1,6 +1,6 @@
 /// @file NrParser.cpp
 /// @brief NR DIAG parser — SIB1 (srsRAN ASN.1) + proprietary Qualcomm ML1 binary.
-#include "NrParser.h"
+#include "nr/NrParser.h"
 
 #include <cstdint>
 

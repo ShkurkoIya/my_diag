@@ -6,8 +6,8 @@
 #include <string_view>
 #include <vector>
 
-#include "../BaseRatParser.h"
-#include "../Events.h"
+#include "core/BaseRatParser.h"
+#include "core/Events.h"
 #include "srsran/asn1/rrc_nr.h"
 
 namespace QCom::Nr {

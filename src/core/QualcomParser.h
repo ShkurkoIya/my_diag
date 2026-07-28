@@ -7,9 +7,9 @@
 #include <unordered_map>
 #include <vector>
 
-#include "CellIdentity.h"
-#include "CellTracker.h"
-#include "ParserInterface.h"
+#include "core/CellIdentity.h"
+#include "core/CellTracker.h"
+#include "core/ParserInterface.h"
 
 namespace QCom {
 

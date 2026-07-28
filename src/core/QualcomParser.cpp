@@ -1,4 +1,4 @@
-#include "QualcomParser.h"
+#include "core/QualcomParser.h"
 
 #include <iostream>
 #include <memory>

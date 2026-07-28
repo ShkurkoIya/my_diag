@@ -5,9 +5,9 @@
 #include <expected>
 #include <string_view>
 
-#include "Events.h"
-#include "ParserInterface.h"
-#include "Utils.h"
+#include "core/Events.h"
+#include "core/ParserInterface.h"
+#include "core/Utils.h"
 #include "srsran/asn1/asn1_utils.h"
 
 namespace QCom {
@@ -37,6 +37,7 @@ protected:
   BaseRatParser() = default;
   ~BaseRatParser() override = default;
 
+public:
   // --- Virtual contract from IRatParser ---
 
   std::expected<std::vector<Events::RrcEvent>, ParserError> parse(QualcommPacketView pkt) override {

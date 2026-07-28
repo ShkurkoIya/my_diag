@@ -4,7 +4,7 @@
 #include <functional>
 #include <string_view>
 
-#include "ParserInterface.h"
+#include "core/ParserInterface.h"
 
 namespace QCom {
 

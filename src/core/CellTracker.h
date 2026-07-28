@@ -7,8 +7,8 @@
 #include <variant>
 #include <vector>
 
-#include "CellIdentity.h"
-#include "Events.h"
+#include "core/CellIdentity.h"
+#include "core/Events.h"
 
 namespace QCom {
 

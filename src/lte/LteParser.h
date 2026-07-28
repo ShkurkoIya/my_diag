@@ -8,8 +8,8 @@
 #include <string_view>
 #include <vector>
 
-#include "../BaseRatParser.h"
-#include "../Events.h"
+#include "core/BaseRatParser.h"
+#include "core/Events.h"
 #include "srsran/asn1/rrc.h"
 #include "srsran/asn1/rrc/bcch_msg.h"
 #include "srsran/asn1/rrc/dl_ccch_msg.h"

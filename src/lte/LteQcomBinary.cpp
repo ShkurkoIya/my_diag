@@ -6,7 +6,7 @@
 #include <cstdint>
 #include <iostream>
 
-#include "LteParser.h"
+#include "lte/LteParser.h"
 
 namespace QCom::Lte {
 

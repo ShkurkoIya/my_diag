@@ -4,10 +4,10 @@
 #include <functional>
 #include <memory>
 
-#include "CellIdentity.h"
-#include "CellTracker.h"
-#include "DataSourceInterface.h"
-#include "QualcomParser.h"
+#include "core/CellIdentity.h"
+#include "core/CellTracker.h"
+#include "transport/DataSourceInterface.h"
+#include "core/QualcomParser.h"
 
 namespace QCom {
 

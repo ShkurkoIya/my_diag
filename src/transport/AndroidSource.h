@@ -1,6 +1,6 @@
 #pragma once
 
-#include "DataSourceInterface.h"
+#include "transport/DataSourceInterface.h"
 
 namespace QCom {
 

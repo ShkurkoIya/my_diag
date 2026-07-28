@@ -5,9 +5,9 @@
 #include <string_view>
 #include <vector>
 
-#include "../Events.h"
-#include "../ParserInterface.h"
-#include "../Utils.h"
+#include "core/Events.h"
+#include "core/ParserInterface.h"
+#include "core/Utils.h"
 
 namespace QCom::Gsm {
 

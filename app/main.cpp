@@ -1,7 +1,7 @@
 #include <iomanip>
 #include <iostream>
 
-#include "QualcomParser.h"
+#include "core/QualcomParser.h"
 
 // Real binary packet dumps for testing.
 // These are actual DIAG LOG_F frames captured from a Qualcomm modem.
