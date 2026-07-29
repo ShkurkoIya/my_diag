@@ -133,6 +133,15 @@ LocalCellKey QualcomParser::extract_cell_key(const QualcommPacketView& pkt, RatT
       // 0x512F, 0x5071 etc — no per-packet cell key, use serving cell's key
     }
 
+    // NR: 0xB992 serving has subpacket container, NRARFCN at sp_data+0 (24 bits), PCI at sp_data+4
+    // (10 bits)
+    if (rat == RatType::NR && pkt.payload.size() >= 16) {
+      // Container: 4 bytes header, subpkt: 4 bytes header, sp_data starts at payload[8]
+      uint32_t nrarfcn = Utils::Converter::read_le<uint32_t>(pkt.payload, 8) & 0x00FFFFFF;
+      uint16_t pci = Utils::Converter::read_le<uint16_t>(pkt.payload, 12) & 0x03FF;
+      if (nrarfcn > 0 && pci <= 1007) return {.freq = nrarfcn, .pci_bsic = pci};
+    }
+
     // WCDMA: 0x4027/0x4127 have DL_UARFCN at +4, PSC at +16
     if (rat == RatType::WCDMA) {
       if ((pkt.log_code == 0x4027 || pkt.log_code == 0x4127) && pkt.payload.size() >= 18) {
