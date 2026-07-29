@@ -112,7 +112,6 @@ LocalCellKey QualcomParser::extract_cell_key(const QualcommPacketView& pkt, RatT
         return {.freq = earfcn, .pci_bsic = pci};
       }
       if (pkt.log_code == 0xB17F || pkt.log_code == 0xB197) {
-        // EARFCN and PCI_SLP packed in header
         uint32_t earfcn = (version >= 5) ? Utils::Converter::read_le<uint32_t>(pkt.payload, 4)
                                          : Utils::Converter::read_le<uint16_t>(pkt.payload, 4);
         size_t pci_off = (version >= 5) ? 8 : 6;
@@ -121,10 +120,30 @@ LocalCellKey QualcomParser::extract_cell_key(const QualcommPacketView& pkt, RatT
         return {.freq = earfcn, .pci_bsic = pci};
       }
     }
+
+    // GSM: 0x5134 Cell Info has ARFCN at +0, BSIC = (NCC<<3|BCC) at +2/+3
+    if (rat == RatType::GSM) {
+      if (pkt.log_code == 0x5134 && pkt.payload.size() >= 6) {
+        uint16_t arfcn = Utils::Converter::read_le<uint16_t>(pkt.payload, 0) & 0x0FFF;
+        uint8_t bcc = pkt.payload[2];
+        uint8_t ncc = pkt.payload[3];
+        uint16_t bsic = static_cast<uint16_t>(((ncc & 7) << 3) | (bcc & 7));
+        return {.freq = arfcn, .pci_bsic = bsic};
+      }
+      // 0x512F, 0x5071 etc — no per-packet cell key, use serving cell's key
+    }
+
+    // WCDMA: 0x4027/0x4127 have DL_UARFCN at +4, PSC at +16
+    if (rat == RatType::WCDMA) {
+      if ((pkt.log_code == 0x4027 || pkt.log_code == 0x4127) && pkt.payload.size() >= 18) {
+        uint32_t uarfcn = Utils::Converter::read_le<uint32_t>(pkt.payload, 4);
+        uint16_t psc_raw = Utils::Converter::read_le<uint16_t>(pkt.payload, 16);
+        uint16_t psc = (pkt.log_code == 0x4027) ? (psc_raw >> 4) : psc_raw;
+        return {.freq = uarfcn, .pci_bsic = psc};
+      }
+    }
   }
 
-  // Fallback: key will be {0,0} — CellTracker will create a generic entry.
-  // This is acceptable for neighbor-only or measurement-only packets.
   return {};
 }
 

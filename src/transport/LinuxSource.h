@@ -14,9 +14,7 @@
 #include <cstring>
 #include <functional>
 #include <string>
-#include <string_view>
 #include <thread>
-#include <vector>
 
 #include "core/Types.h"
 #include "core/Utils.h"
