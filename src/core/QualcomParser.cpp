@@ -54,6 +54,9 @@ std::expected<void, ParserError> QualcomParser::on_packet(QualcommPacketView pkt
   RatType rat = classify_rat(pkt.log_code);
   LocalCellKey key = extract_cell_key(pkt, rat);
 
+  // Fallback: if no cell key extracted, attach to current serving cell of same RAT
+  if (key.freq == 0 && key.pci_bsic == 0) { key = m_tracker.serving_key(rat); }
+
   for (auto& event : result.value()) {
     m_tracker.handle_rrc_event(Events::RrcEventEnvelope{
         .key = key,

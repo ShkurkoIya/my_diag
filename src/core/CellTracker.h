@@ -85,6 +85,16 @@ public:
     return m_registry.size();
   }
 
+  /// Get the LocalCellKey of the current serving cell for a given RAT.
+  /// Returns {0,0} if no serving cell is known.
+  [[nodiscard]] LocalCellKey serving_key(RatType rat) const {
+    std::lock_guard lock(m_mutex);
+    for (const auto& [key, cell] : m_registry) {
+      if (cell.rat == rat && cell.is_serving) return key;
+    }
+    return {};
+  }
+
 private:
   mutable std::mutex m_mutex;
   std::map<LocalCellKey, CellIdentity> m_registry;
