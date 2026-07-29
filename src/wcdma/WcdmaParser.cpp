@@ -5,6 +5,8 @@
 #include <algorithm>
 #include <cstring>
 
+#include "gsm/GsmParser.h"  // for decode_lai
+
 namespace QCom::Wcdma {
 
 using Utils::Converter;
@@ -21,6 +23,7 @@ std::expected<std::vector<Events::RrcEvent>, ParserError> WcdmaParser::parse(
     case WCDMA_ACTIVE_SET: return parse_active_set(pkt.payload);
     case WCDMA_SERV_CELL: return parse_serv_cell(pkt.payload);
     case WCDMA_RRC_OTA: return std::vector<Events::RrcEvent>{};
+    case UMTS_NAS_OTA: return parse_umts_nas(pkt.payload);
     default: return std::unexpected(ParserError::WrongLogCode);
   }
 }
@@ -206,6 +209,55 @@ std::expected<std::vector<Events::RrcEvent>, ParserError> WcdmaParser::parse_ser
 
   events.push_back(Events::ServingChangedEvent{.is_serving = true});
   return events;
+}
+
+// ============================================================================
+// 0x713A — UMTS NAS OTA (GMM/MM/SM messages)
+// ============================================================================
+// Header: direction[1], nas_hdr_len[1], msg_len[4]
+// NAS PDU at offset 6 + nas_hdr_len
+// GMM Attach Accept (PD=0x08, type=0x02): RAI at body[0..5] = PLMN(3 BCD) + LAC(2) + RAC(1)
+// RAU Accept (PD=0x08, type=0x09): RAI at body[2..7]
+
+std::expected<std::vector<Events::RrcEvent>, ParserError> WcdmaParser::parse_umts_nas(
+    std::span<const uint8_t> payload) {
+  if (payload.size() < 10) return std::unexpected(ParserError::PacketTooShort);
+
+  auto p = payload.data();
+  uint8_t nas_hdr_len = p[1];
+  size_t pdu_off = 6 + nas_hdr_len;
+  if (pdu_off + 2 > payload.size()) return std::vector<Events::RrcEvent>{};
+
+  const uint8_t* pdu = p + pdu_off;
+  size_t pdu_len = payload.size() - pdu_off;
+
+  uint8_t pd = pdu[0] & 0x0F;
+  uint8_t msg_type = pdu[1];
+
+  // GMM Attach Accept (0x02) or RAU Accept (0x09)
+  if (pd == 0x08 && (msg_type == 0x02 || msg_type == 0x09)) {
+    const uint8_t* body = pdu + 2;
+    size_t body_len = pdu_len - 2;
+
+    // RAI offset: Attach Accept at body[0], RAU Accept at body[2]
+    size_t rai_off = (msg_type == 0x02) ? 0 : 2;
+    if (rai_off + 6 > body_len) return std::vector<Events::RrcEvent>{};
+
+    // RAI = PLMN(3 BCD) + LAC(2 BE) + RAC(1)
+    auto lai = Gsm::decode_lai(body + rai_off);
+    if (lai.mcc < 100 || lai.mcc > 999) return std::vector<Events::RrcEvent>{};
+
+    CellPassport passport;
+    passport.mcc = lai.mcc;
+    passport.mnc = lai.mnc;
+    passport.tac = lai.lac;
+
+    std::vector<Events::RrcEvent> events;
+    events.push_back(Events::PassportEvent{.passport = std::move(passport)});
+    return events;
+  }
+
+  return std::vector<Events::RrcEvent>{};
 }
 
 }  // namespace QCom::Wcdma

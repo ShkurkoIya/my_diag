@@ -48,6 +48,7 @@ public:
   static constexpr LogCode WCDMA_ACTIVE_SET = 0x4111;
   static constexpr LogCode WCDMA_SERV_CELL = 0x4127;
   static constexpr LogCode WCDMA_RRC_OTA = 0x412F;
+  static constexpr LogCode UMTS_NAS_OTA = 0x713A;
 
   static constexpr std::array kLogTable = {
       WcdmaLogEntry{WCDMA_CELL_ID, "WCDMA Cell ID (0x4027)"},
@@ -55,6 +56,7 @@ public:
       WcdmaLogEntry{WCDMA_ACTIVE_SET, "WCDMA Active Set (0x4111)"},
       WcdmaLogEntry{WCDMA_SERV_CELL, "WCDMA Serving Cell (0x4127)"},
       WcdmaLogEntry{WCDMA_RRC_OTA, "WCDMA RRC OTA (0x412F)"},
+      WcdmaLogEntry{UMTS_NAS_OTA, "UMTS NAS OTA (0x713A)"},
   };
 
   WcdmaParser() = default;
@@ -85,6 +87,8 @@ private:
   std::expected<std::vector<Events::RrcEvent>, ParserError> parse_active_set(
       std::span<const uint8_t> payload);
   std::expected<std::vector<Events::RrcEvent>, ParserError> parse_serv_cell(
+      std::span<const uint8_t> payload);
+  std::expected<std::vector<Events::RrcEvent>, ParserError> parse_umts_nas(
       std::span<const uint8_t> payload);
 };
 

@@ -52,10 +52,10 @@ TEST_CASE("LteParser: MIB too short returns error", "[lte][asn1]") {
 }
 
 TEST_CASE("LteParser: kLogTable has all expected codes", "[lte]") {
-  CHECK(LteParser::kLogTable.size() == 7);
+  CHECK(LteParser::kLogTable.size() == 8);
 
   auto codes = LteParser().get_supported_codes();
-  CHECK(codes.size() == 7);
+  CHECK(codes.size() == 8);
 
   bool has_rrc = false, has_b0c2 = false, has_b17f = false, has_b180 = false;
   for (auto c : codes) {

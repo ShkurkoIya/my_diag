@@ -85,6 +85,7 @@ public:
   static constexpr LogCode LTE_ML1_NEIGH_MEAS = 0xB180;  ///< ML1 Neighbor Measurements
   static constexpr LogCode LTE_ML1_MEAS_RESP = 0xB193;   ///< ML1 Serving Cell Meas Response
   static constexpr LogCode LTE_ML1_SERV_INFO = 0xB197;   ///< ML1 Serving Cell Information
+  static constexpr LogCode LTE_NAS_EMM_DL = 0xB0EC;      ///< NAS EMM DL (Attach/TAU Accept)
   /// @}
 
   static constexpr size_t OFF_FREQ = 2;
@@ -121,6 +122,8 @@ public:
       std::span<const uint8_t> payload);
   std::expected<std::vector<Events::RrcEvent>, ParserError> parse_ml1_serv_info(
       std::span<const uint8_t> payload);
+  std::expected<std::vector<Events::RrcEvent>, ParserError> parse_lte_nas(
+      std::span<const uint8_t> payload);
 
   // --- ASN.1 channel message handlers ---
   [[nodiscard]] std::vector<Events::RrcEvent> on_message_unpacked(BcchMsg& msg);
@@ -143,12 +146,15 @@ public:
                           "LTE ML1 Meas Response (0xB193)"},
       LogEntry<LteParser>{LTE_ML1_SERV_INFO, &LteParser::parse_ml1_serv_info,
                           "LTE ML1 Serving Info (0xB197)"},
+      LogEntry<LteParser>{LTE_NAS_EMM_DL, &LteParser::parse_lte_nas, "LTE NAS EMM DL (0xB0EC)"},
   };
 
 private:
   [[nodiscard]] std::vector<Events::RrcEvent> extract_sib1(const asn1::rrc::sib_type1_s& sib1);
   [[nodiscard]] std::vector<Events::RrcEvent> extract_sys_info(
       const asn1::rrc::sys_info_s& sys_info);
+  [[nodiscard]] static std::vector<Events::RrcEvent> decode_tai_list(const uint8_t* tai,
+                                                                     size_t len);
 };
 
 }  // namespace QCom::Lte

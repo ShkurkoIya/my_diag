@@ -152,10 +152,27 @@ void print_cell(const QCom::CellIdentity& cell) {
   }
   if (auto* r = cell.radio.get_if<QCom::GsmRadioParams>()) {
     if (r->bsic) std::cout << " BSIC=" << static_cast<int>(r->bsic);
+    if (r->rxlev_access_min) std::cout << " rxlev_min=" << static_cast<int>(r->rxlev_access_min);
+    if (r->cell_reselect_offset) std::cout << " CRO=" << static_cast<int>(r->cell_reselect_offset);
+    if (r->ncc_permitted != 0xFF)
+      std::cout << " NCC_perm=0x" << std::hex << static_cast<int>(r->ncc_permitted) << std::dec;
   }
   if (auto* r = cell.radio.get_if<QCom::WcdmaRadioParams>()) {
     if (r->psc) std::cout << " PSC=" << r->psc;
+    if (r->dl_uarfcn) std::cout << " DL=" << r->dl_uarfcn;
+    if (r->ul_uarfcn) std::cout << " UL=" << r->ul_uarfcn;
   }
+  if (auto* r = cell.radio.get_if<QCom::NrRadioParams>()) {
+    if (r->q_rx_lev_min) std::cout << " q_rx_lev_min=" << static_cast<int>(r->q_rx_lev_min);
+    if (r->ranac) std::cout << " RANAC=" << r->ranac;
+  }
+
+  // Passport extra fields
+  if (cell.passport.csg_ind) std::cout << " [CSG:" << cell.passport.csg_id << "]";
+  if (!cell.passport.intra_freq_reselection_allowed) std::cout << " [NO_RESEL]";
+  if (cell.passport.q_rx_lev_min)
+    std::cout << " q_min=" << static_cast<int>(cell.passport.q_rx_lev_min);
+
   std::cout << "\n";
 
   // --- Neighbor details ---

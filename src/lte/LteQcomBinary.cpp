@@ -319,4 +319,88 @@ std::expected<std::vector<Events::RrcEvent>, ParserError> LteParser::parse_ml1_s
   return events;
 }
 
+// ============================================================================
+// 0xB0EC — LTE NAS EMM DL (Attach Accept / TAU Accept → TAI)
+// ============================================================================
+// DIAG sub-header: ext_hdr[1], rrc_rel[1], rrc_ver[1], bearer[1], msg_len[4]
+// NAS PDU at payload offset 8.
+// EMM PD=0x07. Attach Accept type=0x42, TAU Accept type=0x49.
+
+std::expected<std::vector<Events::RrcEvent>, ParserError> LteParser::parse_lte_nas(
+    std::span<const uint8_t> payload) {
+  if (payload.size() < 12) return std::unexpected(ParserError::PacketTooShort);
+
+  auto p = payload.data();
+  const uint8_t* msg = p + 8;
+  size_t msg_len = payload.size() - 8;
+
+  if (msg_len < 4) return std::vector<Events::RrcEvent>{};
+
+  uint8_t sec_hdr = (msg[0] >> 4) & 0x0F;
+  uint8_t pd = msg[0] & 0x0F;
+  uint8_t msg_type = msg[1];
+
+  // Only decode plain NAS (sec_hdr == 0), PD must be EMM (0x07)
+  if (sec_hdr != 0 || pd != 0x07) return std::vector<Events::RrcEvent>{};
+
+  const uint8_t* body = msg + 2;
+  size_t body_len = msg_len - 2;
+
+  // Attach Accept (0x42): TAI list at body[2] (length) + body[3..]
+  if (msg_type == 0x42 && body_len >= 8) {
+    uint8_t tai_len = body[2];
+    if (tai_len >= 6 && body_len >= static_cast<size_t>(3 + tai_len)) {
+      return decode_tai_list(body + 3, tai_len);
+    }
+  }
+
+  // TAU Accept (0x49): TAI list is optional TLV with IEI=0x54
+  if (msg_type == 0x49 && body_len >= 2) {
+    size_t off = 1;  // skip EPS update result
+    while (off + 2 < body_len) {
+      uint8_t iei = body[off];
+      if (iei == 0x54) {
+        uint8_t tai_len = body[off + 1];
+        if (off + 2 + tai_len <= body_len && tai_len >= 6) {
+          return decode_tai_list(body + off + 2, tai_len);
+        }
+        break;
+      }
+      // Skip TLV
+      if ((iei & 0xF0) >= 0x80) {
+        ++off;  // Type-1 IE, 1 byte
+      } else {
+        off += 2 + body[off + 1];  // TLV
+      }
+    }
+  }
+
+  return std::vector<Events::RrcEvent>{};
+}
+
+std::vector<Events::RrcEvent> LteParser::decode_tai_list(const uint8_t* tai, size_t len) {
+  if (len < 6) return {};
+
+  // TAI list element: type[2 bits] + num[5 bits] at tai[0], PLMN[3] + TAC[2 BE]
+  uint8_t d1 = tai[1] & 0x0F, d2 = (tai[1] >> 4) & 0x0F, d3 = tai[2] & 0x0F;
+  uint8_t m3 = (tai[2] >> 4) & 0x0F, m1 = tai[3] & 0x0F, m2 = (tai[3] >> 4) & 0x0F;
+
+  if (d1 > 9 || d2 > 9 || d3 > 9) return {};
+
+  CellPassport passport;
+  passport.mcc = d1 * 100 + d2 * 10 + d3;
+  if (m3 == 0x0F)
+    passport.mnc = m1 * 10 + m2;
+  else if (m1 <= 9 && m2 <= 9 && m3 <= 9)
+    passport.mnc = m1 * 100 + m2 * 10 + m3;
+
+  passport.tac = static_cast<uint16_t>((tai[4] << 8) | tai[5]);
+
+  if (passport.mcc < 100 || passport.mcc > 999) return {};
+
+  std::vector<Events::RrcEvent> events;
+  events.push_back(Events::PassportEvent{.passport = std::move(passport)});
+  return events;
+}
+
 }  // namespace QCom::Lte
