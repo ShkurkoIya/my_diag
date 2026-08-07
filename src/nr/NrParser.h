@@ -60,6 +60,9 @@ class NrParser : public BaseRatParser<NrParser> {
 public:
   // Qualcomm NR DIAG log codes
   static constexpr LogCode NR_RRC_OTA = 0xB821;
+  static constexpr LogCode NR_PLMN_SEARCH_REQ = 0xB827;
+  static constexpr LogCode NR_PLMN_SEARCH_RSP = 0xB828;
+  static constexpr LogCode NR_DETECTED_CELL = 0xB82B;
   static constexpr LogCode NR_ML1_MEAS = 0xB97F;
   static constexpr LogCode NR_ML1_SERV = 0xB992;
 
@@ -88,6 +91,13 @@ public:
   std::expected<std::vector<Events::RrcEvent>, ParserError> parse_ml1_serving(
       std::span<const uint8_t> payload);
 
+  /// Registered so masks deliver packets; layout TBD (fail-closed empty).
+  std::expected<std::vector<Events::RrcEvent>, ParserError> parse_plmn_search_stub(
+      std::span<const uint8_t> payload) {
+    if (payload.empty()) return std::unexpected(ParserError::PacketTooShort);
+    return std::vector<Events::RrcEvent>{};
+  }
+
   [[nodiscard]] std::vector<Events::RrcEvent> on_message_unpacked(BcchMsg& msg);
   [[nodiscard]] std::vector<Events::RrcEvent> on_message_unpacked(DlCcchMsg& msg);
   [[nodiscard]] std::vector<Events::RrcEvent> on_message_unpacked(DlDcchMsg& msg);
@@ -96,6 +106,12 @@ public:
 
   static constexpr std::array kLogTable = {
       LogEntry<NrParser>{NR_RRC_OTA, &NrParser::parse_rrc_ota, "NR RRC OTA (0xB821)"},
+      LogEntry<NrParser>{NR_PLMN_SEARCH_REQ, &NrParser::parse_plmn_search_stub,
+                         "NR PLMN Search Req (0xB827)"},
+      LogEntry<NrParser>{NR_PLMN_SEARCH_RSP, &NrParser::parse_plmn_search_stub,
+                         "NR PLMN Search Rsp (0xB828)"},
+      LogEntry<NrParser>{NR_DETECTED_CELL, &NrParser::parse_plmn_search_stub,
+                         "NR Detected Cell (0xB82B)"},
       LogEntry<NrParser>{NR_ML1_MEAS, &NrParser::parse_ml1_metrics, "NR ML1 Meas DB (0xB97F)"},
       LogEntry<NrParser>{NR_ML1_SERV, &NrParser::parse_ml1_serving, "NR ML1 Serving (0xB992)"},
   };

@@ -24,6 +24,8 @@ struct QualcommPacketView {
   LogCode log_code{0};
   uint64_t timestamp{0};
   std::span<const uint8_t> payload;
+  /// Optional wall-clock from offline journal (`YYYY-MM-DD HH:MM:SS`); empty live.
+  std::string_view wall_time{};
 };
 
 /// 3GPP logical channel type for RRC OTA messages

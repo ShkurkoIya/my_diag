@@ -98,16 +98,36 @@ public:
   static constexpr LogCode GSM_CELL_INFO = 0x5134;
   static constexpr LogCode GSM_SURROUND_DB = 0x5071;
   static constexpr LogCode GSM_BURST_METRICS = 0x506C;
+  static constexpr LogCode GSM_NEW_BURST_METRICS = 0x506A;
+  static constexpr LogCode GSM_NEIGHBOR_ACQ = 0x5075;
   static constexpr LogCode GSM_SERVING_AUX = 0x507A;
   static constexpr LogCode GSM_NEIGHBOR_AUX = 0x507B;
+
+  // Dual-SIM (DSDS) variants — same payload after 1-byte radio_id prefix
+  static constexpr LogCode GSM_DSDS_BURST_METRICS = 0x5A6C;
+  static constexpr LogCode GSM_DSDS_SURROUND_DB = 0x5A71;
+  static constexpr LogCode GSM_DSDS_NEIGHBOR_ACQ = 0x5A75;
+  static constexpr LogCode GSM_DSDS_SERVING_AUX = 0x5A7A;
+  static constexpr LogCode GSM_DSDS_NEIGHBOR_AUX = 0x5A7B;
+  static constexpr LogCode GSM_DSDS_RR_SIGNALING = 0x5B2F;
+  static constexpr LogCode GSM_DSDS_CELL_INFO = 0x5B34;
 
   static constexpr std::array kLogTable = {
       GsmLogEntry{GSM_RR_SIGNALING, "GSM RR Signaling (0x512F)"},
       GsmLogEntry{GSM_CELL_INFO, "GSM Cell Info (0x5134)"},
       GsmLogEntry{GSM_SURROUND_DB, "GSM Surround DB (0x5071)"},
       GsmLogEntry{GSM_BURST_METRICS, "GSM Burst Metrics (0x506C)"},
+      GsmLogEntry{GSM_NEW_BURST_METRICS, "GSM L1 New Burst Metrics (0x506A)"},
+      GsmLogEntry{GSM_NEIGHBOR_ACQ, "GSM Neighbor Cell Acq (0x5075)"},
       GsmLogEntry{GSM_SERVING_AUX, "GSM Serving Aux (0x507A)"},
       GsmLogEntry{GSM_NEIGHBOR_AUX, "GSM Neighbor Aux (0x507B)"},
+      GsmLogEntry{GSM_DSDS_BURST_METRICS, "GSM DSDS Burst Metrics (0x5A6C)"},
+      GsmLogEntry{GSM_DSDS_SURROUND_DB, "GSM DSDS Surround BA (0x5A71)"},
+      GsmLogEntry{GSM_DSDS_NEIGHBOR_ACQ, "GSM DSDS Neighbor Cell Acq (0x5A75)"},
+      GsmLogEntry{GSM_DSDS_SERVING_AUX, "GSM DSDS Serving Aux (0x5A7A)"},
+      GsmLogEntry{GSM_DSDS_NEIGHBOR_AUX, "GSM DSDS Neighbor Aux (0x5A7B)"},
+      GsmLogEntry{GSM_DSDS_RR_SIGNALING, "GSM DSDS RR Signaling (0x5B2F)"},
+      GsmLogEntry{GSM_DSDS_CELL_INFO, "GSM DSDS Cell Info (0x5B34)"},
   };
 
   GsmParser() = default;
@@ -138,6 +158,10 @@ private:
   std::expected<std::vector<Events::RrcEvent>, ParserError> parse_surround_db(
       std::span<const uint8_t> payload);
   std::expected<std::vector<Events::RrcEvent>, ParserError> parse_burst_metrics(
+      std::span<const uint8_t> payload);
+  std::expected<std::vector<Events::RrcEvent>, ParserError> parse_new_burst_metrics(
+      std::span<const uint8_t> payload);
+  std::expected<std::vector<Events::RrcEvent>, ParserError> parse_neighbor_acq(
       std::span<const uint8_t> payload);
   std::expected<std::vector<Events::RrcEvent>, ParserError> parse_serving_aux(
       std::span<const uint8_t> payload);

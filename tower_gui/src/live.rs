@@ -2,7 +2,9 @@
 
 use crate::enrich::{self, DiffSide, Enrichment, ExtStatus};
 use crate::icons::{self, expand_toggle, nest_toggle};
-use crate::model::{Document, FlatTower, Rat, Tower};
+use crate::model::{
+    format_scan_span, format_scan_time_rel, Document, FlatTower, Rat, Tower,
+};
 use crate::theme::{brand_color, SurfaceState, Theme};
 use eframe::egui::{
     self, Align, Color32, CornerRadius, Frame, Key, Layout, Margin, Pos2, Rect, RichText,
@@ -280,6 +282,8 @@ pub struct LiveState {
     graph_settled: bool,
     /// OpenCelliD primary-identity lookup + field diffs.
     enrich: Enrichment,
+    /// Flat index for graph right-click reveal menu.
+    graph_ctx_flat: Option<usize>,
 }
 
 impl LiveState {
@@ -312,6 +316,7 @@ impl LiveState {
             graph_drag: None,
             graph_settled: false,
             enrich: Enrichment::new(),
+            graph_ctx_flat: None,
         }
     }
 
@@ -919,8 +924,19 @@ impl LiveState {
             }
             let Some(ix) = n.flat_ix else { continue };
             let Some(ft) = self.flat.get(ix) else { continue };
-            for nb in &ft.tower.neighbors.nb_lte {
-                let ch = nb.radio.get("earfcn").map(|s| s.as_str()).unwrap_or("");
+            for nb in ft
+                .tower
+                .neighbors
+                .nb_lte
+                .iter()
+                .chain(ft.tower.neighbors.nb_nr.iter())
+            {
+                let ch = nb
+                    .radio
+                    .get("earfcn")
+                    .or_else(|| nb.radio.get("nrarfcn"))
+                    .map(|s| s.as_str())
+                    .unwrap_or("");
                 let pci = nb.radio.get("pci").map(|s| s.as_str()).unwrap_or("");
                 if ch.is_empty() || pci.is_empty() {
                     continue;
@@ -1511,9 +1527,10 @@ pub fn render_live(ui: &mut Ui, th: &Theme, live: &mut LiveState) {
             ui.add_space(10.0);
             metric_card(ui, th, "COPS", &hc, th.accent2);
             ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
-                if !m.situation_as_of.is_empty() {
+                // File mtime → “3s ago” (situation_as_of is a raw diag tick, not wall clock).
+                if let Some(mtime) = live.last_mtime {
                     ui.label(
-                        RichText::new(format!("Updated  {}", m.situation_as_of))
+                        RichText::new(format!("Updated  {}", format_mtime_ago(mtime)))
                             .size(13.0)
                             .color(th.muted),
                     );
@@ -1626,69 +1643,35 @@ pub fn render_live(ui: &mut Ui, th: &Theme, live: &mut LiveState) {
                     .inner_margin(Margin::symmetric(20, 18))
                     .show(ui, |ui| {
                         ui.set_min_height(ui.available_height());
-                        ui.label(
-                            RichText::new("Inspector")
-                                .strong()
-                                .size(12.0)
-                                .color(th.muted),
-                        );
+                        ui.horizontal(|ui| {
+                            ui.label(
+                                RichText::new("Inspector")
+                                    .strong()
+                                    .size(12.0)
+                                    .color(th.muted),
+                            );
+                            ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
+                                ui.label(
+                                    RichText::new("right-click · Reveal")
+                                        .size(11.0)
+                                        .color(th.muted),
+                                );
+                            });
+                        });
                         ui.add_space(8.0);
                         if let Some(ix) = live.selected {
-                            ui.horizontal(|ui| {
-                                for (lab, tip, go) in [
-                                    (
-                                        "Table",
-                                        "Show this row in the flat RF table",
-                                        LiveView::Table,
-                                    ),
-                                    (
-                                        "List",
-                                        "Expand tree path and scroll to this carrier",
-                                        LiveView::Tree,
-                                    ),
-                                    (
-                                        "Graph",
-                                        "Open Graph and center on this cell / eNB",
-                                        LiveView::Graph,
-                                    ),
-                                ] {
-                                    let active = live.view == go;
-                                    let btn = ui
-                                        .add(
-                                            egui::Button::new(
-                                                RichText::new(lab)
-                                                    .size(12.5)
-                                                    .color(if active { th.accent } else { th.text }),
-                                            )
-                                            .fill(if active {
-                                                th.wash(th.accent, 32)
-                                            } else {
-                                                th.panel2
-                                            })
-                                            .corner_radius(CornerRadius::same(8))
-                                            .min_size(Vec2::new(0.0, 30.0)),
-                                        )
-                                        .on_hover_text(tip);
-                                    if btn.clicked() {
-                                        match go {
-                                            LiveView::Table => live.reveal_in_table(ix),
-                                            LiveView::Tree => live.reveal_in_tree(ix),
-                                            LiveView::Graph => live.reveal_in_graph(ix),
-                                        }
-                                    }
-                                    ui.add_space(4.0);
-                                }
-                            });
-                            ui.add_space(8.0);
-                            ui.separator();
-                            ui.add_space(4.0);
                             ScrollArea::vertical()
                                 .id_salt("live_inspector_scroll")
                                 .auto_shrink([false, false])
                                 .show(ui, |ui| {
                                     if let Some(ft) = live.flat.get(ix).cloned() {
                                         let ext = live.ext_status(ix);
-                                        render_detail(ui, th, &ft, &ext);
+                                        let now = live
+                                            .doc
+                                            .as_ref()
+                                            .map(|d| d.meta.situation_as_of.as_str())
+                                            .unwrap_or("");
+                                        render_detail(ui, th, &ft, &ext, now);
                                     }
                                     ui.add_space(24.0);
                                 });
@@ -1703,13 +1686,13 @@ pub fn render_live(ui: &mut Ui, th: &Theme, live: &mut LiveState) {
                             ui.label(
                                 RichText::new(match live.view {
                                     LiveView::Table => {
-                                        "Click any RF row in the table — all towers stay visible here."
+                                        "Click a row · right-click to Reveal in List / Graph."
                                     }
                                     LiveView::Tree => {
-                                        "Click any row in the list to inspect identity, signal, and neighbor hints."
+                                        "Click a row · right-click to Reveal in Table / Graph."
                                     }
                                     LiveView::Graph => {
-                                        "Drag the canvas · scroll to zoom · click a node. Tab cycles views."
+                                        "Click a node · right-click to Reveal in Table / List."
                                     }
                                 })
                                 .size(13.0)
@@ -2009,31 +1992,87 @@ fn render_tree_view(ui: &mut Ui, th: &Theme, live: &mut LiveState) {
         });
 }
 
-fn render_table_view(ui: &mut Ui, th: &Theme, live: &mut LiveState) {
+/// Stable table order by tower.key — values update, row positions don't jump.
+fn stable_table_rows(live: &LiveState) -> Vec<usize> {
     let filtering = live.search_active();
     let hits = live.match_set();
-    let rows: Vec<usize> = if filtering {
+    let mut rows: Vec<usize> = if filtering {
         hits.iter().copied().collect()
     } else {
         (0..live.flat.len()).collect()
     };
+    rows.sort_by(|&a, &b| {
+        let ka = live.flat.get(a).map(|f| f.tower.key.as_str()).unwrap_or("");
+        let kb = live.flat.get(b).map(|f| f.tower.key.as_str()).unwrap_or("");
+        ka.cmp(kb).then_with(|| a.cmp(&b))
+    });
+    rows
+}
+
+fn reveal_context_menu(ui: &mut Ui, th: &Theme, live: &mut LiveState, ix: usize) {
+    ui.set_min_width(168.0);
+    ui.label(
+        RichText::new("Reveal in")
+            .strong()
+            .size(11.0)
+            .color(th.muted),
+    );
+    ui.add_space(4.0);
+    let items = [
+        (LiveView::Table, "Table", "Flat RF table"),
+        (LiveView::Tree, "List", "Operator / eNB tree"),
+        (LiveView::Graph, "Graph", "Site graph"),
+    ];
+    for (view, lab, tip) in items {
+        let active = live.view == view;
+        let text = format!("{}  {lab}", view.icon());
+        let btn = ui
+            .add(
+                egui::Button::new(
+                    RichText::new(text)
+                        .size(13.5)
+                        .color(if active { th.accent } else { th.text }),
+                )
+                .fill(if active {
+                    th.wash(th.accent, 28)
+                } else {
+                    Color32::TRANSPARENT
+                })
+                .min_size(Vec2::new(160.0, 28.0)),
+            )
+            .on_hover_text(tip);
+        if btn.clicked() {
+            match view {
+                LiveView::Table => live.reveal_in_table(ix),
+                LiveView::Tree => live.reveal_in_tree(ix),
+                LiveView::Graph => live.reveal_in_graph(ix),
+            }
+            ui.close_menu();
+        }
+    }
+}
+
+fn render_table_view(ui: &mut Ui, th: &Theme, live: &mut LiveState) {
+    let filtering = live.search_active();
+    let rows = stable_table_rows(live);
+    let now = live
+        .doc
+        .as_ref()
+        .map(|d| d.meta.situation_as_of.clone())
+        .unwrap_or_default();
 
     ui.horizontal(|ui| {
         ui.label(
-            RichText::new(format!(
-                "{}  {} towers",
-                icons::TABLE,
-                rows.len()
-            ))
-            .strong()
-            .size(13.0)
-            .color(th.text),
+            RichText::new(format!("{}  {} towers", icons::TABLE, rows.len()))
+                .strong()
+                .size(13.0)
+                .color(th.text),
         );
         ui.label(
             RichText::new(if filtering {
-                "filtered · every RF row when search is clear"
+                "filtered · sorted by key"
             } else {
-                "FULL + Heard RF · feed order"
+                "FULL + Heard RF · stable key order"
             })
             .size(12.0)
             .color(th.muted),
@@ -2072,14 +2111,18 @@ fn render_table_view(ui: &mut Ui, th: &Theme, live: &mut LiveState) {
         .cell_layout(Layout::left_to_right(Align::Center))
         .min_scrolled_height(height)
         .max_scroll_height(height)
-        .column(Column::exact(72.0))  // status
-        .column(Column::exact(52.0))  // RAT
-        .column(Column::exact(110.0)) // operator
-        .column(Column::exact(120.0)) // EARFCN/PCI
-        .column(Column::remainder().at_least(140.0)) // identity
-        .column(Column::exact(72.0))  // band
-        .column(Column::exact(118.0)) // signal
-        .column(Column::exact(56.0)); // OCI
+        .column(Column::exact(64.0)) // status
+        .column(Column::exact(48.0)) // RAT
+        .column(Column::exact(88.0)) // operator
+        .column(Column::exact(72.0)) // TAC
+        .column(Column::exact(100.0)) // EARFCN/PCI
+        .column(Column::exact(118.0)) // CID / eNB
+        .column(Column::exact(88.0)) // band / bw
+        .column(Column::exact(64.0)) // MHz
+        .column(Column::remainder().at_least(130.0)) // signal stack
+        .column(Column::exact(44.0)) // NB
+        .column(Column::exact(92.0)) // last seen
+        .column(Column::exact(40.0)); // OCI
 
     if let Some(r) = scroll_row {
         table = table.scroll_to_row(r, Some(Align::Center));
@@ -2087,40 +2130,46 @@ fn render_table_view(ui: &mut Ui, th: &Theme, live: &mut LiveState) {
     }
 
     table
-        .header(26.0, |mut h| {
+        .header(24.0, |mut h| {
             for lab in [
                 "STATUS",
                 "RAT",
-                "OPERATOR",
-                "EARFCN / PCI",
-                "IDENTITY",
+                "OP",
+                "TAC",
+                "EARFCN/PCI",
+                "CID / eNB",
                 "BAND",
+                "MHz",
                 "SIGNAL",
+                "NB",
+                "LAST",
                 "OCI",
             ] {
                 h.col(|ui| {
-                    ui.label(RichText::new(lab).strong().size(10.5).color(th.muted));
+                    ui.label(RichText::new(lab).strong().size(10.0).color(th.muted));
                 });
             }
         })
         .body(|body| {
-            body.rows(38.0, rows.len(), |mut row| {
+            body.rows(40.0, rows.len(), |mut row| {
                 let ix = rows[row.index()];
                 let Some(ft) = live.flat.get(ix) else {
                     return;
                 };
                 let t = &ft.tower;
-                let selected = live.selected == Some(ix);
-                if selected {
+                if live.selected == Some(ix) {
                     row.set_selected(true);
                 }
                 let (fill, fill_c) = fill_label(th, t);
                 let rsrp = parse_f32(t.rxl());
+                let rsrq = parse_f32(t.get_sig("rsrq"));
+                let rssi = parse_f32(t.get_sig("rssi"));
                 let serving = t.is_serving();
                 let camped = t.was_identity_camped() && !serving;
                 let plmn = normalize_plmn(t.plmn());
                 let (brand, brand_c) = operator_brand(&plmn);
                 let ext = live.ext_status_ref(ix);
+                let nb_n = t.neighbor_count();
 
                 row.col(|ui| {
                     table_status_cell(ui, th, serving, camped, fill, fill_c);
@@ -2129,12 +2178,12 @@ fn render_table_view(ui: &mut Ui, th: &Theme, live: &mut LiveState) {
                     Frame::new()
                         .fill(th.wash(th.rat(ft.rat), 28))
                         .corner_radius(CornerRadius::same(5))
-                        .inner_margin(Margin::symmetric(6, 3))
+                        .inner_margin(Margin::symmetric(5, 2))
                         .show(ui, |ui| {
                             ui.label(
                                 RichText::new(ft.rat.as_str())
                                     .strong()
-                                    .size(11.5)
+                                    .size(11.0)
                                     .color(th.rat(ft.rat)),
                             );
                         });
@@ -2142,8 +2191,8 @@ fn render_table_view(ui: &mut Ui, th: &Theme, live: &mut LiveState) {
                 row.col(|ui| {
                     ui.horizontal(|ui| {
                         if !plmn.is_empty() {
-                            operator_dot(ui, brand_c, 5.0);
-                            ui.add_space(4.0);
+                            operator_dot(ui, brand_c, 4.5);
+                            ui.add_space(3.0);
                         }
                         ui.label(
                             RichText::new(if brand.is_empty() {
@@ -2155,10 +2204,18 @@ fn render_table_view(ui: &mut Ui, th: &Theme, live: &mut LiveState) {
                             } else {
                                 brand
                             })
-                            .size(12.5)
+                            .size(12.0)
                             .color(th.text),
                         );
                     });
+                });
+                row.col(|ui| {
+                    ui.label(
+                        RichText::new(dash(t.lac_or_tac()))
+                            .monospace()
+                            .size(12.0)
+                            .color(th.text),
+                    );
                 });
                 row.col(|ui| {
                     ui.vertical(|ui| {
@@ -2166,13 +2223,13 @@ fn render_table_view(ui: &mut Ui, th: &Theme, live: &mut LiveState) {
                         ui.label(
                             RichText::new(dash(t.channel()))
                                 .strong()
-                                .size(13.0)
+                                .size(12.5)
                                 .monospace()
                                 .color(th.text),
                         );
                         ui.label(
                             RichText::new(format!("PCI {}", dash(t.cell_code())))
-                                .size(11.0)
+                                .size(10.5)
                                 .color(th.muted),
                         );
                     });
@@ -2180,64 +2237,131 @@ fn render_table_view(ui: &mut Ui, th: &Theme, live: &mut LiveState) {
                 row.col(|ui| {
                     if t.get_id("cid").is_empty() {
                         ui.label(
-                            RichText::new("PCI only · no CID")
-                                .size(12.5)
+                            RichText::new("no CID")
+                                .size(12.0)
                                 .color(th.muted),
                         );
                     } else {
                         ui.vertical(|ui| {
                             ui.spacing_mut().item_spacing.y = 0.0;
                             ui.label(
-                                RichText::new(format!("CID {}", t.get_id("cid")))
+                                RichText::new(t.get_id("cid"))
                                     .strong()
-                                    .size(13.0)
+                                    .size(12.5)
+                                    .monospace()
                                     .color(th.text),
                             );
                             let enb = t.get_id("enb_id");
-                            if !enb.is_empty() {
-                                ui.label(
-                                    RichText::new(format!("eNB {enb}"))
-                                        .size(11.0)
-                                        .color(th.muted),
-                                );
+                            let sec = t.get_id("ncell_id");
+                            let sub = match (!enb.is_empty(), !sec.is_empty()) {
+                                (true, true) => format!("eNB {enb} · s{sec}"),
+                                (true, false) => format!("eNB {enb}"),
+                                _ => String::new(),
+                            };
+                            if !sub.is_empty() {
+                                ui.label(RichText::new(sub).size(10.5).color(th.muted));
                             }
                         });
                     }
                 });
                 row.col(|ui| {
-                    ui.label(
-                        RichText::new(if t.band().is_empty() {
+                    ui.vertical(|ui| {
+                        ui.spacing_mut().item_spacing.y = 0.0;
+                        let band = if t.band().is_empty() {
                             "—"
                         } else {
                             t.band()
-                        })
-                        .size(12.5)
-                        .color(th.text),
+                        };
+                        ui.label(
+                            RichText::new(band).strong().size(12.0).color(th.text),
+                        );
+                        let bw = t.get_radio("bandwidth");
+                        let dup = t.get_radio("duplex_type");
+                        let sub = [bw, dup]
+                            .into_iter()
+                            .filter(|s| !s.is_empty())
+                            .collect::<Vec<_>>()
+                            .join(" · ");
+                        if !sub.is_empty() {
+                            ui.label(
+                                RichText::new(sub).size(10.5).color(th.muted),
+                            );
+                        }
+                    });
+                });
+                row.col(|ui| {
+                    let dl = t.get_radio("dl_freq");
+                    ui.label(
+                        RichText::new(if dl.is_empty() { "—" } else { dl })
+                            .monospace()
+                            .size(12.0)
+                            .color(th.text),
                     );
                 });
                 row.col(|ui| {
-                    ui.horizontal(|ui| {
-                        if rsrp > -200.0 {
+                    ui.vertical(|ui| {
+                        ui.spacing_mut().item_spacing.y = 1.0;
+                        ui.horizontal(|ui| {
+                            if rsrp > -200.0 {
+                                ui.label(
+                                    RichText::new(format!("{rsrp:.0}"))
+                                        .strong()
+                                        .size(12.5)
+                                        .color(rsrp_color(th, rsrp)),
+                                );
+                                ui.add_space(4.0);
+                                signal_meter(ui, th, rsrp, 48.0, 6.0);
+                            } else {
+                                ui.label(RichText::new("—").size(12.0).color(th.muted));
+                            }
+                        });
+                        let mut bits = Vec::new();
+                        if rsrq > -200.0 {
+                            bits.push(format!("Q {rsrq:.1}"));
+                        }
+                        if rssi > -200.0 {
+                            bits.push(format!("I {rssi:.0}"));
+                        }
+                        if !bits.is_empty() {
                             ui.label(
-                                RichText::new(format!("{rsrp:.0}"))
-                                    .strong()
-                                    .size(13.0)
-                                    .color(rsrp_color(th, rsrp)),
+                                RichText::new(bits.join(" · "))
+                                    .size(10.0)
+                                    .color(th.muted),
                             );
-                            ui.add_space(4.0);
-                            signal_meter(ui, th, rsrp, 56.0, 7.0);
-                        } else {
-                            ui.label(RichText::new("—").size(13.0).color(th.muted));
                         }
                     });
+                });
+                row.col(|ui| {
+                    if nb_n > 0 {
+                        ui.label(
+                            RichText::new(format!("{nb_n}"))
+                                .strong()
+                                .size(12.5)
+                                .color(th.accent),
+                        );
+                    } else {
+                        ui.label(RichText::new("·").size(12.0).color(th.muted));
+                    }
+                });
+                row.col(|ui| {
+                    let last = format_scan_time_rel(&t.meta.last_seen, &now);
+                    ui.label(
+                        RichText::new(if last.is_empty() { "—" } else { &last })
+                            .size(10.5)
+                            .color(th.muted),
+                    );
                 });
                 row.col(|ui| {
                     table_oci_cell(ui, th, &ext);
                 });
 
-                if row.response().clicked() {
+                let resp = row.response();
+                if resp.clicked() {
                     clicked = Some(ix);
                 }
+                resp.context_menu(|ui| {
+                    reveal_context_menu(ui, th, live, ix);
+                });
             });
         });
 
@@ -2400,24 +2524,10 @@ fn render_graph_view(ui: &mut Ui, th: &Theme, live: &mut LiveState) {
             live.apply_graph_focus(rect);
             let origin = rect.center() + live.graph_pan;
 
-            // Soft vignette / grid
-            painter.rect_filled(rect, CornerRadius::same(14), Color32::from_rgb(14, 17, 23));
-            for i in -8..=8 {
-                let x = origin.x + i as f32 * 80.0 * live.graph_zoom;
-                let y = origin.y + i as f32 * 80.0 * live.graph_zoom;
-                if rect.x_range().contains(x) {
-                    painter.line_segment(
-                        [Pos2::new(x, rect.top()), Pos2::new(x, rect.bottom())],
-                        Stroke::new(1.0, Color32::from_rgba_unmultiplied(255, 255, 255, 8)),
-                    );
-                }
-                if rect.y_range().contains(y) {
-                    painter.line_segment(
-                        [Pos2::new(rect.left(), y), Pos2::new(rect.right(), y)],
-                        Stroke::new(1.0, Color32::from_rgba_unmultiplied(255, 255, 255, 8)),
-                    );
-                }
-            }
+            // Deep panel + soft vignette (no grid).
+            painter.rect_filled(rect, CornerRadius::same(14), Color32::from_rgb(12, 14, 20));
+            let vignette = Color32::from_rgba_unmultiplied(0, 0, 0, 55);
+            painter.circle_filled(rect.center(), rect.width().max(rect.height()) * 0.55, vignette);
 
             // Zoom (scroll) + pan (drag background)
             if resp.hovered() {
@@ -2477,6 +2587,12 @@ fn render_graph_view(ui: &mut Ui, th: &Theme, live: &mut LiveState) {
                 .map(|n| graph_node_oci_warn(live, n))
                 .collect();
 
+            // Edges connected to selection (cell / parent eNB).
+            let sel_focus = selected_node.or(selected_enb);
+            let edge_selected = |a: usize, b: usize| -> bool {
+                sel_focus.is_some_and(|s| a == s || b == s)
+            };
+
             // Edges — hierarchy always; neighbor links only for the selected cell.
             for e in &live.graph_edges {
                 let Some(na) = live.graph_nodes.get(e.a) else { continue };
@@ -2492,16 +2608,24 @@ fn render_graph_view(ui: &mut Ui, th: &Theme, live: &mut LiveState) {
                 let dim_edge = filtering
                     && !node_is_hit.get(e.a).copied().unwrap_or(false)
                     && !node_is_hit.get(e.b).copied().unwrap_or(false);
+                let on_sel = edge_selected(e.a, e.b);
                 let stroke = match e.kind {
+                    EdgeKind::Hierarchy if on_sel => {
+                        Stroke::new(2.6, th.wash(th.accent, 210))
+                    }
                     EdgeKind::Hierarchy => Stroke::new(
-                        1.4,
-                        Color32::from_rgba_unmultiplied(148, 163, 184, if dim_edge { 18 } else { 55 }),
+                        1.2,
+                        Color32::from_rgba_unmultiplied(100, 112, 132, if dim_edge { 16 } else { 48 }),
                     ),
-                    EdgeKind::Neighbor => Stroke::new(
-                        1.8,
-                        Color32::from_rgba_unmultiplied(56, 189, 248, 160),
-                    ),
+                    EdgeKind::Neighbor => Stroke::new(2.4, th.wash(th.accent, 200)),
                 };
+                if on_sel || matches!(e.kind, EdgeKind::Neighbor) {
+                    // Soft glow under selected / neighbor edges.
+                    painter.line_segment(
+                        [a, b],
+                        Stroke::new(stroke.width + 4.0, th.wash(th.accent, 40)),
+                    );
+                }
                 painter.line_segment([a, b], stroke);
             }
 
@@ -2523,37 +2647,51 @@ fn render_graph_view(ui: &mut Ui, th: &Theme, live: &mut LiveState) {
                 let oci_miss = node_oci_miss.get(i).copied().unwrap_or(false);
                 let oci_warn = node_oci_warn.get(i).copied().unwrap_or(false);
                 let dim = filtering && !search_hit && !selected;
-                // Keep node fill stable; status = ring only (no red/yellow repaint war).
                 let col = if dim {
                     th.wash(n.color, 45)
                 } else {
                     n.color
                 };
-                let halo = if selected {
-                    th.wash(th.accent, 50)
+
+                if selected {
+                    painter.circle_filled(c, r + 14.0, th.wash(th.accent, 28));
+                    painter.circle_filled(c, r + 8.0, th.wash(th.accent, 55));
+                    painter.circle_stroke(
+                        c,
+                        r + 10.0,
+                        Stroke::new(1.5, th.wash(th.accent, 160)),
+                    );
                 } else if search_hit && filtering {
-                    th.wash(th.accent, 40)
+                    painter.circle_filled(c, r + 7.0, th.wash(th.accent, 36));
                 } else {
-                    th.wash(n.color, 28)
-                };
-                painter.circle_filled(c, r + 5.0, halo);
+                    painter.circle_filled(c, r + 4.0, th.wash(n.color, 22));
+                }
+
                 painter.circle_filled(c, r, col);
-                let (stroke_w, stroke_col) = if oci_miss && !dim {
+                // Inner highlight for depth.
+                if !dim {
+                    painter.circle_filled(
+                        c - Vec2::new(r * 0.25, r * 0.25),
+                        r * 0.35,
+                        Color32::from_rgba_unmultiplied(255, 255, 255, 28),
+                    );
+                }
+
+                let (stroke_w, stroke_col) = if selected {
+                    (2.8, Color32::from_rgb(245, 248, 255))
+                } else if oci_miss && !dim {
                     (2.2, th.wash(th.danger, 200))
                 } else if oci_warn && !dim {
                     (2.0, th.wash(th.warning, 170))
-                } else if selected {
-                    (2.0, th.wash(Color32::WHITE, 160))
                 } else if search_hit {
-                    (1.6, th.wash(th.accent, 150))
+                    (1.8, th.wash(th.accent, 170))
                 } else if dim {
-                    (1.0, th.wash(Color32::WHITE, 20))
+                    (1.0, th.wash(Color32::WHITE, 18))
                 } else {
-                    (1.0, th.wash(Color32::WHITE, 50))
+                    (1.2, th.wash(Color32::WHITE, 55))
                 };
                 painter.circle_stroke(c, r, Stroke::new(stroke_w, stroke_col));
 
-                // Label LOD — less overlap when zoomed out; search hits stay labeled.
                 let show_label = match n.kind {
                     GraphKind::Operator => true,
                     GraphKind::Enb => z > 0.55 || selected || search_hit,
@@ -2574,8 +2712,10 @@ fn render_graph_view(ui: &mut Ui, th: &Theme, live: &mut LiveState) {
                         egui::Align2::CENTER_TOP,
                         &n.label,
                         egui::FontId::proportional(font),
-                        if selected || search_hit {
+                        if selected {
                             th.text
+                        } else if search_hit {
+                            th.accent
                         } else if dim {
                             Color32::from_rgba_unmultiplied(148, 163, 184, 50)
                         } else {
@@ -2589,7 +2729,7 @@ fn render_graph_view(ui: &mut Ui, th: &Theme, live: &mut LiveState) {
                         egui::Align2::CENTER_TOP,
                         &n.sub,
                         egui::FontId::proportional(10.0),
-                        th.muted,
+                        if selected { th.text } else { th.muted },
                     );
                 }
 
@@ -2649,6 +2789,35 @@ fn render_graph_view(ui: &mut Ui, th: &Theme, live: &mut LiveState) {
                     select_graph_node(live, i);
                 }
             }
+            if resp.secondary_clicked() {
+                if let Some(i) = hit {
+                    select_graph_node(live, i);
+                    live.graph_ctx_flat = match live.graph_nodes.get(i).map(|n| n.kind) {
+                        Some(GraphKind::Cell) => {
+                            live.graph_nodes.get(i).and_then(|n| n.flat_ix)
+                        }
+                        Some(GraphKind::Enb) => {
+                            let id = live.graph_nodes[i].id.clone();
+                            live.site_primary_flat_ix(&id)
+                        }
+                        _ => None,
+                    };
+                } else {
+                    live.graph_ctx_flat = None;
+                }
+            }
+
+            resp.context_menu(|ui| {
+                if let Some(ix) = live.graph_ctx_flat {
+                    reveal_context_menu(ui, th, live, ix);
+                } else {
+                    ui.label(
+                        RichText::new("Right-click a cell or eNB")
+                            .size(12.0)
+                            .color(th.muted),
+                    );
+                }
+            });
 
             if live.graph_nodes.is_empty() {
                 painter.text(
@@ -3194,6 +3363,10 @@ fn render_cell_row(ui: &mut Ui, th: &Theme, live: &mut LiveState, ix: usize, dep
         live.scroll_to_selected = false;
     }
 
+    resp.context_menu(|ui| {
+        reveal_context_menu(ui, th, live, ix);
+    });
+
     if toggle_nb {
         toggle_expand(&mut live.expanded, &nb_key);
     } else if resp.clicked() {
@@ -3227,6 +3400,7 @@ fn render_cell_row(ui: &mut Ui, th: &Theme, live: &mut LiveState, ix: usize, dep
                     .neighbors
                     .nb_lte
                     .iter()
+                    .chain(t.neighbors.nb_nr.iter())
                     .chain(t.neighbors.nb_umts.iter())
                     .chain(t.neighbors.nb_gsm.iter())
                     .take(24)
@@ -3293,7 +3467,7 @@ fn render_cell_row(ui: &mut Ui, th: &Theme, live: &mut LiveState, ix: usize, dep
     }
 }
 
-fn render_detail(ui: &mut Ui, th: &Theme, ft: &FlatTower, ext: &ExtStatus) {
+fn render_detail(ui: &mut Ui, th: &Theme, ft: &FlatTower, ext: &ExtStatus, now: &str) {
     let t = &ft.tower;
     let (fill, fill_c) = fill_label(th, t);
 
@@ -3405,8 +3579,11 @@ fn render_detail(ui: &mut Ui, th: &Theme, ft: &FlatTower, ext: &ExtStatus) {
             "RF lock sticky (raw)",
             if t.was_camped() { "1" } else { "0" },
         );
-        kv_row(ui, th, "Seen", &t.meta.seen);
-        kv_row(ui, th, "Last seen", &t.meta.last_seen);
+        kv_row(ui, th, "Seen count", &t.meta.seen);
+        let last = format_scan_time_rel(&t.meta.last_seen, now);
+        let span = format_scan_span(&t.meta.first_seen, &t.meta.last_seen);
+        kv_row(ui, th, "Last heard", &last);
+        kv_row(ui, th, "In session", &span);
     });
 
     let nb = t.neighbor_count();
@@ -3790,5 +3967,26 @@ fn dash(s: &str) -> &str {
         "-"
     } else {
         s
+    }
+}
+
+fn format_mtime_ago(mtime: SystemTime) -> String {
+    match mtime.elapsed() {
+        Ok(d) if d.as_secs() < 2 => "just now".into(),
+        Ok(d) => {
+            let secs = d.as_secs();
+            let h = secs / 3600;
+            let m = (secs % 3600) / 60;
+            let s = secs % 60;
+            let body = if h > 0 {
+                format!("{h}h {m:02}m {s:02}s")
+            } else if m > 0 {
+                format!("{m}m {s:02}s")
+            } else {
+                format!("{s}s")
+            };
+            format!("{body} ago")
+        }
+        Err(_) => "just now".into(),
     }
 }

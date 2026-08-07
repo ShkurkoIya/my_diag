@@ -1,0 +1,5 @@
+=== Observer fast-scan log ===
+[0.1s] started=1783682788793 rats=4G,3G,2G foreign=true maxTargets=0
+[95.9s] SWEEP 99999/4G cells=113 cpp=[[I] DiagDciClient: starting... | [D] libdiag: resolved Diag_LSM_Init @ 0x7a90150d38 | [D] libdiag: resolved Diag_LSM_DeInit @ 0x7a90150f38 | [D] libdiag: resolved diag_register_dci_client @ 0x7a90150d68 | [D] libdiag: resolved diag_release_dci_client @ 0x7a90150dc4 | [D] libdiag: using Variant B (register_dci]
+[160.6s] SWEEP 99999/3G cells=116 cpp=[[I] DiagDciClient: starting... | [D] libdiag: resolved Diag_LSM_Init @ 0x7609c81d38 | [D] libdiag: resolved Diag_LSM_DeInit @ 0x7609c81f38 | [D] libdiag: resolved diag_register_dci_client @ 0x7609c81d68 | [D] libdiag: resolved diag_release_dci_client @ 0x7609c81dc4 | [D] libdiag: using Variant B (register_dci]
+[225.3s] SWEEP 99999/2G cells=306 cpp=[[I] DiagDciClient: starting... | [D] libdiag: resolved Diag_LSM_Init @ 0x7b818ead38 | [D] libdiag: resolved Diag_LSM_DeInit @ 0x7b818eaf38 | [D] libdiag: resolved diag_register_dci_client @ 0x7b818ead68 | [D] libdiag: resolved diag_release_dci_client @ 0x7b818eadc4 | [D] libdiag: using Variant B (register_dci]

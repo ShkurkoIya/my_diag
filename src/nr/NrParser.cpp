@@ -88,11 +88,15 @@ std::expected<std::vector<Events::RrcEvent>, ParserError> NrParser::parse_ml1_me
       }
 
       if (best_rsrp > -180.0f) {
-        nev.neighbors.push_back(NeighborMeasResult{
-            .pci = pci,
-            .rsrp = static_cast<uint8_t>(static_cast<int>(best_rsrp + 180.0f) & 0xFF),
-            .rsrq = static_cast<uint8_t>(static_cast<int>(best_rsrq + 30.0f) & 0xFF),
-        });
+        NeighborMeasResult nr;
+        nr.pci = pci;
+        nr.rsrp_dbm = best_rsrp;
+        nr.has_rsrp = true;
+        nr.rsrq_db = best_rsrq;
+        nr.has_rsrq = true;
+        nr.sinr_db = best_sinr;
+        nr.has_sinr = true;
+        nev.neighbors.push_back(nr);
       }
     }
 

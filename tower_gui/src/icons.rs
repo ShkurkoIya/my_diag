@@ -9,15 +9,6 @@ pub use egui_phosphor::regular::{
     SHARE_NETWORK, TABLE, WARNING, WARNING_CIRCLE, X_CIRCLE,
 };
 
-/// Folder open/closed — main tree expand affordance.
-pub fn expand_glyph(open: bool) -> &'static str {
-    if open {
-        regular::FOLDER_OPEN
-    } else {
-        regular::FOLDER_SIMPLE
-    }
-}
-
 /// Compact circle-caret for nested buckets (neighbors, heard RF).
 pub fn nest_glyph(open: bool) -> &'static str {
     if open {
@@ -27,7 +18,7 @@ pub fn nest_glyph(open: bool) -> &'static str {
     }
 }
 
-/// Clickable expand chip — painted hit target that works inside ScrollArea.
+/// Clickable expand chip — chevron in a rounded square (not a folder).
 pub fn expand_toggle(ui: &mut Ui, open: bool, accent: Color32) -> egui::Response {
     let size = Vec2::splat(28.0);
     let (rect, resp) = ui.allocate_exact_size(size, Sense::click());
@@ -42,19 +33,38 @@ pub fn expand_toggle(ui: &mut Ui, open: bool, accent: Color32) -> egui::Response
     } else {
         Color32::from_rgb(56, 64, 78)
     };
-    ui.painter()
-        .rect_filled(rect, CornerRadius::same(8), bg);
-    ui.painter()
-        .rect_stroke(rect, CornerRadius::same(8), Stroke::new(1.0, stroke), egui::StrokeKind::Inside);
-    let glyph = expand_glyph(open);
-    let color = if open { accent } else { Color32::from_rgb(160, 172, 190) };
-    ui.painter().text(
-        rect.center(),
-        egui::Align2::CENTER_CENTER,
-        glyph,
-        egui::FontId::proportional(16.0),
-        color,
+    let painter = ui.painter();
+    painter.rect_filled(rect, CornerRadius::same(8), bg);
+    painter.rect_stroke(
+        rect,
+        CornerRadius::same(8),
+        Stroke::new(1.0, stroke),
+        egui::StrokeKind::Inside,
     );
+
+    // Painted chevron — clearer than folder glyphs for tree expand.
+    let c = rect.center();
+    let col = if open {
+        accent
+    } else if hovered {
+        Color32::from_rgb(210, 220, 235)
+    } else {
+        Color32::from_rgb(160, 172, 190)
+    };
+    let stroke = Stroke::new(2.0, col);
+    if open {
+        let a = c + Vec2::new(-5.5, -1.5);
+        let b = c + Vec2::new(0.0, 4.0);
+        let d = c + Vec2::new(5.5, -1.5);
+        painter.line_segment([a, b], stroke);
+        painter.line_segment([b, d], stroke);
+    } else {
+        let a = c + Vec2::new(-1.5, -5.5);
+        let b = c + Vec2::new(4.0, 0.0);
+        let d = c + Vec2::new(-1.5, 5.5);
+        painter.line_segment([a, b], stroke);
+        painter.line_segment([b, d], stroke);
+    }
     resp.on_hover_text(if open { "Collapse" } else { "Expand" })
 }
 

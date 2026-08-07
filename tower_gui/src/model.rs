@@ -1,4 +1,4 @@
-//! qcom.towers.v4 JSON model (RAT-grouped, complete unique towers).
+//! qcom.towers.v5 JSON model (RAT-grouped; extras + nb_nr; v4 still loads).
 
 use serde::Deserialize;
 use std::collections::BTreeMap;
@@ -141,6 +141,8 @@ pub struct Neighbors {
     pub nb_gsm: Vec<Neighbor>,
     #[serde(default)]
     pub nb_umts: Vec<Neighbor>,
+    #[serde(default)]
+    pub nb_nr: Vec<Neighbor>,
 }
 
 #[derive(Debug, Clone, Deserialize, Default)]
@@ -249,7 +251,10 @@ impl Tower {
     }
 
     pub fn neighbor_count(&self) -> usize {
-        self.neighbors.nb_lte.len() + self.neighbors.nb_gsm.len() + self.neighbors.nb_umts.len()
+        self.neighbors.nb_lte.len()
+            + self.neighbors.nb_gsm.len()
+            + self.neighbors.nb_umts.len()
+            + self.neighbors.nb_nr.len()
     }
 
     pub fn is_serving(&self) -> bool {
@@ -289,6 +294,109 @@ impl Tower {
             self.channel(),
             self.cell_code()
         )
+    }
+}
+
+/// Format a scan timestamp for UI.
+///
+/// Diag/`last_seen` values are usually huge monotonic ticks (not wall clock).
+/// Absolute “21410h uptime” is meaningless — prefer ISO wall strings as-is,
+/// otherwise return empty (use [`format_scan_time_rel`] with a `now` ref).
+pub fn format_scan_time(raw: &str) -> String {
+    let s = raw.trim();
+    if s.is_empty() {
+        return String::new();
+    }
+    // Journal / wall clock: `2024-01-15 12:34:56` or ISO-ish.
+    if looks_like_wall_clock(s) {
+        return s.to_string();
+    }
+    // Bare monotonic integer — don't invent an absolute clock.
+    if s.parse::<u64>().is_ok() {
+        return String::new();
+    }
+    s.to_string()
+}
+
+/// Human delta between two scan clocks: `just now`, `12s ago`, `3m 05s ago`.
+/// Both sides must be the same unit (diag ticks or wall — wall falls back to absolute).
+pub fn format_scan_time_rel(last: &str, now: &str) -> String {
+    let last = last.trim();
+    let now = now.trim();
+    if last.is_empty() {
+        return String::new();
+    }
+    if looks_like_wall_clock(last) {
+        return last.to_string();
+    }
+    let (Some(a), Some(b)) = (scan_ticks(last), scan_ticks(now)) else {
+        return format_scan_time(last);
+    };
+    if b < a {
+        return "—".into();
+    }
+    let ago_secs = ticks_to_secs(b - a);
+    if ago_secs < 2 {
+        "just now".into()
+    } else {
+        format!("{} ago", format_duration_secs(ago_secs))
+    }
+}
+
+/// How long the cell has been in the session: `first → last` as `seen 4m 20s`.
+pub fn format_scan_span(first: &str, last: &str) -> String {
+    let (Some(a), Some(b)) = (scan_ticks(first.trim()), scan_ticks(last.trim())) else {
+        return String::new();
+    };
+    if b < a {
+        return String::new();
+    }
+    let d = ticks_to_secs(b - a);
+    if d < 1 {
+        "seen <1s".into()
+    } else {
+        format!("seen {}", format_duration_secs(d))
+    }
+}
+
+fn looks_like_wall_clock(s: &str) -> bool {
+    // `YYYY-MM-DD …` or `YYYY/MM/DD…`
+    let b = s.as_bytes();
+    b.len() >= 10
+        && b[0].is_ascii_digit()
+        && (b[4] == b'-' || b[4] == b'/')
+        && (b[7] == b'-' || b[7] == b'/')
+}
+
+fn scan_ticks(raw: &str) -> Option<u64> {
+    raw.parse().ok()
+}
+
+/// Diag timestamps in this project behave like nanoseconds for *deltas*
+/// (e.g. 2.6e11 ticks ≈ 263s). Absolute epoch is not wall time.
+fn ticks_to_secs(delta: u64) -> u64 {
+    if delta >= 1_000_000_000 {
+        // ns-scale delta
+        delta / 1_000_000_000
+    } else if delta >= 1_000_000 {
+        delta / 1_000_000
+    } else if delta >= 1_000 {
+        delta / 1_000
+    } else {
+        delta
+    }
+}
+
+fn format_duration_secs(secs: u64) -> String {
+    let h = secs / 3600;
+    let m = (secs % 3600) / 60;
+    let s = secs % 60;
+    if h > 0 {
+        format!("{h}h {m:02}m {s:02}s")
+    } else if m > 0 {
+        format!("{m}m {s:02}s")
+    } else {
+        format!("{s}s")
     }
 }
 

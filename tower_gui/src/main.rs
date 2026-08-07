@@ -7,7 +7,7 @@ mod theme;
 use eframe::egui::{self, Color32, CornerRadius, Frame, Margin, RichText, Sense, Ui, Vec2};
 use egui_extras::{Column, TableBuilder};
 use live::LiveState;
-use model::{Document, FlatTower, Neighbor, Rat, Stats};
+use model::{format_scan_time_rel, Document, FlatTower, Neighbor, Rat, Stats};
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
 use theme::Theme;
@@ -491,7 +491,7 @@ impl eframe::App for TowerApp {
                     self.section == AppSection::Dumps,
                     icons::FOLDER_OPEN,
                     "Dumps",
-                    "Browse / compare qcom.towers.v4 JSON dumps",
+                    "Browse / compare qcom.towers JSON dumps",
                 ) {
                     self.section = AppSection::Dumps;
                 }
@@ -1111,9 +1111,10 @@ fn tower_table(ui: &mut Ui, th: Theme, doc: &mut Doc, height: f32) {
                     );
                 });
                 row.col(|ui| {
+                    let now = &doc.doc.meta.situation_as_of;
+                    let last = format_scan_time_rel(&t.meta.last_seen, now);
                     ui.label(
-                        RichText::new(dash(&t.meta.last_seen))
-                            .monospace()
+                        RichText::new(dash(&last))
                             .size(11.0)
                             .color(th.muted),
                     );
@@ -1340,12 +1341,12 @@ fn detail_body(ui: &mut Ui, th: Theme, doc: &Doc) {
             ui.label(RichText::new("SERVING").strong().color(th.serving).size(11.0));
         }
     });
+    let now = &doc.doc.meta.situation_as_of;
     ui.label(
         RichText::new(format!(
-            "seen {} · {} → {}",
+            "seen {} · last {}",
             dash(&t.meta.seen),
-            dash(&t.meta.first_seen),
-            dash(&t.meta.last_seen)
+            dash(&format_scan_time_rel(&t.meta.last_seen, now))
         ))
         .color(th.muted)
         .size(11.0),
@@ -1366,6 +1367,7 @@ fn detail_body(ui: &mut Ui, th: Theme, doc: &Doc) {
         nb_table(ui, th, "LTE", &t.neighbors.nb_lte);
         nb_table(ui, th, "GSM", &t.neighbors.nb_gsm);
         nb_table(ui, th, "UMTS", &t.neighbors.nb_umts);
+        nb_table(ui, th, "NR", &t.neighbors.nb_nr);
         if t.neighbor_count() == 0 {
             ui.label(RichText::new("-").color(th.muted));
         }

@@ -7,6 +7,7 @@
 #pragma once
 
 #include <concepts>
+#include <string_view>
 #include <variant>
 #include <vector>
 
@@ -98,6 +99,7 @@ struct RrcEventEnvelope {
   LocalCellKey key;       ///< Physical cell key (freq + PCI) for CellTracker lookup
   RatType rat;            ///< RAT type for variant initialization
   uint64_t timestamp{0};  ///< DIAG packet timestamp
+  std::string_view wall_time{};  ///< Optional journal wall clock
   RrcEvent event_data;
 };
 

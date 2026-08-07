@@ -84,11 +84,29 @@ public:
 // ============================================================================
 
 [[nodiscard]] inline constexpr bool valid_lte_earfcn(uint32_t v) noexcept {
-  return v > 0 && v <= 70645;
+  // 3GPP TS 36.101 EARFCN; reject 0 / 0xFFFFFFFF modem padding.
+  return v > 0 && v <= 262143;
 }
 [[nodiscard]] inline constexpr bool valid_lte_pci(uint16_t v) noexcept { return v <= 503; }
+/// 28-bit E-UTRAN Cell Identity (reject 0xFFFFFFFF padding).
+[[nodiscard]] inline constexpr bool valid_lte_eci(uint64_t v) noexcept {
+  return v > 0 && v <= 0x0FFFFFFFull;
+}
+/// 16-bit TAC (0xFFFF is reserved / unused).
+[[nodiscard]] inline constexpr bool valid_lte_tac(uint32_t v) noexcept {
+  return v > 0 && v < 0xFFFFu;
+}
+
+/// PCI packed in ML1 meas words (0xB17F / 0xB193 cells).
+/// SIM8300 + MobileInsight: low 9 bits. scat bitstring MSB[0:9] uses >>7 — fallback when lo==0.
+[[nodiscard]] inline constexpr uint16_t lte_pci_from_meas_word(uint16_t w) noexcept {
+  const uint16_t lo = static_cast<uint16_t>(w & 0x1FFu);
+  if (lo != 0 && lo <= 503) return lo;
+  return static_cast<uint16_t>((w >> 7) & 0x1FFu);
+}
 [[nodiscard]] inline constexpr bool valid_lte_rsrp(float v) noexcept {
-  return v >= -180.0f && v <= -30.0f;
+  // Survey-grade: reject nonsense extremes (−30 from bad decode, <−150 noise floor).
+  return v >= -150.0f && v <= -40.0f;
 }
 [[nodiscard]] inline constexpr bool valid_nr_arfcn(uint32_t v) noexcept { return v <= 3279165; }
 [[nodiscard]] inline constexpr bool valid_nr_pci(uint16_t v) noexcept { return v <= 1007; }

@@ -77,6 +77,21 @@ struct CellPassport {
 
   uint8_t freq_band_ind{0};  ///< SIB1: frequency band indicator (e.g. 7 = 2600 MHz)
 
+  /// LTE: eNodeB ID / local cell from 28-bit ECI (common 20+8 split).
+  [[nodiscard]] constexpr uint32_t enb_id() const noexcept {
+    return static_cast<uint32_t>((cell_id >> 8) & 0xFFFFFu);
+  }
+  [[nodiscard]] constexpr uint8_t local_cell_id() const noexcept {
+    return static_cast<uint8_t>(cell_id & 0xFFu);
+  }
+  /// UMTS: RNC-ID / C-ID from 28-bit UTRAN Cell Identity.
+  [[nodiscard]] constexpr uint16_t rnc_id() const noexcept {
+    return static_cast<uint16_t>((cell_id >> 16) & 0x0FFFu);
+  }
+  [[nodiscard]] constexpr uint16_t umts_cid16() const noexcept {
+    return static_cast<uint16_t>(cell_id & 0xFFFFu);
+  }
+
   [[nodiscard]] constexpr bool has_identity() const noexcept { return cell_id > 0; }
   bool operator==(const CellPassport&) const = default;
 };
@@ -94,20 +109,22 @@ struct CellPassport {
 ///   - Access barring detection (ac_barr_*)
 struct LteRadioParams {
   uint32_t earfcn{0};  ///< E-UTRA Absolute Radio Freq Channel Number
-  uint16_t pci{0};     ///< Physical Cell ID (0-503)
+  uint16_t pci{0};     ///< Physical Cell ID (0-503) — SDR "dl_code"
 
   // MIB
-  uint8_t dl_bw{0};           ///< Downlink bandwidth in MHz (1,3,5,10,15,20)
+  uint8_t dl_bw{0};           ///< Downlink bandwidth in MHz (1,3,5,10,15,20) — SDR "bandwidth"
   uint8_t phich_duration{0};  ///< PHICH duration: 0=normal, 1=extended
   uint8_t phich_resource{0};  ///< PHICH resource: 0=1/6, 1=1/2, 2=1, 3=2
   uint16_t sfn{0};            ///< System Frame Number (0-1023)
 
   // SIB1
   uint8_t freq_band_ind{0};  ///< Frequency band indicator
+  bool p_max_present{false}; ///< SIB1 p-Max present
+  int8_t p_max{0};           ///< SIB1 UE max TX power (dBm), valid if p_max_present
 
   // SIB2
-  uint8_t ul_bw{0};                  ///< Uplink bandwidth (resource blocks)
-  uint32_t ul_earfcn{0};             ///< UL carrier frequency (if different from DL)
+  uint8_t ul_bw{0};                  ///< Uplink bandwidth in MHz (same units as dl_bw)
+  uint32_t ul_earfcn{0};             ///< UL EARFCN (SDR "ul_freq" channel) — 0 = same as DL
   bool ac_barr_emergency{false};     ///< Access barring for emergency
   bool ac_barr_mo_signaling{false};  ///< Access barring for MO signaling
   bool ac_barr_mo_data{false};       ///< Access barring for MO data
@@ -138,9 +155,9 @@ struct NrRadioParams {
 
 /// @brief WCDMA/UMTS radio parameters from 0x4027 and SIBs.
 struct WcdmaRadioParams {
-  uint32_t dl_uarfcn{0};  ///< DL UTRA Absolute Radio Freq Channel Number
-  uint32_t ul_uarfcn{0};  ///< UL UARFCN
-  uint16_t psc{0};        ///< Primary Scrambling Code (0-511)
+  uint32_t dl_uarfcn{0};  ///< DL UARFCN — SDR "dl_freq" (channel)
+  uint32_t ul_uarfcn{0};  ///< UL UARFCN — SDR "ul_freq"
+  uint16_t psc{0};        ///< Primary Scrambling Code (0-511) — SDR "dl_code" / "psc"
   int8_t q_rx_lev_min_rscp{0};
   int8_t q_qual_min_ecno{0};
 
@@ -153,6 +170,7 @@ struct GsmRadioParams {
   uint16_t bsic{0};   ///< Base Station Identity Code (NCC<<3 | BCC)
   uint8_t ncc{0};     ///< Network Colour Code (3 bits)
   uint8_t bcc{0};     ///< Base Station Colour Code (3 bits)
+  uint8_t band_class{0xFF};  ///< Qualcomm arfcn_band>>12 nibble (0xFF = unknown)
 
   // SI-3 Cell Selection Parameters (TS 44.018 §10.5.2.4)
   uint8_t rxlev_access_min{0};  ///< Minimum RxLev for cell access (0-63)
@@ -163,6 +181,7 @@ struct GsmRadioParams {
   uint8_t cell_reselect_offset{0};  ///< CRO in 2 dB steps (0-63)
   uint8_t temporary_offset{0};      ///< 10 dB steps, 7 = infinity
   uint8_t penalty_time{0};          ///< 0-31, 31 = infinity
+  bool reselect_params_present{false};
 
   bool operator==(const GsmRadioParams&) const = default;
 };
@@ -186,6 +205,8 @@ struct InterFreqCarrier {
   uint8_t thresh_x_low{0};   ///< Lower reselection threshold
   uint8_t cell_resel_prio{0};
   uint8_t allowed_meas_bw{0};  ///< Allowed measurement bandwidth (RB)
+  /// Optional PCIs from SIB5 interFreqNeighCellList (RADIO rows, no invented RSRP).
+  std::vector<uint16_t> neigh_pcis;
   auto operator<=>(const InterFreqCarrier&) const = default;
 };
 
@@ -210,12 +231,19 @@ struct GeranNeighborFreq {
   auto operator<=>(const GeranNeighborFreq&) const = default;
 };
 
-/// @brief Neighbor cell measurement result from MeasurementReport.
+/// @brief Neighbor cell measurement result from MeasurementReport / ML1.
 struct NeighborMeasResult {
   uint16_t pci{0};
-  uint8_t rsrp{0};  ///< Raw RSRP index (0-97), actual = index - 140 dBm
-  uint8_t rsrq{0};  ///< Raw RSRQ index (0-34), actual = (index - 40) * 0.5 dB
-  auto operator<=>(const NeighborMeasResult&) const = default;
+  float rsrp_dbm{0};  ///< RSRP in dBm (SDR "rxl" for LTE neighbor)
+  float rsrq_db{0};   ///< RSRQ in dB
+  float sinr_db{0};   ///< SINR / SS-SINR in dB (NR ML1; LTE when available)
+  bool has_rsrp{false};
+  bool has_rsrq{false};
+  bool has_sinr{false};
+  /// MeasReport cgi-Info (PLMN+TAC+ECI) when reportCGI is active.
+  bool has_cgi{false};
+  CellPassport cgi{};
+  bool operator==(const NeighborMeasResult&) const = default;
 };
 
 /// @brief GSM neighbor from BA list / surround measurements.
@@ -310,21 +338,29 @@ struct CellRadio {
 // ============================================================================
 
 struct GsmSignalParams {
-  int8_t rxlev{0};    ///< Received signal level (dBm + 110)
-  uint8_t rxqual{0};  ///< BER quality indicator (0-7)
+  int8_t rxlev{0};     ///< Received signal level (dBm) — SDR "rxl"
+  uint8_t rxqual{0};   ///< BER quality indicator (0-7)
+  int16_t snr{0};      ///< SNR estimate from L1 burst (raw units; 0 = unset)
+  bool has_snr{false};
+  int16_t c1{0};       ///< Cell selection criterion C1 (TS 45.008)
+  int16_t c2{0};       ///< Cell reselection criterion C2
+  bool has_c1c2{false};
   bool operator==(const GsmSignalParams&) const = default;
 };
 
 struct WcdmaSignalParams {
-  float rscp{0.0f};  ///< Received Signal Code Power (dBm)
-  float ecio{0.0f};  ///< Ec/Io ratio (dB)
+  float rscp{0.0f};  ///< Received Signal Code Power (dBm) — SDR "rxl"
+  float ecio{0.0f};  ///< Ec/Io ratio (dB) — SDR "snr" proxy for UMTS
+  bool has_ecio{false};
 };
 
 struct LteSignalParams {
-  float rsrp{0.0f};  ///< Reference Signal Received Power (dBm)
+  float rsrp{0.0f};  ///< Reference Signal Received Power (dBm) — SDR "rxl"
   float rsrq{0.0f};  ///< Reference Signal Received Quality (dB)
-  float sinr{0.0f};  ///< Signal to Interference + Noise Ratio (dB)
+  float sinr{0.0f};  ///< Signal to Interference + Noise Ratio (dB) — SDR "snr"
   float rssi{0.0f};  ///< Received Signal Strength Indicator (dBm)
+  bool has_sinr{false};
+  bool has_rssi{false};
 };
 
 struct NrSignalParams {
@@ -381,14 +417,22 @@ class CellIdentity {
 public:
   RatType rat{RatType::UNKNOWN};
   bool is_serving{false};
+  /// Sticky: once this cell was serving in the session, keep for export (Vlad parity).
+  bool ever_serving{false};
   CellPassport passport{};
   CellRadio radio{};
   CellSignal signal;
+
+  /// App-level bookkeeping (Vlad CSV parity) — not modem SI fields.
+  uint64_t seen{0};
+  std::string first_seen;
+  std::string last_seen;
 
   CellIdentity() noexcept = default;
   CellIdentity(RatType r, bool serving, CellPassport p, CellRadio rad, CellSignal s = {}) noexcept
       : rat(r)
       , is_serving(serving)
+      , ever_serving(serving)
       , passport(std::move(p))
       , radio(std::move(rad))
       , signal(std::move(s)) {}

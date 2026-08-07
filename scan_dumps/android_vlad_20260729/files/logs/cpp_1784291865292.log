@@ -1,0 +1,2398 @@
+[LOG] === diag_scan log start (pid=17252) ===
+[I] DiagDciClient: starting...
+[D] libdiag: resolved Diag_LSM_Init @ 0x7c918c2d38
+[D] libdiag: resolved Diag_LSM_DeInit @ 0x7c918c2f38
+[D] libdiag: resolved diag_register_dci_client @ 0x7c918c2d68
+[D] libdiag: resolved diag_release_dci_client @ 0x7c918c2dc4
+[D] libdiag: using Variant B (register_dci_client)
+[D] libdiag: resolved diag_register_dci_stream_proc @ 0x7c918c2d78
+[D] libdiag: resolved diag_log_stream_config @ 0x7c918c2d98
+[D] libdiag: resolved diag_event_stream_config @ 0x7c918c2da0
+[D] libdiag: resolved diag_get_dci_support_list_proc @ 0x7c918c2d90
+[D] libdiag: resolved diag_send_dci_async_req @ 0x7c918c2d80
+[D] libdiag: resolved diag_get_health_stats_proc @ 0x7c918c2db0
+[I] libdiag: loaded from libdiag.so (variant B (register_dci_client))
+[I] DiagDciClient: libdiag loaded from libdiag.so
+[D] DiagDciClient: Diag_LSM_Init() OK
+[I] DiagDciClient: allocated client_id=1 (variant B)
+[D] DiagDciClient: DCI stream callbacks registered
+[I] DiagDciClient: log mask enabled (43 codes)
+[I] DiagDciClient: mask contains B0C0=1 B0C1=1 B0C2=1 B0EC=1
+[I] DiagDciClient: event mask enabled (23 ids)
+[I] DiagDciClient: running (client_id=1, log_codes=43, event_ids=23)
+[CLEANUP] === unlock_all() — wiping all lock files ===
+[CLEANUP] === unlock_lte: starting wipe ===
+[UNLINK] === attempt 1/3 path=/nv/item_files/modem/lte/rrc/efs/cell_lock_list ===
+[STAT] /nv/item_files/modem/lte/rrc/efs/cell_lock_list -> ABSENT (errno=2)
+[UNLINK] file already absent — OK
+[UNLINK] === attempt 1/3 path=/nv/item_files/modem/lte/rrc/efs/cell_restrict_opt_params ===
+[STAT] /nv/item_files/modem/lte/rrc/efs/cell_restrict_opt_params -> ABSENT (errno=2)
+[UNLINK] file already absent — OK
+[UNLINK] === attempt 1/3 path=/nv/item_files/modem/lte/rrc/csp/pci_lock ===
+[STAT] /nv/item_files/modem/lte/rrc/csp/pci_lock -> ABSENT (errno=2)
+[UNLINK] file already absent — OK
+[EFS] SyncNoWait seq=1 '/nv/item_files/modem/lte/rrc/efs/cell_lock_list'
+[EFS] SyncNoWait raw rsp (14): 4B 13 30 00 01 00 00 00 00 00 02 00 00 00
+[EFS] SyncNoWait rsp: seq=1 token=0x00000000 err=2
+[EFS] SYNC_NO_WAIT failed: errno=2
+[STAT] /nv/item_files/modem/lte/rrc/efs/cell_lock_list -> ABSENT (errno=2)
+[EFS] OPEN(rd) '/nv/item_files/modem/lte/rrc/efs/cell_lock_list' failed fd=-1 errno=2
+[CLEANUP] /nv/item_files/modem/lte/rrc/efs/cell_lock_list: confirmed gone (stat+get agree)
+[STAT] /nv/item_files/modem/lte/rrc/efs/cell_restrict_opt_params -> ABSENT (errno=2)
+[EFS] OPEN(rd) '/nv/item_files/modem/lte/rrc/efs/cell_restrict_opt_params' failed fd=-1 errno=2
+[CLEANUP] /nv/item_files/modem/lte/rrc/efs/cell_restrict_opt_params: confirmed gone (stat+get agree)
+[STAT] /nv/item_files/modem/lte/rrc/csp/pci_lock -> ABSENT (errno=2)
+[EFS] OPEN(rd) '/nv/item_files/modem/lte/rrc/csp/pci_lock' failed fd=-1 errno=2
+[CLEANUP] /nv/item_files/modem/lte/rrc/csp/pci_lock: confirmed gone (stat+get agree)
+[CLEANUP] === unlock_lte: OK ===
+[CLEANUP] === unlock_umts() — wiping WCDMA lock files ===
+[UNLINK] === attempt 1/3 path=/nv/item_files/wcdma/rrc/wcdma_rrc_freq_lock_item ===
+[STAT] /nv/item_files/wcdma/rrc/wcdma_rrc_freq_lock_item -> ABSENT (errno=2)
+[UNLINK] file already absent — OK
+[UNLINK] === attempt 1/3 path=/nv/item_files/wcdma/rrc/wcdma_rrc_enable_psc_lock ===
+[STAT] /nv/item_files/wcdma/rrc/wcdma_rrc_enable_psc_lock -> ABSENT (errno=2)
+[UNLINK] file already absent — OK
+[UNLINK] === attempt 1/3 path=/nv/item_files/wcdma/l1/srch/wl1_srch_debug_utils ===
+[STAT] /nv/item_files/wcdma/l1/srch/wl1_srch_debug_utils -> ABSENT (errno=2)
+[UNLINK] file already absent — OK
+[STAT] /nv/item_files/wcdma/rrc/wcdma_rrc_freq_lock_item -> ABSENT (errno=2)
+[STAT] /nv/item_files/wcdma/rrc/wcdma_rrc_enable_psc_lock -> ABSENT (errno=2)
+[STAT] /nv/item_files/wcdma/l1/srch/wl1_srch_debug_utils -> ABSENT (errno=2)
+[CLEANUP] === unlock_umts: verified CLEAR (attempt 1/3) ===
+[GSM-UNLOCK] === clearing GSM ARFCN lock ===
+[EFS] === Attempt 1/3 path=/nv/item_files/modem/geran/grr/feature_lock_arfcn_enabled len=1 ===
+[EFS] UNLINK '/nv/item_files/modem/geran/grr/feature_lock_arfcn_enabled'
+[EFS] UNLINK errno=0
+[EFS] PUT pkt (76):
+  0000: 4B 13 26 00 01 00 00 00 42 02 FF 01 BA 17 00 2F
+  0010: 6E 76 2F 69 74 65 6D 5F 66 69 6C 65 73 2F 6D 6F
+  0020: 64 65 6D 2F 67 65 72 61 6E 2F 67 72 72 2F 66 65
+  0030: 61 74 75 72 65 5F 6C 6F 63 6B 5F 61 72 66 63 6E
+  0040: 5F 65 6E 61 62 6C 65 64 00 00 00 00
+[EFS] PUT rsp: code=0x17BA errno=0
+[EFS] PUT OK
+[EFS] SyncNoWait seq=2 '/nv/item_files/modem/geran/grr/feature_lock_arfcn_enabled'
+[EFS] SyncNoWait raw rsp (14): 4B 13 30 00 02 00 67 00 00 00 00 00 00 00
+[EFS] SyncNoWait rsp: seq=2 token=0x00000067 err=0
+[EFS] SYNC_NO_WAIT OK: token=0x00000067
+[EFS] SyncGetStatus raw rsp (11): 4B 13 31 00 03 00 01 00 00 00 00
+[EFS] GET_SYNC_STATUS done after 1 polls (status=1)
+[EFS] ==> WRITE + SYNC COMPLETED
+[GSM-UNLOCK] feature flag set to 0 OK
+[UNLINK] === attempt 1/3 path=/nv/item_files/modem/geran/rr_efs_arfcn_list ===
+[STAT] /nv/item_files/modem/geran/rr_efs_arfcn_list -> ABSENT (errno=2)
+[UNLINK] file already absent — OK
+[EFS] OPEN(rd) '/nv/item_files/modem/geran/rr_efs_arfcn_list' failed fd=-1 errno=2
+[EFS] OPEN(rd) '/nv/item_files/modem/geran/grr/feature_lock_arfcn_enabled' -> fd=0
+[EFS] READ raw rsp (21 bytes):
+[EFS]   0000: 4B 13 04 00 00 00 00 00 00 00 00 00 01 00 00 00
+[EFS]   0010: 00 00 00 00 00
+[EFS] READ fd=0 -> 1 bytes
+[GSM-UNLOCK] === verified CLEAR (attempt 1/3) ===
+[CLEANUP] === unlock_all done (rc=0) ===
+[I] DiagDciClient: stopping (client_id=1)...
+[D] DiagDciClient: log mask disabled
+[D] DiagDciClient: event mask disabled
+[D] DiagDciClient: released client_id=0
+[D] DiagDciClient: Diag_LSM_DeInit() done
+[I] libdiag: unloaded
+[I] DiagDciClient: stopped. Stats: logs=0 events=0 parsed=0 errors=0
+[LOG] === diag_scan log start (pid=18282) ===
+[I] DiagDciClient: starting...
+[D] libdiag: resolved Diag_LSM_Init @ 0x6eada55d38
+[D] libdiag: resolved Diag_LSM_DeInit @ 0x6eada55f38
+[D] libdiag: resolved diag_register_dci_client @ 0x6eada55d68
+[D] libdiag: resolved diag_release_dci_client @ 0x6eada55dc4
+[D] libdiag: using Variant B (register_dci_client)
+[D] libdiag: resolved diag_register_dci_stream_proc @ 0x6eada55d78
+[D] libdiag: resolved diag_log_stream_config @ 0x6eada55d98
+[D] libdiag: resolved diag_event_stream_config @ 0x6eada55da0
+[D] libdiag: resolved diag_get_dci_support_list_proc @ 0x6eada55d90
+[D] libdiag: resolved diag_send_dci_async_req @ 0x6eada55d80
+[D] libdiag: resolved diag_get_health_stats_proc @ 0x6eada55db0
+[I] libdiag: loaded from libdiag.so (variant B (register_dci_client))
+[I] DiagDciClient: libdiag loaded from libdiag.so
+[D] DiagDciClient: Diag_LSM_Init() OK
+[I] DiagDciClient: allocated client_id=1 (variant B)
+[D] DiagDciClient: DCI stream callbacks registered
+[I] DiagDciClient: log mask enabled (43 codes)
+[I] DiagDciClient: mask contains B0C0=1 B0C1=1 B0C2=1 B0EC=1
+[I] DiagDciClient: event mask enabled (23 ids)
+[I] DiagDciClient: running (client_id=1, log_codes=43, event_ids=23)
+[I] DAEMON: listening on abstract unix socket @observer_diag
+[I] DAEMON: client connected
+[D] QCP: log code=0xB0C0 len=59
+[I] RAWCAP code=0xB0C0 ver=27 plen=47  (LTE RRC OTA)
+[I] RAWCAP 0xB0C0 v27 +000 1B 10 10 10 90 00 D2 01 C8 00 00 00 85 1D 03 02 00 00 00 1A 00 48 C9 40 05 92 80 46 3D 29 7D 1D 
+[I] RAWCAP 0xB0C0 v27 +032 EC B0 50 04 20 21 02 08 98 46 C2 47 85 20 00 
+[D] LTE 0xB0C0 RRC OTA: ver=27 plen=47
+[D] 0xB0C0 [47 bytes]: 1B 10 10 10 90 00 D2 01 C8 00 00 00 85 1D 03 02 00 00 00 1A 00 48 C9 40 05 92 80 46 3D 29 7D 1D EC B0 50 04 20 21 02 08 98 46 C2 47 85 20 00 
+[D] v25 item: rrc=16.16 nr_rrc=16.144 rbid=0 pci=466 earfcn=200 sfn_subfn=7557 pdu_num=3 sib_mask=2 len=26
+[I] [SIB1] EARFCN=200 PCI=466 MCC=250 MNC=2 CID=199815013 TAC=7828 barred=0 csg=0
+[I] [SIB1] EARFCN=200 PCI=466 MCC=250 MNC=11 CID=199815013 TAC=7828 barred=0 csg=0
+[D] QCP: log code=0xB17F len=52
+[I] RAWCAP code=0xB17F ver=5 plen=40  (LTE ML1 Serving Meas & Eval)
+[I] RAWCAP 0xB17F v5 +000 05 01 00 00 C8 00 00 00 D2 0F 00 00 54 45 55 00 54 45 55 00 66 99 65 16 66 F9 09 00 4A AD 5E 02 
+[I] RAWCAP 0xB17F v5 +032 00 00 00 00 90 16 00 00 
+[I] === RAW 0xB17F len=40 ver=5 (capture this) ===
+[D] B17F-RAW [40 bytes]: 05 01 00 00 C8 00 00 00 D2 0F 00 00 54 45 55 00 54 45 55 00 66 99 65 16 66 F9 09 00 4A AD 5E 02 00 00 00 00 90 16 00 00 
+[I] ML1 0xB17F SCell: EARFCN=200 PCI=31 RSRP=-95 RSRQ=-24(raw,dropped) RSSI=-90 (v5)
+[D] QCP: log code=0xB197 len=48
+[I] RAWCAP code=0xB197 ver=2 plen=36  (LTE ML1 Serving Cell Info)
+[I] RAWCAP 0xB197 v2 +000 02 32 DC 01 C8 00 00 00 E0 02 00 00 00 00 00 00 99 37 00 00 BC 6A E4 20 00 00 00 00 00 00 DC 61 
+[I] RAWCAP 0xB197 v2 +032 00 00 00 00 
+[I] ML1 0xB197 ServInfo: EARFCN=200 PCI=5 (v2)
+[D] QCP: log code=0xB0C1 len=23
+[I] RAWCAP code=0xB0C1 ver=2 plen=11  (LTE RRC MIB)
+[I] RAWCAP 0xB0C1 v2 +000 02 E0 00 C8 00 00 00 E0 01 01 32 
+[D] LTE 0xB0C1 MIB: ver=2 plen=11
+[D] 0xB0C1 [11 bytes]: 02 E0 00 C8 00 00 00 E0 01 01 32 
+[D] LTE MIB v2: bandwidth=50 tx_antenna=1 sfn=480 earfcn=200 pci=224
+[D] QCP: log code=0xB0C0 len=59
+[D] LTE 0xB0C0 RRC OTA: ver=27 plen=47
+[D] 0xB0C0 [47 bytes]: 1B 10 10 10 90 00 E0 00 C8 00 00 00 25 9E 03 02 00 00 00 1A 00 48 C9 40 05 92 80 46 3D 29 7D 1D EC D0 50 04 20 21 02 08 98 46 C2 47 A5 20 00 
+[D] v25 item: rrc=16.16 nr_rrc=16.144 rbid=0 pci=224 earfcn=200 sfn_subfn=40485 pdu_num=3 sib_mask=2 len=26
+[I] [SIB1] EARFCN=200 PCI=224 MCC=250 MNC=2 CID=199815014 TAC=7828 barred=0 csg=0
+[I] [SIB1] EARFCN=200 PCI=224 MCC=250 MNC=11 CID=199815014 TAC=7828 barred=0 csg=0
+[D] QCP: log code=0xB17F len=52
+[I] ML1 0xB17F PCI 29 → 5 (corrected from 0xB197)
+[I] ML1 0xB17F SCell: EARFCN=200 PCI=5 RSRP=-98 RSRQ=-24(raw,dropped) RSSI=-90 (v5)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=200 PCI=0 (v2)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=200 PCI=3 (v2)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=200 PCI=4 (v2)
+[D] QCP: log code=0xB0C1 len=23
+[D] LTE 0xB0C1 MIB: ver=2 plen=11
+[D] 0xB0C1 [11 bytes]: 02 5A 00 C8 00 00 00 4A 03 01 32 
+[D] LTE MIB v2: bandwidth=50 tx_antenna=1 sfn=842 earfcn=200 pci=90
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=200 PCI=7 (v2)
+[D] QCP: log code=0xB0C1 len=23
+[D] LTE 0xB0C1 MIB: ver=2 plen=11
+[D] 0xB0C1 [11 bytes]: 02 8A 01 C8 00 00 00 78 00 01 32 
+[D] LTE MIB v2: bandwidth=50 tx_antenna=1 sfn=120 earfcn=200 pci=394
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=200 PCI=1 (v2)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=200 PCI=0 (v2)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=200 PCI=1 (v2)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=200 PCI=1 (v2)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=200 PCI=1 (v2)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=6350 PCI=132 (v2)
+[D] QCP: log code=0xB0C1 len=23
+[D] LTE 0xB0C1 MIB: ver=2 plen=11
+[D] 0xB0C1 [11 bytes]: 02 53 00 CE 18 00 00 86 02 02 19 
+[D] LTE MIB v2: bandwidth=25 tx_antenna=2 sfn=646 earfcn=6350 pci=83
+[D] QCP: log code=0xB0C0 len=59
+[D] LTE 0xB0C0 RRC OTA: ver=27 plen=47
+[D] 0xB0C0 [47 bytes]: 1B 10 10 10 90 00 53 00 CE 18 00 00 85 A8 03 02 00 00 00 1A 00 48 C9 40 05 92 80 46 3D 29 81 4B 21 B0 52 64 20 21 02 08 98 46 C2 46 F5 20 00 
+[D] v25 item: rrc=16.16 nr_rrc=16.144 rbid=0 pci=83 earfcn=6350 sfn_subfn=43141 pdu_num=3 sib_mask=2 len=26
+[I] [SIB1] EARFCN=6350 PCI=83 MCC=250 MNC=2 CID=202004749 TAC=7828 barred=0 csg=0
+[I] [SIB1] EARFCN=6350 PCI=83 MCC=250 MNC=11 CID=202004749 TAC=7828 barred=0 csg=0
+[D] QCP: log code=0xB17F len=52
+[I] ML1 0xB17F PCI 28 → 132 (corrected from 0xB197)
+[I] ML1 0xB17F SCell: EARFCN=6350 PCI=132 RSRP=-99 RSRQ=-25(raw,dropped) RSSI=-93 (v5)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=6350 PCI=132 (v2)
+[D] QCP: log code=0xB0C1 len=23
+[D] LTE 0xB0C1 MIB: ver=2 plen=11
+[D] 0xB0C1 [11 bytes]: 02 52 00 CE 18 00 00 91 02 02 19 
+[D] LTE MIB v2: bandwidth=25 tx_antenna=2 sfn=657 earfcn=6350 pci=82
+[D] QCP: log code=0xB0C0 len=59
+[D] LTE 0xB0C0 RRC OTA: ver=27 plen=47
+[D] 0xB0C0 [47 bytes]: 1B 10 10 10 90 00 52 00 CE 18 00 00 25 E9 03 02 00 00 00 1A 00 48 C9 40 05 92 80 46 3D 29 81 4B 21 70 52 64 20 21 02 08 98 46 C2 47 85 20 00 
+[D] v25 item: rrc=16.16 nr_rrc=16.144 rbid=0 pci=82 earfcn=6350 sfn_subfn=59685 pdu_num=3 sib_mask=2 len=26
+[I] [SIB1] EARFCN=6350 PCI=82 MCC=250 MNC=2 CID=202004747 TAC=7828 barred=0 csg=0
+[I] [SIB1] EARFCN=6350 PCI=82 MCC=250 MNC=11 CID=202004747 TAC=7828 barred=0 csg=0
+[D] QCP: log code=0xB17F len=52
+[I] ML1 0xB17F PCI 28 → 132 (corrected from 0xB197)
+[I] ML1 0xB17F SCell: EARFCN=6350 PCI=132 RSRP=-107 RSRQ=-26(raw,dropped) RSSI=-94 (v5)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=6350 PCI=3 (v2)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=38948 PCI=134 (v2)
+[D] QCP: log code=0xB0C1 len=23
+[D] LTE 0xB0C1 MIB: ver=2 plen=11
+[D] 0xB0C1 [11 bytes]: 02 5A 01 24 98 00 00 5C 03 04 64 
+[D] LTE MIB v2: bandwidth=100 tx_antenna=4 sfn=860 earfcn=38948 pci=346
+[D] QCP: log code=0xB0C0 len=55
+[D] LTE 0xB0C0 RRC OTA: ver=27 plen=43
+[D] 0xB0C0 [43 bytes]: 1B 10 10 10 90 00 5A 01 24 98 00 00 A5 76 03 02 00 00 00 16 00 58 49 40 41 4E 3D BF A8 82 38 2A 71 80 81 84 4C 23 61 22 76 E5 1C 
+[D] v25 item: rrc=16.16 nr_rrc=16.144 rbid=0 pci=346 earfcn=38948 sfn_subfn=30373 pdu_num=3 sib_mask=2 len=22
+[I] [SIB1] EARFCN=38948 PCI=346 MCC=250 MNC=20 CID=200968227 TAC=20029 barred=0 csg=0
+[D] QCP: log code=0xB17F len=52
+[I] ML1 0xB17F PCI 30 → 134 (corrected from 0xB197)
+[I] ML1 0xB17F SCell: EARFCN=38948 PCI=134 RSRP=-126 RSRQ=-29(raw,dropped) RSSI=-95 (v5)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=38948 PCI=134 (v2)
+[D] QCP: log code=0xB0C1 len=23
+[D] LTE 0xB0C1 MIB: ver=2 plen=11
+[D] 0xB0C1 [11 bytes]: 02 0C 01 24 98 00 00 73 03 04 64 
+[D] LTE MIB v2: bandwidth=100 tx_antenna=4 sfn=883 earfcn=38948 pci=268
+[D] QCP: log code=0xB0C0 len=55
+[D] LTE 0xB0C0 RRC OTA: ver=27 plen=43
+[D] 0xB0C0 [43 bytes]: 1B 10 10 10 90 00 0C 01 24 98 00 00 05 F8 03 02 00 00 00 16 00 58 49 40 41 4E 3D BF 7B 02 38 2A 71 80 81 84 4C 23 61 22 76 55 1C 
+[D] v25 item: rrc=16.16 nr_rrc=16.144 rbid=0 pci=268 earfcn=38948 sfn_subfn=63493 pdu_num=3 sib_mask=2 len=22
+[I] [SIB1] EARFCN=38948 PCI=268 MCC=250 MNC=20 CID=200781859 TAC=20029 barred=0 csg=0
+[D] QCP: log code=0xB17F len=52
+[I] ML1 0xB17F PCI 30 → 134 (corrected from 0xB197)
+[I] ML1 0xB17F SCell: EARFCN=38948 PCI=134 RSRP=-120 RSRQ=-28(raw,dropped) RSSI=-95 (v5)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=38948 PCI=132 (v2)
+[D] QCP: log code=0xB0C1 len=23
+[D] LTE 0xB0C1 MIB: ver=2 plen=11
+[D] 0xB0C1 [11 bytes]: 02 4D 00 24 98 00 00 89 03 04 64 
+[D] LTE MIB v2: bandwidth=100 tx_antenna=4 sfn=905 earfcn=38948 pci=77
+[D] QCP: log code=0xB0C0 len=55
+[D] LTE 0xB0C0 RRC OTA: ver=27 plen=43
+[D] 0xB0C0 [43 bytes]: 1B 10 10 10 90 00 4D 00 24 98 00 00 A5 38 03 02 00 00 00 16 00 58 49 40 41 4E 3D BF 7B 02 48 2A 71 80 81 84 4C 23 61 22 76 55 1C 
+[D] v25 item: rrc=16.16 nr_rrc=16.144 rbid=0 pci=77 earfcn=38948 sfn_subfn=14501 pdu_num=3 sib_mask=2 len=22
+[I] [SIB1] EARFCN=38948 PCI=77 MCC=250 MNC=20 CID=200781860 TAC=20029 barred=0 csg=0
+[D] QCP: log code=0xB17F len=52
+[I] ML1 0xB17F PCI 28 → 132 (corrected from 0xB197)
+[I] ML1 0xB17F SCell: EARFCN=38948 PCI=132 RSRP=-122 RSRQ=-28(raw,dropped) RSSI=-95 (v5)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=38948 PCI=135 (v2)
+[D] QCP: log code=0xB0C1 len=23
+[D] LTE 0xB0C1 MIB: ver=2 plen=11
+[D] 0xB0C1 [11 bytes]: 02 85 01 24 98 00 00 97 03 04 64 
+[D] LTE MIB v2: bandwidth=100 tx_antenna=4 sfn=919 earfcn=38948 pci=389
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=38948 PCI=134 (v2)
+[D] QCP: log code=0xB0C1 len=23
+[D] LTE 0xB0C1 MIB: ver=2 plen=11
+[D] 0xB0C1 [11 bytes]: 02 5F 01 24 98 00 00 C0 03 04 64 
+[D] LTE MIB v2: bandwidth=100 tx_antenna=4 sfn=960 earfcn=38948 pci=351
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=38750 PCI=132 (v2)
+[D] QCP: log code=0xB0C1 len=23
+[D] LTE 0xB0C1 MIB: ver=2 plen=11
+[D] 0xB0C1 [11 bytes]: 02 71 00 5E 97 00 00 E8 03 04 64 
+[D] LTE MIB v2: bandwidth=100 tx_antenna=4 sfn=1000 earfcn=38750 pci=113
+[D] QCP: log code=0xB0C0 len=55
+[D] LTE 0xB0C0 RRC OTA: ver=27 plen=43
+[D] 0xB0C0 [43 bytes]: 1B 10 10 10 90 00 71 00 5E 97 00 00 A5 7E 03 02 00 00 00 16 00 58 49 40 41 4E 3D BF 7B 02 08 2A 71 80 81 84 4C 23 61 22 76 55 1C 
+[D] v25 item: rrc=16.16 nr_rrc=16.144 rbid=0 pci=113 earfcn=38750 sfn_subfn=32421 pdu_num=3 sib_mask=2 len=22
+[I] [SIB1] EARFCN=38750 PCI=113 MCC=250 MNC=20 CID=200781856 TAC=20029 barred=0 csg=0
+[D] QCP: log code=0xB17F len=52
+[I] ML1 0xB17F PCI 28 → 132 (corrected from 0xB197)
+[I] ML1 0xB17F SCell: EARFCN=38750 PCI=132 RSRP=-115 RSRQ=-27(raw,dropped) RSSI=-92 (v5)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=38750 PCI=132 (v2)
+[D] QCP: log code=0xB0C1 len=23
+[D] LTE 0xB0C1 MIB: ver=2 plen=11
+[D] 0xB0C1 [11 bytes]: 02 11 00 5E 97 00 00 F2 03 04 64 
+[D] LTE MIB v2: bandwidth=100 tx_antenna=4 sfn=1010 earfcn=38750 pci=17
+[D] QCP: log code=0xB0C1 len=23
+[D] LTE 0xB0C1 MIB: ver=2 plen=11
+[D] 0xB0C1 [11 bytes]: 02 11 00 5E 97 00 00 00 00 04 64 
+[D] LTE MIB v2: bandwidth=100 tx_antenna=4 sfn=0 earfcn=38750 pci=17
+[D] QCP: log code=0xB0C0 len=55
+[D] LTE 0xB0C0 RRC OTA: ver=27 plen=43
+[D] 0xB0C0 [43 bytes]: 1B 10 10 10 90 00 11 00 5E 97 00 00 05 C0 03 02 00 00 00 16 00 58 49 40 41 4E 3D BF A8 82 08 2A 71 80 81 84 4C 23 61 22 76 E5 1C 
+[D] v25 item: rrc=16.16 nr_rrc=16.144 rbid=0 pci=17 earfcn=38750 sfn_subfn=49157 pdu_num=3 sib_mask=2 len=22
+[I] [SIB1] EARFCN=38750 PCI=17 MCC=250 MNC=20 CID=200968224 TAC=20029 barred=0 csg=0
+[D] QCP: log code=0xB17F len=52
+[I] ML1 0xB17F PCI 28 → 132 (corrected from 0xB197)
+[I] ML1 0xB17F SCell: EARFCN=38750 PCI=132 RSRP=-115 RSRQ=-28(raw,dropped) RSSI=-92 (v5)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=38750 PCI=132 (v2)
+[D] QCP: log code=0xB0C1 len=23
+[D] LTE 0xB0C1 MIB: ver=2 plen=11
+[D] 0xB0C1 [11 bytes]: 02 78 00 5E 97 00 00 09 00 04 64 
+[D] LTE MIB v2: bandwidth=100 tx_antenna=4 sfn=9 earfcn=38750 pci=120
+[D] QCP: log code=0xB0C0 len=55
+[D] LTE 0xB0C0 RRC OTA: ver=27 plen=43
+[D] 0xB0C0 [43 bytes]: 1B 10 10 10 90 00 78 00 5E 97 00 00 05 81 03 02 00 00 00 16 00 58 49 40 41 4E 3D BF 7B 02 18 2A 71 80 81 84 4C 23 61 22 76 55 1C 
+[D] v25 item: rrc=16.16 nr_rrc=16.144 rbid=0 pci=120 earfcn=38750 sfn_subfn=33029 pdu_num=3 sib_mask=2 len=22
+[I] [SIB1] EARFCN=38750 PCI=120 MCC=250 MNC=20 CID=200781857 TAC=20029 barred=0 csg=0
+[D] QCP: log code=0xB17F len=52
+[I] ML1 0xB17F PCI 28 → 132 (corrected from 0xB197)
+[I] ML1 0xB17F SCell: EARFCN=38750 PCI=132 RSRP=-114 RSRQ=-28(raw,dropped) RSSI=-92 (v5)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=38750 PCI=3 (v2)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=38750 PCI=3 (v2)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=38750 PCI=2 (v2)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=38750 PCI=1 (v2)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=1275 PCI=133 (v2)
+[D] QCP: log code=0xB0C1 len=23
+[D] LTE 0xB0C1 MIB: ver=2 plen=11
+[D] 0xB0C1 [11 bytes]: 02 AE 00 FB 04 00 00 04 02 02 4B 
+[D] LTE MIB v2: bandwidth=75 tx_antenna=2 sfn=516 earfcn=1275 pci=174
+[D] QCP: log code=0xB0C0 len=55
+[D] LTE 0xB0C0 RRC OTA: ver=27 plen=43
+[D] 0xB0C0 [43 bytes]: 1B 10 10 10 90 00 AE 00 FB 04 00 00 65 20 03 02 00 00 00 16 00 48 49 40 41 4D 07 BF 2E 90 D8 1C 21 80 81 84 4C 23 61 23 12 8E 00 
+[D] v25 item: rrc=16.16 nr_rrc=16.144 rbid=0 pci=174 earfcn=1275 sfn_subfn=8293 pdu_num=3 sib_mask=2 len=22
+[I] [SIB1] EARFCN=1275 PCI=174 MCC=250 MNC=20 CID=200468749 TAC=19719 barred=0 csg=0
+[D] QCP: log code=0xB17F len=52
+[I] ML1 0xB17F PCI 29 → 133 (corrected from 0xB197)
+[I] ML1 0xB17F SCell: EARFCN=1275 PCI=133 RSRP=-77 RSRQ=-26(raw,dropped) RSSI=-78 (v5)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=1275 PCI=133 (v2)
+[D] QCP: log code=0xB0C1 len=23
+[D] LTE 0xB0C1 MIB: ver=2 plen=11
+[D] 0xB0C1 [11 bytes]: 02 D8 00 FB 04 00 00 38 02 04 4B 
+[D] LTE MIB v2: bandwidth=75 tx_antenna=4 sfn=568 earfcn=1275 pci=216
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=1275 PCI=132 (v2)
+[D] QCP: log code=0xB0C1 len=23
+[D] LTE 0xB0C1 MIB: ver=2 plen=11
+[D] 0xB0C1 [11 bytes]: 02 12 00 FB 04 00 00 93 00 04 4B 
+[D] LTE MIB v2: bandwidth=75 tx_antenna=4 sfn=147 earfcn=1275 pci=18
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=1275 PCI=0 (v2)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=1275 PCI=0 (v2)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=1275 PCI=1 (v2)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=3638 PCI=133 (v2)
+[D] QCP: log code=0xB0C1 len=23
+[D] LTE 0xB0C1 MIB: ver=2 plen=11
+[D] 0xB0C1 [11 bytes]: 02 AD 00 36 0E 00 00 D5 00 02 19 
+[D] LTE MIB v2: bandwidth=25 tx_antenna=2 sfn=213 earfcn=3638 pci=173
+[D] QCP: log code=0xB0C0 len=51
+[D] LTE 0xB0C0 RRC OTA: ver=27 plen=39
+[D] 0xB0C0 [39 bytes]: 1B 10 10 10 90 00 AD 00 36 0E 00 00 65 8D 03 02 00 00 00 12 00 40 49 40 03 45 8E 31 6D F1 C8 20 71 10 81 04 4C 24 C2 
+[D] v25 item: rrc=16.16 nr_rrc=16.144 rbid=0 pci=173 earfcn=3638 sfn_subfn=36197 pdu_num=3 sib_mask=2 len=18
+[I] [SIB1] EARFCN=3638 PCI=173 MCC=250 MNC=1 CID=51830556 TAC=17806 barred=0 csg=0
+[D] QCP: log code=0xB17F len=52
+[I] ML1 0xB17F PCI 29 → 133 (corrected from 0xB197)
+[I] ML1 0xB17F SCell: EARFCN=3638 PCI=133 RSRP=-72 RSRQ=-25(raw,dropped) RSSI=-78 (v5)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=3638 PCI=3 (v2)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=3400 PCI=135 (v2)
+[D] QCP: log code=0xB0C1 len=23
+[D] LTE 0xB0C1 MIB: ver=2 plen=11
+[D] 0xB0C1 [11 bytes]: 02 D4 01 48 0D 00 00 93 02 02 32 
+[D] LTE MIB v2: bandwidth=50 tx_antenna=2 sfn=659 earfcn=3400 pci=468
+[D] QCP: log code=0xB0C0 len=55
+[D] LTE 0xB0C0 RRC OTA: ver=27 plen=43
+[D] 0xB0C0 [43 bytes]: 1B 10 10 10 90 00 D4 01 48 0D 00 00 45 29 03 02 00 00 00 16 00 48 49 40 41 4D 07 BF 2E 91 78 20 61 80 81 84 4C 23 61 23 3A 8E 00 
+[D] v25 item: rrc=16.16 nr_rrc=16.144 rbid=0 pci=468 earfcn=3400 sfn_subfn=10565 pdu_num=3 sib_mask=2 len=22
+[I] [SIB1] EARFCN=3400 PCI=468 MCC=250 MNC=20 CID=200468759 TAC=19719 barred=0 csg=0
+[D] QCP: log code=0xB17F len=52
+[I] ML1 0xB17F PCI 31 → 135 (corrected from 0xB197)
+[I] ML1 0xB17F SCell: EARFCN=3400 PCI=135 RSRP=-87 RSRQ=-24(raw,dropped) RSSI=-87 (v5)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=3400 PCI=132 (v2)
+[D] QCP: log code=0xB0C1 len=23
+[D] LTE 0xB0C1 MIB: ver=2 plen=11
+[D] 0xB0C1 [11 bytes]: 02 6B 00 48 0D 00 00 C5 02 02 32 
+[D] LTE MIB v2: bandwidth=50 tx_antenna=2 sfn=709 earfcn=3400 pci=107
+[D] QCP: log code=0xB0C0 len=55
+[D] LTE 0xB0C0 RRC OTA: ver=27 plen=43
+[D] 0xB0C0 [43 bytes]: 1B 10 10 10 90 00 6B 00 48 0D 00 00 85 6C 03 02 00 00 00 16 00 48 49 40 41 4E 3D BE 8B 81 68 20 61 80 81 84 4C 23 61 23 02 8E 00 
+[D] v25 item: rrc=16.16 nr_rrc=16.144 rbid=0 pci=107 earfcn=3400 sfn_subfn=27781 pdu_num=3 sib_mask=2 len=22
+[I] [SIB1] EARFCN=3400 PCI=107 MCC=250 MNC=20 CID=199800854 TAC=20029 barred=0 csg=0
+[D] QCP: log code=0xB17F len=52
+[I] ML1 0xB17F PCI 28 → 132 (corrected from 0xB197)
+[I] ML1 0xB17F SCell: EARFCN=3400 PCI=132 RSRP=-106 RSRQ=-28(raw,dropped) RSSI=-89 (v5)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=3400 PCI=134 (v2)
+[D] QCP: log code=0xB0C1 len=23
+[D] LTE 0xB0C1 MIB: ver=2 plen=11
+[D] 0xB0C1 [11 bytes]: 02 47 01 48 0D 00 00 D7 02 02 32 
+[D] LTE MIB v2: bandwidth=50 tx_antenna=2 sfn=727 earfcn=3400 pci=327
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=3400 PCI=133 (v2)
+[D] QCP: log code=0xB0C1 len=23
+[D] LTE 0xB0C1 MIB: ver=2 plen=11
+[D] 0xB0C1 [11 bytes]: 02 DE 00 48 0D 00 00 33 01 02 32 
+[D] LTE MIB v2: bandwidth=50 tx_antenna=2 sfn=307 earfcn=3400 pci=222
+[D] QCP: log code=0xB0C0 len=55
+[D] LTE 0xB0C0 RRC OTA: ver=27 plen=43
+[D] 0xB0C0 [43 bytes]: 1B 10 10 10 90 00 DE 00 48 0D 00 00 C5 93 03 02 00 00 00 16 00 48 49 40 41 4E 3D BE BF 81 68 20 61 80 81 84 4C 23 61 23 52 8E 00 
+[D] v25 item: rrc=16.16 nr_rrc=16.144 rbid=0 pci=222 earfcn=3400 sfn_subfn=37829 pdu_num=3 sib_mask=2 len=22
+[I] [SIB1] EARFCN=3400 PCI=222 MCC=250 MNC=20 CID=200013846 TAC=20029 barred=0 csg=0
+[D] QCP: log code=0xB17F len=52
+[I] ML1 0xB17F PCI 29 → 133 (corrected from 0xB197)
+[I] ML1 0xB17F SCell: EARFCN=3400 PCI=133 RSRP=-106 RSRQ=-26(raw,dropped) RSSI=-93 (v5)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=3400 PCI=0 (v2)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=1820 PCI=7 (v2)
+[D] QCP: log code=0xB0C1 len=23
+[D] LTE 0xB0C1 MIB: ver=2 plen=11
+[D] 0xB0C1 [11 bytes]: 02 BF 01 1C 07 00 00 4F 02 02 19 
+[D] LTE MIB v2: bandwidth=25 tx_antenna=2 sfn=591 earfcn=1820 pci=447
+[D] QCP: log code=0xB0C0 len=59
+[D] LTE 0xB0C0 RRC OTA: ver=27 plen=47
+[D] 0xB0C0 [47 bytes]: 1B 10 10 10 90 00 BF 01 1C 07 00 00 05 25 03 02 00 00 00 1A 00 48 C9 40 05 92 80 46 3D 29 80 14 99 F0 50 44 20 21 02 08 98 46 C2 46 45 20 00 
+[D] v25 item: rrc=16.16 nr_rrc=16.144 rbid=0 pci=447 earfcn=1820 sfn_subfn=9477 pdu_num=3 sib_mask=2 len=26
+[I] [SIB1] EARFCN=1820 PCI=447 MCC=250 MNC=2 CID=201368783 TAC=7828 barred=0 csg=0
+[I] [SIB1] EARFCN=1820 PCI=447 MCC=250 MNC=11 CID=201368783 TAC=7828 barred=0 csg=0
+[D] QCP: log code=0xB17F len=52
+[I] ML1 0xB17F PCI 31 → 7 (corrected from 0xB197)
+[I] ML1 0xB17F SCell: EARFCN=1820 PCI=7 RSRP=-83 RSRQ=-26(raw,dropped) RSSI=-83 (v5)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=1820 PCI=133 (v2)
+[D] QCP: log code=0xB0C1 len=23
+[D] LTE 0xB0C1 MIB: ver=2 plen=11
+[D] 0xB0C1 [11 bytes]: 02 9D 00 1C 07 00 00 95 00 02 19 
+[D] LTE MIB v2: bandwidth=25 tx_antenna=2 sfn=149 earfcn=1820 pci=157
+[D] QCP: log code=0xB0C0 len=59
+[D] LTE 0xB0C0 RRC OTA: ver=27 plen=47
+[D] 0xB0C0 [47 bytes]: 1B 10 10 10 90 00 9D 00 1C 07 00 00 65 C9 03 02 00 00 00 1A 00 48 C9 40 05 92 80 46 3D 29 7D 1D F9 90 50 44 20 21 02 08 98 46 C2 47 A5 20 00 
+[D] v25 item: rrc=16.16 nr_rrc=16.144 rbid=0 pci=157 earfcn=1820 sfn_subfn=51557 pdu_num=3 sib_mask=2 len=26
+[I] [SIB1] EARFCN=1820 PCI=157 MCC=250 MNC=2 CID=199815116 TAC=7828 barred=0 csg=0
+[I] [SIB1] EARFCN=1820 PCI=157 MCC=250 MNC=11 CID=199815116 TAC=7828 barred=0 csg=0
+[D] QCP: log code=0xB17F len=52
+[I] ML1 0xB17F PCI 29 → 133 (corrected from 0xB197)
+[I] ML1 0xB17F SCell: EARFCN=1820 PCI=133 RSRP=-92 RSRQ=-25(raw,dropped) RSSI=-88 (v5)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=1820 PCI=2 (v2)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=1820 PCI=1 (v2)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=1414 PCI=134 (v2)
+[D] QCP: log code=0xB0C1 len=23
+[D] LTE 0xB0C1 MIB: ver=2 plen=11
+[D] 0xB0C1 [11 bytes]: 02 03 01 86 05 00 00 1E 00 04 4B 
+[D] LTE MIB v2: bandwidth=75 tx_antenna=4 sfn=30 earfcn=1414 pci=259
+[D] QCP: log code=0xB0C0 len=55
+[D] LTE 0xB0C0 RRC OTA: ver=27 plen=43
+[D] 0xB0C0 [43 bytes]: 1B 10 10 10 90 00 03 01 86 05 00 00 05 02 03 02 00 00 00 16 00 48 49 41 33 02 A6 BE BA 60 88 20 21 90 20 81 84 50 24 D3 50 00 00 
+[D] v25 item: rrc=16.16 nr_rrc=16.144 rbid=0 pci=259 earfcn=1414 sfn_subfn=517 pdu_num=3 sib_mask=2 len=22
+[I] [SIB1] EARFCN=1414 PCI=259 MCC=250 MNC=99 CID=199992840 TAC=678 barred=0 csg=0
+[D] QCP: log code=0xB17F len=52
+[I] ML1 0xB17F PCI 30 → 134 (corrected from 0xB197)
+[I] ML1 0xB17F SCell: EARFCN=1414 PCI=134 RSRP=-81 RSRQ=-26(raw,dropped) RSSI=-80 (v5)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=1414 PCI=133 (v2)
+[D] QCP: log code=0xB0C1 len=23
+[D] LTE 0xB0C1 MIB: ver=2 plen=11
+[D] 0xB0C1 [11 bytes]: 02 AF 00 86 05 00 00 C8 02 04 4B 
+[D] LTE MIB v2: bandwidth=75 tx_antenna=4 sfn=712 earfcn=1414 pci=175
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=1414 PCI=134 (v2)
+[D] QCP: log code=0xB0C1 len=23
+[D] LTE 0xB0C1 MIB: ver=2 plen=11
+[D] 0xB0C1 [11 bytes]: 02 4C 01 86 05 00 00 35 00 04 4B 
+[D] LTE MIB v2: bandwidth=75 tx_antenna=4 sfn=53 earfcn=1414 pci=332
+[D] QCP: log code=0xB0C0 len=55
+[D] LTE 0xB0C0 RRC OTA: ver=27 plen=43
+[D] 0xB0C0 [43 bytes]: 1B 10 10 10 90 00 4C 01 86 05 00 00 C5 43 03 02 00 00 00 16 00 48 49 41 33 02 A6 BE BA 60 98 20 21 90 20 81 84 50 24 D6 50 00 00 
+[D] v25 item: rrc=16.16 nr_rrc=16.144 rbid=0 pci=332 earfcn=1414 sfn_subfn=17349 pdu_num=3 sib_mask=2 len=22
+[I] [SIB1] EARFCN=1414 PCI=332 MCC=250 MNC=99 CID=199992841 TAC=678 barred=0 csg=0
+[D] QCP: log code=0xB17F len=52
+[I] ML1 0xB17F PCI 30 → 134 (corrected from 0xB197)
+[I] ML1 0xB17F SCell: EARFCN=1414 PCI=134 RSRP=-93 RSRQ=-28(raw,dropped) RSSI=-81 (v5)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=1414 PCI=133 (v2)
+[D] QCP: log code=0xB0C1 len=23
+[D] LTE 0xB0C1 MIB: ver=2 plen=11
+[D] 0xB0C1 [11 bytes]: 02 AF 00 86 05 00 00 E3 02 04 4B 
+[D] LTE MIB v2: bandwidth=75 tx_antenna=4 sfn=739 earfcn=1414 pci=175
+[D] QCP: log code=0xB0C0 len=55
+[D] LTE 0xB0C0 RRC OTA: ver=27 plen=43
+[D] 0xB0C0 [43 bytes]: 1B 10 10 10 90 00 AF 00 86 05 00 00 65 AE 03 02 00 00 00 16 00 48 49 41 33 02 A6 BE B9 D0 88 20 21 90 20 81 84 50 24 C5 50 00 00 
+[D] v25 item: rrc=16.16 nr_rrc=16.144 rbid=0 pci=175 earfcn=1414 sfn_subfn=44645 pdu_num=3 sib_mask=2 len=22
+[I] [SIB1] EARFCN=1414 PCI=175 MCC=250 MNC=99 CID=199990536 TAC=678 barred=0 csg=0
+[D] QCP: log code=0xB17F len=52
+[I] ML1 0xB17F PCI 29 → 133 (corrected from 0xB197)
+[I] ML1 0xB17F SCell: EARFCN=1414 PCI=133 RSRP=-92 RSRQ=-27(raw,dropped) RSSI=-81 (v5)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=1414 PCI=132 (v2)
+[D] QCP: log code=0xB0C1 len=23
+[D] LTE 0xB0C1 MIB: ver=2 plen=11
+[D] 0xB0C1 [11 bytes]: 02 26 00 86 05 00 00 F0 02 04 4B 
+[D] LTE MIB v2: bandwidth=75 tx_antenna=4 sfn=752 earfcn=1414 pci=38
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=1414 PCI=132 (v2)
+[D] QCP: log code=0xB0C1 len=23
+[D] LTE 0xB0C1 MIB: ver=2 plen=11
+[D] 0xB0C1 [11 bytes]: 02 26 00 86 05 00 00 FE 02 04 4B 
+[D] LTE MIB v2: bandwidth=75 tx_antenna=4 sfn=766 earfcn=1414 pci=38
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=1596 PCI=135 (v2)
+[D] QCP: log code=0xB0C1 len=23
+[D] LTE 0xB0C1 MIB: ver=2 plen=11
+[D] 0xB0C1 [11 bytes]: 02 BF 01 3C 06 00 00 E0 02 02 32 
+[D] LTE MIB v2: bandwidth=50 tx_antenna=2 sfn=736 earfcn=1596 pci=447
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=1596 PCI=133 (v2)
+[D] QCP: log code=0xB0C1 len=23
+[D] LTE 0xB0C1 MIB: ver=2 plen=11
+[D] 0xB0C1 [11 bytes]: 02 9D 00 3C 06 00 00 25 01 02 32 
+[D] LTE MIB v2: bandwidth=50 tx_antenna=2 sfn=293 earfcn=1596 pci=157
+[D] QCP: log code=0xB0C0 len=59
+[D] LTE 0xB0C0 RRC OTA: ver=27 plen=47
+[D] 0xB0C0 [47 bytes]: 1B 10 10 10 90 00 9D 00 3C 06 00 00 65 92 03 02 00 00 00 1A 00 48 C9 40 05 92 80 46 3D 29 7D 1D F9 30 50 44 20 21 02 08 98 46 C2 46 B5 20 00 
+[D] v25 item: rrc=16.16 nr_rrc=16.144 rbid=0 pci=157 earfcn=1596 sfn_subfn=37477 pdu_num=3 sib_mask=2 len=26
+[I] [SIB1] EARFCN=1596 PCI=157 MCC=250 MNC=2 CID=199815113 TAC=7828 barred=0 csg=0
+[I] [SIB1] EARFCN=1596 PCI=157 MCC=250 MNC=11 CID=199815113 TAC=7828 barred=0 csg=0
+[D] QCP: log code=0xB17F len=52
+[I] ML1 0xB17F PCI 29 → 133 (corrected from 0xB197)
+[I] ML1 0xB17F SCell: EARFCN=1596 PCI=133 RSRP=-85 RSRQ=-26(raw,dropped) RSSI=-82 (v5)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=1596 PCI=135 (v2)
+[D] QCP: log code=0xB0C1 len=23
+[D] LTE 0xB0C1 MIB: ver=2 plen=11
+[D] 0xB0C1 [11 bytes]: 02 BF 01 3C 06 00 00 F2 02 02 32 
+[D] LTE MIB v2: bandwidth=50 tx_antenna=2 sfn=754 earfcn=1596 pci=447
+[D] QCP: log code=0xB0C0 len=59
+[D] LTE 0xB0C0 RRC OTA: ver=27 plen=47
+[D] 0xB0C0 [47 bytes]: 1B 10 10 10 90 00 BF 01 3C 06 00 00 45 AF 03 02 00 00 00 1A 00 48 C9 40 05 92 80 46 3D 29 80 14 99 70 50 44 20 21 02 08 98 46 C2 46 A5 20 00 
+[D] v25 item: rrc=16.16 nr_rrc=16.144 rbid=0 pci=447 earfcn=1596 sfn_subfn=44869 pdu_num=3 sib_mask=2 len=26
+[I] [SIB1] EARFCN=1596 PCI=447 MCC=250 MNC=2 CID=201368779 TAC=7828 barred=0 csg=0
+[I] [SIB1] EARFCN=1596 PCI=447 MCC=250 MNC=11 CID=201368779 TAC=7828 barred=0 csg=0
+[D] QCP: log code=0xB17F len=52
+[I] ML1 0xB17F PCI 31 → 135 (corrected from 0xB197)
+[I] ML1 0xB17F SCell: EARFCN=1596 PCI=135 RSRP=-87 RSRQ=-25(raw,dropped) RSSI=-85 (v5)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=1596 PCI=134 (v2)
+[D] QCP: log code=0xB0C1 len=23
+[D] LTE 0xB0C1 MIB: ver=2 plen=11
+[D] 0xB0C1 [11 bytes]: 02 13 01 3C 06 00 00 39 01 02 32 
+[D] LTE MIB v2: bandwidth=50 tx_antenna=2 sfn=313 earfcn=1596 pci=275
+[D] QCP: log code=0xB0C0 len=59
+[D] LTE 0xB0C0 RRC OTA: ver=27 plen=47
+[D] 0xB0C0 [47 bytes]: 1B 10 10 10 90 00 13 01 3C 06 00 00 A5 53 03 02 00 00 00 1A 00 48 C9 40 05 92 80 46 3D 29 7D 1D F9 50 50 44 20 21 02 08 98 46 C2 47 05 20 00 
+[D] v25 item: rrc=16.16 nr_rrc=16.144 rbid=0 pci=275 earfcn=1596 sfn_subfn=21413 pdu_num=3 sib_mask=2 len=26
+[I] [SIB1] EARFCN=1596 PCI=275 MCC=250 MNC=2 CID=199815114 TAC=7828 barred=0 csg=0
+[I] [SIB1] EARFCN=1596 PCI=275 MCC=250 MNC=11 CID=199815114 TAC=7828 barred=0 csg=0
+[D] QCP: log code=0xB17F len=52
+[I] ML1 0xB17F PCI 30 → 134 (corrected from 0xB197)
+[I] ML1 0xB17F SCell: EARFCN=1596 PCI=134 RSRP=-89 RSRQ=-25(raw,dropped) RSSI=-85 (v5)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=1596 PCI=133 (v2)
+[D] QCP: log code=0xB0C1 len=23
+[D] LTE 0xB0C1 MIB: ver=2 plen=11
+[D] 0xB0C1 [11 bytes]: 02 EA 00 3C 06 00 00 DA 02 04 32 
+[D] LTE MIB v2: bandwidth=50 tx_antenna=4 sfn=730 earfcn=1596 pci=234
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=1596 PCI=133 (v2)
+[D] QCP: log code=0xB0C1 len=23
+[D] LTE 0xB0C1 MIB: ver=2 plen=11
+[D] 0xB0C1 [11 bytes]: 02 EA 00 3C 06 00 00 E9 02 04 32 
+[D] LTE MIB v2: bandwidth=50 tx_antenna=4 sfn=745 earfcn=1596 pci=234
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=3300 PCI=133 (v2)
+[D] QCP: log code=0xB0C1 len=23
+[D] LTE 0xB0C1 MIB: ver=2 plen=11
+[D] 0xB0C1 [11 bytes]: 02 90 00 E4 0C 00 00 D0 00 04 32 
+[D] LTE MIB v2: bandwidth=50 tx_antenna=4 sfn=208 earfcn=3300 pci=144
+[D] QCP: log code=0xB0C0 len=55
+[D] LTE 0xB0C0 RRC OTA: ver=27 plen=43
+[D] 0xB0C0 [43 bytes]: 1B 10 10 10 90 00 90 00 E4 0C 00 00 25 8D 03 02 00 00 00 16 00 48 49 41 33 02 A6 BE BA 60 58 20 61 90 20 81 84 50 24 D5 50 00 00 
+[D] v25 item: rrc=16.16 nr_rrc=16.144 rbid=0 pci=144 earfcn=3300 sfn_subfn=36133 pdu_num=3 sib_mask=2 len=22
+[I] [SIB1] EARFCN=3300 PCI=144 MCC=250 MNC=99 CID=199992837 TAC=678 barred=0 csg=0
+[D] QCP: log code=0xB17F len=52
+[I] ML1 0xB17F PCI 29 → 133 (corrected from 0xB197)
+[I] ML1 0xB17F SCell: EARFCN=3300 PCI=133 RSRP=-87 RSRQ=-25(raw,dropped) RSSI=-85 (v5)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=3300 PCI=134 (v2)
+[D] QCP: log code=0xB0C1 len=23
+[D] LTE 0xB0C1 MIB: ver=2 plen=11
+[D] 0xB0C1 [11 bytes]: 02 4D 01 E4 0C 00 00 7A 03 04 32 
+[D] LTE MIB v2: bandwidth=50 tx_antenna=4 sfn=890 earfcn=3300 pci=333
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=3300 PCI=132 (v2)
+[D] QCP: log code=0xB0C1 len=23
+[D] LTE 0xB0C1 MIB: ver=2 plen=11
+[D] 0xB0C1 [11 bytes]: 02 4D 00 E4 0C 00 00 0A 01 04 32 
+[D] LTE MIB v2: bandwidth=50 tx_antenna=4 sfn=266 earfcn=3300 pci=77
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=3300 PCI=0 (v2)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=3300 PCI=1 (v2)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=3300 PCI=2 (v2)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=38100 PCI=135 (v2)
+[D] QCP: log code=0xB0C1 len=23
+[D] LTE 0xB0C1 MIB: ver=2 plen=11
+[D] 0xB0C1 [11 bytes]: 02 C7 01 D4 94 00 00 A6 02 04 64 
+[D] LTE MIB v2: bandwidth=100 tx_antenna=4 sfn=678 earfcn=38100 pci=455
+[D] QCP: log code=0xB0C0 len=59
+[D] LTE 0xB0C0 RRC OTA: ver=27 plen=47
+[D] 0xB0C0 [47 bytes]: 1B 10 10 10 90 00 C7 01 D4 94 00 00 85 EA 03 02 00 00 00 1A 00 58 49 40 03 45 8E 31 6D F1 68 22 51 10 81 04 4C 24 4F B3 01 42 80 00 00 00 00 
+[D] v25 item: rrc=16.16 nr_rrc=16.144 rbid=0 pci=455 earfcn=38100 sfn_subfn=60037 pdu_num=3 sib_mask=2 len=26
+[I] [SIB1] EARFCN=38100 PCI=455 MCC=250 MNC=1 CID=51830550 TAC=17806 barred=0 csg=0
+[D] QCP: log code=0xB17F len=52
+[I] ML1 0xB17F PCI 31 → 135 (corrected from 0xB197)
+[I] ML1 0xB17F SCell: EARFCN=38100 PCI=135 RSRP=-90 RSRQ=-27(raw,dropped) RSSI=-80 (v5)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=38100 PCI=135 (v2)
+[D] QCP: log code=0xB0C1 len=23
+[D] LTE 0xB0C1 MIB: ver=2 plen=11
+[D] 0xB0C1 [11 bytes]: 02 87 01 D4 94 00 00 B1 02 04 64 
+[D] LTE MIB v2: bandwidth=100 tx_antenna=4 sfn=689 earfcn=38100 pci=391
+[D] QCP: log code=0xB0C0 len=59
+[D] LTE 0xB0C0 RRC OTA: ver=27 plen=47
+[D] 0xB0C0 [47 bytes]: 1B 10 10 10 90 00 87 01 D4 94 00 00 25 6B 03 02 00 00 00 1A 00 58 49 40 03 45 8E 31 6D F1 58 22 51 10 81 04 4C 24 4F A3 01 42 80 00 00 00 00 
+[D] v25 item: rrc=16.16 nr_rrc=16.144 rbid=0 pci=391 earfcn=38100 sfn_subfn=27429 pdu_num=3 sib_mask=2 len=26
+[I] [SIB1] EARFCN=38100 PCI=391 MCC=250 MNC=1 CID=51830549 TAC=17806 barred=0 csg=0
+[D] QCP: log code=0xB17F len=52
+[I] ML1 0xB17F PCI 31 → 135 (corrected from 0xB197)
+[I] ML1 0xB17F SCell: EARFCN=38100 PCI=135 RSRP=-101 RSRQ=-28(raw,dropped) RSSI=-84 (v5)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=38100 PCI=3 (v2)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=38100 PCI=1 (v2)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=6413 PCI=133 (v2)
+[D] QCP: log code=0xB0C1 len=23
+[D] LTE 0xB0C1 MIB: ver=2 plen=11
+[D] 0xB0C1 [11 bytes]: 02 8D 00 0D 19 00 00 C6 02 02 19 
+[D] LTE MIB v2: bandwidth=25 tx_antenna=2 sfn=710 earfcn=6413 pci=141
+[D] QCP: log code=0xB0C0 len=55
+[D] LTE 0xB0C0 RRC OTA: ver=27 plen=43
+[D] 0xB0C0 [43 bytes]: 1B 10 10 10 90 00 8D 00 0D 19 00 00 85 EC 03 02 00 00 00 16 00 48 49 41 33 0D 96 BE BE 80 18 21 31 90 20 81 84 50 24 CE 50 00 00 
+[D] v25 item: rrc=16.16 nr_rrc=16.144 rbid=0 pci=141 earfcn=6413 sfn_subfn=60549 pdu_num=3 sib_mask=2 len=22
+[I] [SIB1] EARFCN=6413 PCI=141 MCC=250 MNC=99 CID=200009729 TAC=3478 barred=0 csg=0
+[D] QCP: log code=0xB17F len=52
+[I] ML1 0xB17F PCI 29 → 133 (corrected from 0xB197)
+[I] ML1 0xB17F SCell: EARFCN=6413 PCI=133 RSRP=-81 RSRQ=-24(raw,dropped) RSSI=-85 (v5)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=6413 PCI=0 (v2)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=6413 PCI=1 (v2)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=6413 PCI=1 (v2)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=6413 PCI=2 (v2)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=6413 PCI=2 (v2)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=39146 PCI=132 (v2)
+[D] QCP: log code=0xB0C1 len=23
+[D] LTE 0xB0C1 MIB: ver=2 plen=11
+[D] 0xB0C1 [11 bytes]: 02 78 00 EA 98 00 00 01 03 04 64 
+[D] LTE MIB v2: bandwidth=100 tx_antenna=4 sfn=769 earfcn=39146 pci=120
+[D] QCP: log code=0xB0C0 len=55
+[D] LTE 0xB0C0 RRC OTA: ver=27 plen=43
+[D] 0xB0C0 [43 bytes]: 1B 10 10 10 90 00 78 00 EA 98 00 00 25 B0 03 02 00 00 00 16 00 58 49 40 41 4E 3D BF 7B 02 78 2A 71 80 81 84 4C 23 61 22 76 55 1C 
+[D] v25 item: rrc=16.16 nr_rrc=16.144 rbid=0 pci=120 earfcn=39146 sfn_subfn=45093 pdu_num=3 sib_mask=2 len=22
+[I] [SIB1] EARFCN=39146 PCI=120 MCC=250 MNC=20 CID=200781863 TAC=20029 barred=0 csg=0
+[D] QCP: log code=0xB17F len=52
+[I] ML1 0xB17F PCI 28 → 132 (corrected from 0xB197)
+[I] ML1 0xB17F SCell: EARFCN=39146 PCI=132 RSRP=-113 RSRQ=-28(raw,dropped) RSSI=-90 (v5)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=39146 PCI=132 (v2)
+[D] QCP: log code=0xB0C1 len=23
+[D] LTE 0xB0C1 MIB: ver=2 plen=11
+[D] 0xB0C1 [11 bytes]: 02 71 00 EA 98 00 00 0B 03 04 64 
+[D] LTE MIB v2: bandwidth=100 tx_antenna=4 sfn=779 earfcn=39146 pci=113
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=39146 PCI=132 (v2)
+[D] QCP: log code=0xB0C1 len=23
+[D] LTE 0xB0C1 MIB: ver=2 plen=11
+[D] 0xB0C1 [11 bytes]: 02 11 00 EA 98 00 00 33 03 04 64 
+[D] LTE MIB v2: bandwidth=100 tx_antenna=4 sfn=819 earfcn=39146 pci=17
+[D] QCP: log code=0xB0C0 len=55
+[D] LTE 0xB0C0 RRC OTA: ver=27 plen=43
+[D] 0xB0C0 [43 bytes]: 1B 10 10 10 90 00 11 00 EA 98 00 00 45 33 03 00 00 00 00 16 00 58 49 40 41 4E 3D BF A8 82 68 2A 71 80 81 84 4C 23 61 22 77 05 1C 
+[D] v25 item: rrc=16.16 nr_rrc=16.144 rbid=0 pci=17 earfcn=39146 sfn_subfn=13125 pdu_num=3 sib_mask=0 len=22
+[I] [SIB1] EARFCN=39146 PCI=17 MCC=250 MNC=20 CID=200968230 TAC=20029 barred=0 csg=0
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=39146 PCI=2 (v2)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=39146 PCI=132 (v2)
+[D] QCP: log code=0xB0C1 len=23
+[D] LTE 0xB0C1 MIB: ver=2 plen=11
+[D] 0xB0C1 [11 bytes]: 02 11 00 EA 98 00 00 47 03 04 64 
+[D] LTE MIB v2: bandwidth=100 tx_antenna=4 sfn=839 earfcn=39146 pci=17
+[D] QCP: log code=0xB0C0 len=55
+[D] LTE 0xB0C0 RRC OTA: ver=27 plen=43
+[D] 0xB0C0 [43 bytes]: 1B 10 10 10 90 00 11 00 EA 98 00 00 85 B4 03 02 00 00 00 16 00 58 49 40 41 4E 3D BF A8 82 68 2A 71 80 81 84 4C 23 61 22 77 05 1C 
+[D] v25 item: rrc=16.16 nr_rrc=16.144 rbid=0 pci=17 earfcn=39146 sfn_subfn=46213 pdu_num=3 sib_mask=2 len=22
+[I] [SIB1] EARFCN=39146 PCI=17 MCC=250 MNC=20 CID=200968230 TAC=20029 barred=0 csg=0
+[D] QCP: log code=0xB17F len=52
+[I] ML1 0xB17F PCI 28 → 132 (corrected from 0xB197)
+[I] ML1 0xB17F SCell: EARFCN=39146 PCI=132 RSRP=-117 RSRQ=-28(raw,dropped) RSSI=-92 (v5)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=39146 PCI=135 (v2)
+[D] QCP: log code=0xB0C1 len=23
+[D] LTE 0xB0C1 MIB: ver=2 plen=11
+[D] 0xB0C1 [11 bytes]: 02 99 01 EA 98 00 00 53 03 04 64 
+[D] LTE MIB v2: bandwidth=100 tx_antenna=4 sfn=851 earfcn=39146 pci=409
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=525 PCI=133 (v2)
+[D] QCP: log code=0xB0C1 len=23
+[D] LTE 0xB0C1 MIB: ver=2 plen=11
+[D] 0xB0C1 [11 bytes]: 02 B6 00 0D 02 00 00 2D 02 04 4B 
+[D] LTE MIB v2: bandwidth=75 tx_antenna=4 sfn=557 earfcn=525 pci=182
+[D] QCP: log code=0xB0C0 len=55
+[D] LTE 0xB0C0 RRC OTA: ver=27 plen=43
+[D] 0xB0C0 [43 bytes]: 1B 10 10 10 90 00 B6 00 0D 02 00 00 E5 62 03 02 00 00 00 16 00 48 49 41 33 02 A6 BE BA 66 68 20 01 90 20 81 84 50 24 C6 50 00 00 
+[D] v25 item: rrc=16.16 nr_rrc=16.144 rbid=0 pci=182 earfcn=525 sfn_subfn=25317 pdu_num=3 sib_mask=2 len=22
+[I] [SIB1] EARFCN=525 PCI=182 MCC=250 MNC=99 CID=199992934 TAC=678 barred=0 csg=0
+[D] QCP: log code=0xB17F len=52
+[I] ML1 0xB17F PCI 29 → 133 (corrected from 0xB197)
+[I] ML1 0xB17F SCell: EARFCN=525 PCI=133 RSRP=-82 RSRQ=-27(raw,dropped) RSSI=-78 (v5)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=525 PCI=1 (v2)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=525 PCI=0 (v2)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=525 PCI=1 (v2)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=2850 PCI=135 (v2)
+[D] QCP: log code=0xB0C1 len=23
+[D] LTE 0xB0C1 MIB: ver=2 plen=11
+[D] 0xB0C1 [11 bytes]: 02 B6 01 22 0B 00 00 52 00 02 64 
+[D] LTE MIB v2: bandwidth=100 tx_antenna=2 sfn=82 earfcn=2850 pci=438
+[D] QCP: log code=0xB0C0 len=59
+[D] LTE 0xB0C0 RRC OTA: ver=27 plen=47
+[D] 0xB0C0 [47 bytes]: 1B 10 10 10 90 00 B6 01 22 0B 00 00 45 C5 03 02 00 00 00 1A 00 48 C9 40 05 92 80 46 3D 29 7E D0 20 90 50 C4 20 21 02 08 98 46 C2 46 95 20 00 
+[D] v25 item: rrc=16.16 nr_rrc=16.144 rbid=0 pci=438 earfcn=2850 sfn_subfn=50501 pdu_num=3 sib_mask=2 len=26
+[I] [SIB1] EARFCN=2850 PCI=438 MCC=250 MNC=2 CID=200704260 TAC=7828 barred=0 csg=0
+[I] [SIB1] EARFCN=2850 PCI=438 MCC=250 MNC=11 CID=200704260 TAC=7828 barred=0 csg=0
+[D] QCP: log code=0xB17F len=52
+[I] ML1 0xB17F PCI 31 → 135 (corrected from 0xB197)
+[I] ML1 0xB17F SCell: EARFCN=2850 PCI=135 RSRP=-82 RSRQ=-25(raw,dropped) RSSI=-81 (v5)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=2850 PCI=6 (v2)
+[D] QCP: log code=0xB0C1 len=23
+[D] LTE 0xB0C1 MIB: ver=2 plen=11
+[D] 0xB0C1 [11 bytes]: 02 6F 01 22 0B 00 00 F0 02 02 64 
+[D] LTE MIB v2: bandwidth=100 tx_antenna=2 sfn=752 earfcn=2850 pci=367
+[D] QCP: log code=0xB0C0 len=59
+[D] LTE 0xB0C0 RRC OTA: ver=27 plen=47
+[D] 0xB0C0 [47 bytes]: 1B 10 10 10 90 00 6F 01 22 0B 00 00 25 6F 03 02 00 00 00 1A 00 48 C9 40 05 92 80 46 3D 29 7D 1D F1 D0 50 C4 20 21 02 08 98 46 C2 46 D5 20 00 
+[D] v25 item: rrc=16.16 nr_rrc=16.144 rbid=0 pci=367 earfcn=2850 sfn_subfn=28453 pdu_num=3 sib_mask=2 len=26
+[I] [SIB1] EARFCN=2850 PCI=367 MCC=250 MNC=2 CID=199815054 TAC=7828 barred=0 csg=0
+[I] [SIB1] EARFCN=2850 PCI=367 MCC=250 MNC=11 CID=199815054 TAC=7828 barred=0 csg=0
+[D] QCP: log code=0xB17F len=52
+[I] ML1 0xB17F PCI 30 → 6 (corrected from 0xB197)
+[I] ML1 0xB17F SCell: EARFCN=2850 PCI=6 RSRP=-93 RSRQ=-27(raw,dropped) RSSI=-81 (v5)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=3048 PCI=6 (v2)
+[D] QCP: log code=0xB0C1 len=23
+[D] LTE 0xB0C1 MIB: ver=2 plen=11
+[D] 0xB0C1 [11 bytes]: 02 6F 01 E8 0B 00 00 FF 02 02 64 
+[D] LTE MIB v2: bandwidth=100 tx_antenna=2 sfn=767 earfcn=3048 pci=367
+[D] QCP: log code=0xB0C0 len=59
+[D] LTE 0xB0C0 RRC OTA: ver=27 plen=47
+[D] 0xB0C0 [47 bytes]: 1B 10 10 10 90 00 6F 01 E8 0B 00 00 05 70 03 00 00 00 00 1A 00 48 C9 40 05 92 80 46 3D 29 7D 1D F1 F0 50 C4 20 21 02 08 98 46 C2 47 55 20 00 
+[D] v25 item: rrc=16.16 nr_rrc=16.144 rbid=0 pci=367 earfcn=3048 sfn_subfn=28677 pdu_num=3 sib_mask=0 len=26
+[I] [SIB1] EARFCN=3048 PCI=367 MCC=250 MNC=2 CID=199815055 TAC=7828 barred=0 csg=0
+[I] [SIB1] EARFCN=3048 PCI=367 MCC=250 MNC=11 CID=199815055 TAC=7828 barred=0 csg=0
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=3048 PCI=135 (v2)
+[D] QCP: log code=0xB0C1 len=23
+[D] LTE 0xB0C1 MIB: ver=2 plen=11
+[D] 0xB0C1 [11 bytes]: 02 B6 01 E8 0B 00 00 75 00 02 64 
+[D] LTE MIB v2: bandwidth=100 tx_antenna=2 sfn=117 earfcn=3048 pci=438
+[D] QCP: log code=0xB0C0 len=59
+[D] LTE 0xB0C0 RRC OTA: ver=27 plen=47
+[D] 0xB0C0 [47 bytes]: 1B 10 10 10 90 00 B6 01 E8 0B 00 00 65 47 03 02 00 00 00 1A 00 48 C9 40 05 92 80 46 3D 29 7E D0 20 30 50 C4 20 21 02 08 98 46 C2 47 C5 20 00 
+[D] v25 item: rrc=16.16 nr_rrc=16.144 rbid=0 pci=438 earfcn=3048 sfn_subfn=18277 pdu_num=3 sib_mask=2 len=26
+[I] [SIB1] EARFCN=3048 PCI=438 MCC=250 MNC=2 CID=200704257 TAC=7828 barred=0 csg=0
+[I] [SIB1] EARFCN=3048 PCI=438 MCC=250 MNC=11 CID=200704257 TAC=7828 barred=0 csg=0
+[D] QCP: log code=0xB17F len=52
+[I] ML1 0xB17F PCI 31 → 135 (corrected from 0xB197)
+[I] ML1 0xB17F SCell: EARFCN=3048 PCI=135 RSRP=-86 RSRQ=-26(raw,dropped) RSSI=-82 (v5)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=3048 PCI=6 (v2)
+[D] QCP: log code=0xB0C1 len=23
+[D] LTE 0xB0C1 MIB: ver=2 plen=11
+[D] 0xB0C1 [11 bytes]: 02 6F 01 E8 0B 00 00 12 03 02 64 
+[D] LTE MIB v2: bandwidth=100 tx_antenna=2 sfn=786 earfcn=3048 pci=367
+[D] QCP: log code=0xB0C0 len=59
+[D] LTE 0xB0C0 RRC OTA: ver=27 plen=47
+[D] 0xB0C0 [47 bytes]: 1B 10 10 10 90 00 6F 01 E8 0B 00 00 45 31 03 02 00 00 00 1A 00 48 C9 40 05 92 80 46 3D 29 7D 1D F1 F0 50 C4 20 21 02 08 98 46 C2 47 55 20 00 
+[D] v25 item: rrc=16.16 nr_rrc=16.144 rbid=0 pci=367 earfcn=3048 sfn_subfn=12613 pdu_num=3 sib_mask=2 len=26
+[I] [SIB1] EARFCN=3048 PCI=367 MCC=250 MNC=2 CID=199815055 TAC=7828 barred=0 csg=0
+[I] [SIB1] EARFCN=3048 PCI=367 MCC=250 MNC=11 CID=199815055 TAC=7828 barred=0 csg=0
+[D] QCP: log code=0xB17F len=52
+[I] ML1 0xB17F PCI 30 → 6 (corrected from 0xB197)
+[I] ML1 0xB17F SCell: EARFCN=3048 PCI=6 RSRP=-89 RSRQ=-26(raw,dropped) RSSI=-83 (v5)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=3048 PCI=3 (v2)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=3750 PCI=134 (v2)
+[D] QCP: log code=0xB0C1 len=23
+[D] LTE 0xB0C1 MIB: ver=2 plen=11
+[D] 0xB0C1 [11 bytes]: 02 3C 01 A6 0E 00 00 29 03 02 32 
+[D] LTE MIB v2: bandwidth=50 tx_antenna=2 sfn=809 earfcn=3750 pci=316
+[D] QCP: log code=0xB0C0 len=59
+[D] LTE 0xB0C0 RRC OTA: ver=27 plen=47
+[D] 0xB0C0 [47 bytes]: 1B 10 10 10 90 00 3C 01 A6 0E 00 00 A5 72 03 00 00 00 00 1A 00 48 C9 40 05 92 80 46 3D 29 7D 1D FF 70 50 E4 20 21 02 08 98 46 C2 47 45 20 00 
+[D] v25 item: rrc=16.16 nr_rrc=16.144 rbid=0 pci=316 earfcn=3750 sfn_subfn=29349 pdu_num=3 sib_mask=0 len=26
+[I] [SIB1] EARFCN=3750 PCI=316 MCC=250 MNC=2 CID=199815163 TAC=7828 barred=0 csg=0
+[I] [SIB1] EARFCN=3750 PCI=316 MCC=250 MNC=11 CID=199815163 TAC=7828 barred=0 csg=0
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=3750 PCI=134 (v2)
+[D] QCP: log code=0xB0C1 len=23
+[D] LTE 0xB0C1 MIB: ver=2 plen=11
+[D] 0xB0C1 [11 bytes]: 02 67 01 A6 0E 00 00 33 03 02 32 
+[D] LTE MIB v2: bandwidth=50 tx_antenna=2 sfn=819 earfcn=3750 pci=359
+[D] QCP: log code=0xB0C0 len=59
+[D] LTE 0xB0C0 RRC OTA: ver=27 plen=47
+[D] 0xB0C0 [47 bytes]: 1B 10 10 10 90 00 67 01 A6 0E 00 00 45 B3 03 02 00 00 00 1A 00 48 C9 40 05 92 80 46 3D 29 7D 1D FF 90 50 E4 20 21 02 08 98 46 C2 47 65 20 00 
+[D] v25 item: rrc=16.16 nr_rrc=16.144 rbid=0 pci=359 earfcn=3750 sfn_subfn=45893 pdu_num=3 sib_mask=2 len=26
+[I] [SIB1] EARFCN=3750 PCI=359 MCC=250 MNC=2 CID=199815164 TAC=7828 barred=0 csg=0
+[I] [SIB1] EARFCN=3750 PCI=359 MCC=250 MNC=11 CID=199815164 TAC=7828 barred=0 csg=0
+[D] QCP: log code=0xB17F len=52
+[I] ML1 0xB17F PCI 30 → 134 (corrected from 0xB197)
+[I] ML1 0xB17F SCell: EARFCN=3750 PCI=134 RSRP=-88 RSRQ=-25(raw,dropped) RSSI=-85 (v5)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=3750 PCI=134 (v2)
+[D] QCP: log code=0xB0C1 len=23
+[D] LTE 0xB0C1 MIB: ver=2 plen=11
+[D] 0xB0C1 [11 bytes]: 02 3C 01 A6 0E 00 00 3D 03 02 32 
+[D] LTE MIB v2: bandwidth=50 tx_antenna=2 sfn=829 earfcn=3750 pci=316
+[D] QCP: log code=0xB0C0 len=59
+[D] LTE 0xB0C0 RRC OTA: ver=27 plen=47
+[D] 0xB0C0 [47 bytes]: 1B 10 10 10 90 00 3C 01 A6 0E 00 00 E5 33 03 02 00 00 00 1A 00 48 C9 40 05 92 80 46 3D 29 7D 1D FF 70 50 E4 20 21 02 08 98 46 C2 47 45 20 00 
+[D] v25 item: rrc=16.16 nr_rrc=16.144 rbid=0 pci=316 earfcn=3750 sfn_subfn=13285 pdu_num=3 sib_mask=2 len=26
+[I] [SIB1] EARFCN=3750 PCI=316 MCC=250 MNC=2 CID=199815163 TAC=7828 barred=0 csg=0
+[I] [SIB1] EARFCN=3750 PCI=316 MCC=250 MNC=11 CID=199815163 TAC=7828 barred=0 csg=0
+[D] QCP: log code=0xB17F len=52
+[I] ML1 0xB17F PCI 30 → 134 (corrected from 0xB197)
+[I] ML1 0xB17F SCell: EARFCN=3750 PCI=134 RSRP=-89 RSRQ=-25(raw,dropped) RSSI=-85 (v5)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=3750 PCI=132 (v2)
+[D] QCP: log code=0xB0C1 len=23
+[D] LTE 0xB0C1 MIB: ver=2 plen=11
+[D] 0xB0C1 [11 bytes]: 02 3F 00 A6 0E 00 00 98 00 01 32 
+[D] LTE MIB v2: bandwidth=50 tx_antenna=1 sfn=152 earfcn=3750 pci=63
+[D] QCP: log code=0xB0C0 len=59
+[D] LTE 0xB0C0 RRC OTA: ver=27 plen=47
+[D] 0xB0C0 [47 bytes]: 1B 10 10 10 90 00 3F 00 A6 0E 00 00 E5 49 03 02 00 00 00 1A 00 48 C9 40 05 92 80 47 76 1B 81 73 1F 50 50 E4 20 21 02 08 98 46 C2 47 E5 20 00 
+[D] v25 item: rrc=16.16 nr_rrc=16.144 rbid=0 pci=63 earfcn=3750 sfn_subfn=18917 pdu_num=3 sib_mask=2 len=26
+[I] [SIB1] EARFCN=3750 PCI=63 MCC=250 MNC=2 CID=202086650 TAC=47885 barred=0 csg=0
+[I] [SIB1] EARFCN=3750 PCI=63 MCC=250 MNC=11 CID=202086650 TAC=47885 barred=0 csg=0
+[D] QCP: log code=0xB17F len=52
+[I] ML1 0xB17F PCI 28 → 132 (corrected from 0xB197)
+[I] ML1 0xB17F SCell: EARFCN=3750 PCI=132 RSRP=-92 RSRQ=-26(raw,dropped) RSSI=-84 (v5)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=3750 PCI=2 (v2)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=3750 PCI=2 (v2)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=3750 PCI=0 (v2)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=3750 PCI=132 (v2)
+[D] QCP: log code=0xB0C1 len=23
+[D] LTE 0xB0C1 MIB: ver=2 plen=11
+[D] 0xB0C1 [11 bytes]: 02 40 00 A6 0E 00 00 BF 00 01 32 
+[D] LTE MIB v2: bandwidth=50 tx_antenna=1 sfn=191 earfcn=3750 pci=64
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=3750 PCI=132 (v2)
+[D] QCP: log code=0xB0C1 len=23
+[D] LTE 0xB0C1 MIB: ver=2 plen=11
+[D] 0xB0C1 [11 bytes]: 02 06 00 A6 0E 00 00 2D 01 02 32 
+[D] LTE MIB v2: bandwidth=50 tx_antenna=2 sfn=301 earfcn=3750 pci=6
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=3750 PCI=132 (v2)
+[D] QCP: log code=0x7130 len=15
+[I] RAWCAP code=0x7130 ver=1 plen=3  (UMTS GMM/SM OTA)
+[I] RAWCAP 0x7130 v1 +000 01 05 00 
+[W] UMTS NAS OTA: payload too short (3)
+[D] QCP: log code=0x7130 len=15
+[W] UMTS NAS OTA: payload too short (3)
+[D] QCP: log code=0x7130 len=15
+[W] UMTS NAS OTA: payload too short (3)
+[D] QCP: log code=0x7130 len=15
+[W] UMTS NAS OTA: payload too short (3)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=1414 PCI=134 (v2)
+[D] QCP: log code=0xB0C1 len=23
+[D] LTE 0xB0C1 MIB: ver=2 plen=11
+[D] 0xB0C1 [11 bytes]: 02 03 01 86 05 00 00 A9 03 04 4B 
+[D] LTE MIB v2: bandwidth=75 tx_antenna=4 sfn=937 earfcn=1414 pci=259
+[D] QCP: log code=0xB0C0 len=55
+[D] LTE 0xB0C0 RRC OTA: ver=27 plen=43
+[D] 0xB0C0 [43 bytes]: 1B 10 10 10 90 00 03 01 86 05 00 00 A5 BA 03 02 00 00 00 16 00 48 49 41 33 02 A6 BE BA 60 88 20 21 90 20 81 84 50 24 D3 50 00 00 
+[D] v25 item: rrc=16.16 nr_rrc=16.144 rbid=0 pci=259 earfcn=1414 sfn_subfn=47781 pdu_num=3 sib_mask=2 len=22
+[I] [SIB1] EARFCN=1414 PCI=259 MCC=250 MNC=99 CID=199992840 TAC=678 barred=0 csg=0
+[D] QCP: log code=0xB17F len=52
+[I] ML1 0xB17F PCI 30 → 134 (corrected from 0xB197)
+[I] ML1 0xB17F SCell: EARFCN=1414 PCI=134 RSRP=-76 RSRQ=-27(raw,dropped) RSSI=-74 (v5)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=1414 PCI=2 (v2)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=1414 PCI=1 (v2)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=1414 PCI=0 (v2)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=2850 PCI=135 (v2)
+[D] QCP: log code=0xB0C1 len=23
+[D] LTE 0xB0C1 MIB: ver=2 plen=11
+[D] 0xB0C1 [11 bytes]: 02 B6 01 22 0B 00 00 CE 01 02 64 
+[D] LTE MIB v2: bandwidth=100 tx_antenna=2 sfn=462 earfcn=2850 pci=438
+[D] QCP: log code=0xB0C0 len=59
+[D] LTE 0xB0C0 RRC OTA: ver=27 plen=47
+[D] 0xB0C0 [47 bytes]: 1B 10 10 10 90 00 B6 01 22 0B 00 00 05 1D 03 02 00 00 00 1A 00 48 C9 40 05 92 80 46 3D 29 7E D0 20 90 50 C4 20 21 02 08 98 46 C2 46 95 20 00 
+[D] v25 item: rrc=16.16 nr_rrc=16.144 rbid=0 pci=438 earfcn=2850 sfn_subfn=7429 pdu_num=3 sib_mask=2 len=26
+[I] [SIB1] EARFCN=2850 PCI=438 MCC=250 MNC=2 CID=200704260 TAC=7828 barred=0 csg=0
+[I] [SIB1] EARFCN=2850 PCI=438 MCC=250 MNC=11 CID=200704260 TAC=7828 barred=0 csg=0
+[D] QCP: log code=0xB17F len=52
+[I] ML1 0xB17F PCI 31 → 135 (corrected from 0xB197)
+[I] ML1 0xB17F SCell: EARFCN=2850 PCI=135 RSRP=-84 RSRQ=-25(raw,dropped) RSSI=-82 (v5)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=2850 PCI=6 (v2)
+[D] QCP: log code=0xB0C1 len=23
+[D] LTE 0xB0C1 MIB: ver=2 plen=11
+[D] 0xB0C1 [11 bytes]: 02 6F 01 22 0B 00 00 6C 00 02 64 
+[D] LTE MIB v2: bandwidth=100 tx_antenna=2 sfn=108 earfcn=2850 pci=367
+[D] QCP: log code=0xB0C0 len=59
+[D] LTE 0xB0C0 RRC OTA: ver=27 plen=47
+[D] 0xB0C0 [47 bytes]: 1B 10 10 10 90 00 6F 01 22 0B 00 00 E5 86 03 02 00 00 00 1A 00 48 C9 40 05 92 80 46 3D 29 7D 1D F1 D0 50 C4 20 21 02 08 98 46 C2 46 D5 20 00 
+[D] v25 item: rrc=16.16 nr_rrc=16.144 rbid=0 pci=367 earfcn=2850 sfn_subfn=34533 pdu_num=3 sib_mask=2 len=26
+[I] [SIB1] EARFCN=2850 PCI=367 MCC=250 MNC=2 CID=199815054 TAC=7828 barred=0 csg=0
+[I] [SIB1] EARFCN=2850 PCI=367 MCC=250 MNC=11 CID=199815054 TAC=7828 barred=0 csg=0
+[D] QCP: log code=0xB17F len=52
+[I] ML1 0xB17F PCI 30 → 6 (corrected from 0xB197)
+[I] ML1 0xB17F SCell: EARFCN=2850 PCI=6 RSRP=-92 RSRQ=-27(raw,dropped) RSSI=-83 (v5)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=2850 PCI=0 (v2)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=2850 PCI=7 (v2)
+[D] QCP: log code=0xB0C1 len=23
+[D] LTE 0xB0C1 MIB: ver=2 plen=11
+[D] 0xB0C1 [11 bytes]: 02 8E 01 22 0B 00 00 7F 00 02 64 
+[D] LTE MIB v2: bandwidth=100 tx_antenna=2 sfn=127 earfcn=2850 pci=398
+[D] QCP: log code=0xB0C0 len=59
+[D] LTE 0xB0C0 RRC OTA: ver=27 plen=47
+[D] 0xB0C0 [47 bytes]: 1B 10 10 10 90 00 8E 01 22 0B 00 00 45 08 03 02 00 00 00 1A 00 48 C9 40 05 92 80 46 3D 29 7D 1D F2 10 50 C4 20 21 02 08 98 46 C2 47 F5 20 00 
+[D] v25 item: rrc=16.16 nr_rrc=16.144 rbid=0 pci=398 earfcn=2850 sfn_subfn=2117 pdu_num=3 sib_mask=2 len=26
+[I] [SIB1] EARFCN=2850 PCI=398 MCC=250 MNC=2 CID=199815056 TAC=7828 barred=0 csg=0
+[I] [SIB1] EARFCN=2850 PCI=398 MCC=250 MNC=11 CID=199815056 TAC=7828 barred=0 csg=0
+[D] QCP: log code=0xB17F len=52
+[I] ML1 0xB17F PCI 31 → 7 (corrected from 0xB197)
+[I] ML1 0xB17F SCell: EARFCN=2850 PCI=7 RSRP=-97 RSRQ=-28(raw,dropped) RSSI=-83 (v5)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=2850 PCI=3 (v2)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=38100 PCI=135 (v2)
+[D] QCP: log code=0xB0C1 len=23
+[D] LTE 0xB0C1 MIB: ver=2 plen=11
+[D] 0xB0C1 [11 bytes]: 02 87 01 D4 94 00 00 5E 01 04 64 
+[D] LTE MIB v2: bandwidth=100 tx_antenna=4 sfn=350 earfcn=38100 pci=391
+[D] QCP: log code=0xB0C0 len=59
+[D] LTE 0xB0C0 RRC OTA: ver=27 plen=47
+[D] 0xB0C0 [47 bytes]: 1B 10 10 10 90 00 87 01 D4 94 00 00 05 16 03 02 00 00 00 1A 00 58 49 40 03 45 8E 31 6D F1 58 22 51 10 81 04 4C 24 4F A3 01 42 80 00 00 00 00 
+[D] v25 item: rrc=16.16 nr_rrc=16.144 rbid=0 pci=391 earfcn=38100 sfn_subfn=5637 pdu_num=3 sib_mask=2 len=26
+[I] [SIB1] EARFCN=38100 PCI=391 MCC=250 MNC=1 CID=51830549 TAC=17806 barred=0 csg=0
+[D] QCP: log code=0xB17F len=52
+[I] ML1 0xB17F PCI 31 → 135 (corrected from 0xB197)
+[I] ML1 0xB17F SCell: EARFCN=38100 PCI=135 RSRP=-95 RSRQ=-28(raw,dropped) RSSI=-82 (v5)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=38100 PCI=135 (v2)
+[D] QCP: log code=0xB0C1 len=23
+[D] LTE 0xB0C1 MIB: ver=2 plen=11
+[D] 0xB0C1 [11 bytes]: 02 C7 01 D4 94 00 00 69 01 04 64 
+[D] LTE MIB v2: bandwidth=100 tx_antenna=4 sfn=361 earfcn=38100 pci=455
+[D] QCP: log code=0xB0C0 len=59
+[D] LTE 0xB0C0 RRC OTA: ver=27 plen=47
+[D] 0xB0C0 [47 bytes]: 1B 10 10 10 90 00 C7 01 D4 94 00 00 A5 56 03 02 00 00 00 1A 00 58 49 40 03 45 8E 31 6D F1 68 22 51 10 81 04 4C 24 4F B3 01 42 80 00 00 00 00 
+[D] v25 item: rrc=16.16 nr_rrc=16.144 rbid=0 pci=455 earfcn=38100 sfn_subfn=22181 pdu_num=3 sib_mask=2 len=26
+[I] [SIB1] EARFCN=38100 PCI=455 MCC=250 MNC=1 CID=51830550 TAC=17806 barred=0 csg=0
+[D] QCP: log code=0xB17F len=52
+[I] ML1 0xB17F PCI 31 → 135 (corrected from 0xB197)
+[I] ML1 0xB17F SCell: EARFCN=38100 PCI=135 RSRP=-94 RSRQ=-27(raw,dropped) RSSI=-83 (v5)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=38100 PCI=2 (v2)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=38100 PCI=3 (v2)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=38100 PCI=3 (v2)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=525 PCI=133 (v2)
+[D] QCP: log code=0xB0C1 len=23
+[D] LTE 0xB0C1 MIB: ver=2 plen=11
+[D] 0xB0C1 [11 bytes]: 02 B6 00 0D 02 00 00 33 00 04 4B 
+[D] LTE MIB v2: bandwidth=75 tx_antenna=4 sfn=51 earfcn=525 pci=182
+[D] QCP: log code=0xB0C0 len=55
+[D] LTE 0xB0C0 RRC OTA: ver=27 plen=43
+[D] 0xB0C0 [43 bytes]: 1B 10 10 10 90 00 B6 00 0D 02 00 00 45 C3 03 02 00 00 00 16 00 48 49 41 33 02 A6 BE BA 66 68 20 01 90 20 81 84 50 24 C6 50 00 00 
+[D] v25 item: rrc=16.16 nr_rrc=16.144 rbid=0 pci=182 earfcn=525 sfn_subfn=49989 pdu_num=3 sib_mask=2 len=22
+[I] [SIB1] EARFCN=525 PCI=182 MCC=250 MNC=99 CID=199992934 TAC=678 barred=0 csg=0
+[D] QCP: log code=0xB17F len=52
+[I] ML1 0xB17F PCI 29 → 133 (corrected from 0xB197)
+[I] ML1 0xB17F SCell: EARFCN=525 PCI=133 RSRP=-80 RSRQ=-24(raw,dropped) RSSI=-82 (v5)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=525 PCI=133 (v2)
+[D] QCP: log code=0xB0C1 len=23
+[D] LTE 0xB0C1 MIB: ver=2 plen=11
+[D] 0xB0C1 [11 bytes]: 02 F4 00 0D 02 00 00 DA 02 04 4B 
+[D] LTE MIB v2: bandwidth=75 tx_antenna=4 sfn=730 earfcn=525 pci=244
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=525 PCI=1 (v2)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=525 PCI=0 (v2)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=3048 PCI=6 (v2)
+[D] QCP: log code=0xB0C1 len=23
+[D] LTE 0xB0C1 MIB: ver=2 plen=11
+[D] 0xB0C1 [11 bytes]: 02 6F 01 E8 0B 00 00 0D 01 02 64 
+[D] LTE MIB v2: bandwidth=100 tx_antenna=2 sfn=269 earfcn=3048 pci=367
+[D] QCP: log code=0xB0C0 len=59
+[D] LTE 0xB0C0 RRC OTA: ver=27 plen=47
+[D] 0xB0C0 [47 bytes]: 1B 10 10 10 90 00 6F 01 E8 0B 00 00 E5 50 03 00 00 00 00 1A 00 48 C9 40 05 92 80 46 3D 29 7D 1D F1 F0 50 C4 20 21 02 08 98 46 C2 47 55 20 00 
+[D] v25 item: rrc=16.16 nr_rrc=16.144 rbid=0 pci=367 earfcn=3048 sfn_subfn=20709 pdu_num=3 sib_mask=0 len=26
+[I] [SIB1] EARFCN=3048 PCI=367 MCC=250 MNC=2 CID=199815055 TAC=7828 barred=0 csg=0
+[I] [SIB1] EARFCN=3048 PCI=367 MCC=250 MNC=11 CID=199815055 TAC=7828 barred=0 csg=0
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=3048 PCI=135 (v2)
+[D] QCP: log code=0xB0C1 len=23
+[D] LTE 0xB0C1 MIB: ver=2 plen=11
+[D] 0xB0C1 [11 bytes]: 02 B6 01 E8 0B 00 00 84 02 02 64 
+[D] LTE MIB v2: bandwidth=100 tx_antenna=2 sfn=644 earfcn=3048 pci=438
+[D] QCP: log code=0xB0C0 len=59
+[D] LTE 0xB0C0 RRC OTA: ver=27 plen=47
+[D] 0xB0C0 [47 bytes]: 1B 10 10 10 90 00 B6 01 E8 0B 00 00 65 68 03 02 00 00 00 1A 00 48 C9 40 05 92 80 46 3D 29 7E D0 20 30 50 C4 20 21 02 08 98 46 C2 47 C5 20 00 
+[D] v25 item: rrc=16.16 nr_rrc=16.144 rbid=0 pci=438 earfcn=3048 sfn_subfn=26725 pdu_num=3 sib_mask=2 len=26
+[I] [SIB1] EARFCN=3048 PCI=438 MCC=250 MNC=2 CID=200704257 TAC=7828 barred=0 csg=0
+[I] [SIB1] EARFCN=3048 PCI=438 MCC=250 MNC=11 CID=200704257 TAC=7828 barred=0 csg=0
+[D] QCP: log code=0xB17F len=52
+[I] ML1 0xB17F PCI 31 → 135 (corrected from 0xB197)
+[I] ML1 0xB17F SCell: EARFCN=3048 PCI=135 RSRP=-84 RSRQ=-25(raw,dropped) RSSI=-82 (v5)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=3048 PCI=6 (v2)
+[D] QCP: log code=0xB0C1 len=23
+[D] LTE 0xB0C1 MIB: ver=2 plen=11
+[D] 0xB0C1 [11 bytes]: 02 6F 01 E8 0B 00 00 22 01 02 64 
+[D] LTE MIB v2: bandwidth=100 tx_antenna=2 sfn=290 earfcn=3048 pci=367
+[D] QCP: log code=0xB0C0 len=59
+[D] LTE 0xB0C0 RRC OTA: ver=27 plen=47
+[D] 0xB0C0 [47 bytes]: 1B 10 10 10 90 00 6F 01 E8 0B 00 00 45 D2 03 02 00 00 00 1A 00 48 C9 40 05 92 80 46 3D 29 7D 1D F1 F0 50 C4 20 21 02 08 98 46 C2 47 55 20 00 
+[D] v25 item: rrc=16.16 nr_rrc=16.144 rbid=0 pci=367 earfcn=3048 sfn_subfn=53829 pdu_num=3 sib_mask=2 len=26
+[I] [SIB1] EARFCN=3048 PCI=367 MCC=250 MNC=2 CID=199815055 TAC=7828 barred=0 csg=0
+[I] [SIB1] EARFCN=3048 PCI=367 MCC=250 MNC=11 CID=199815055 TAC=7828 barred=0 csg=0
+[D] QCP: log code=0xB17F len=52
+[I] ML1 0xB17F PCI 30 → 6 (corrected from 0xB197)
+[I] ML1 0xB17F SCell: EARFCN=3048 PCI=6 RSRP=-93 RSRQ=-26(raw,dropped) RSSI=-81 (v5)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=3048 PCI=3 (v2)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=3048 PCI=0 (v2)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=3750 PCI=134 (v2)
+[D] QCP: log code=0xB0C1 len=23
+[D] LTE 0xB0C1 MIB: ver=2 plen=11
+[D] 0xB0C1 [11 bytes]: 02 3C 01 A6 0E 00 00 41 01 02 32 
+[D] LTE MIB v2: bandwidth=50 tx_antenna=2 sfn=321 earfcn=3750 pci=316
+[D] QCP: log code=0xB0C0 len=59
+[D] LTE 0xB0C0 RRC OTA: ver=27 plen=47
+[D] 0xB0C0 [47 bytes]: 1B 10 10 10 90 00 3C 01 A6 0E 00 00 25 D4 03 02 00 00 00 1A 00 48 C9 40 05 92 80 46 3D 29 7D 1D FF 70 50 E4 20 21 02 08 98 46 C2 47 45 20 00 
+[D] v25 item: rrc=16.16 nr_rrc=16.144 rbid=0 pci=316 earfcn=3750 sfn_subfn=54309 pdu_num=3 sib_mask=2 len=26
+[I] [SIB1] EARFCN=3750 PCI=316 MCC=250 MNC=2 CID=199815163 TAC=7828 barred=0 csg=0
+[I] [SIB1] EARFCN=3750 PCI=316 MCC=250 MNC=11 CID=199815163 TAC=7828 barred=0 csg=0
+[D] QCP: log code=0xB17F len=52
+[I] ML1 0xB17F PCI 30 → 134 (corrected from 0xB197)
+[I] ML1 0xB17F SCell: EARFCN=3750 PCI=134 RSRP=-85 RSRQ=-26(raw,dropped) RSSI=-83 (v5)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=3750 PCI=134 (v2)
+[D] QCP: log code=0xB0C1 len=23
+[D] LTE 0xB0C1 MIB: ver=2 plen=11
+[D] 0xB0C1 [11 bytes]: 02 67 01 A6 0E 00 00 4A 01 02 32 
+[D] LTE MIB v2: bandwidth=50 tx_antenna=2 sfn=330 earfcn=3750 pci=359
+[D] QCP: log code=0xB0C0 len=59
+[D] LTE 0xB0C0 RRC OTA: ver=27 plen=47
+[D] 0xB0C0 [47 bytes]: 1B 10 10 10 90 00 67 01 A6 0E 00 00 C5 14 03 02 00 00 00 1A 00 48 C9 40 05 92 80 46 3D 29 7D 1D FF 90 50 E4 20 21 02 08 98 46 C2 47 65 20 00 
+[D] v25 item: rrc=16.16 nr_rrc=16.144 rbid=0 pci=359 earfcn=3750 sfn_subfn=5317 pdu_num=3 sib_mask=2 len=26
+[I] [SIB1] EARFCN=3750 PCI=359 MCC=250 MNC=2 CID=199815164 TAC=7828 barred=0 csg=0
+[I] [SIB1] EARFCN=3750 PCI=359 MCC=250 MNC=11 CID=199815164 TAC=7828 barred=0 csg=0
+[D] QCP: log code=0xB17F len=52
+[I] ML1 0xB17F PCI 30 → 134 (corrected from 0xB197)
+[I] ML1 0xB17F SCell: EARFCN=3750 PCI=134 RSRP=-88 RSRQ=-25(raw,dropped) RSSI=-84 (v5)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=3750 PCI=0 (v2)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=3750 PCI=3 (v2)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=3750 PCI=132 (v2)
+[D] QCP: log code=0xB0C1 len=23
+[D] LTE 0xB0C1 MIB: ver=2 plen=11
+[D] 0xB0C1 [11 bytes]: 02 3F 00 A6 0E 00 00 B2 02 01 32 
+[D] LTE MIB v2: bandwidth=50 tx_antenna=1 sfn=690 earfcn=3750 pci=63
+[D] QCP: log code=0xB0C0 len=59
+[D] LTE 0xB0C0 RRC OTA: ver=27 plen=47
+[D] 0xB0C0 [47 bytes]: 1B 10 10 10 90 00 3F 00 A6 0E 00 00 65 AC 03 02 00 00 00 1A 00 48 C9 40 05 92 80 47 76 1B 81 73 1F 50 50 E4 20 21 02 08 98 46 C2 47 E5 20 00 
+[D] v25 item: rrc=16.16 nr_rrc=16.144 rbid=0 pci=63 earfcn=3750 sfn_subfn=44133 pdu_num=3 sib_mask=2 len=26
+[I] [SIB1] EARFCN=3750 PCI=63 MCC=250 MNC=2 CID=202086650 TAC=47885 barred=0 csg=0
+[I] [SIB1] EARFCN=3750 PCI=63 MCC=250 MNC=11 CID=202086650 TAC=47885 barred=0 csg=0
+[D] QCP: log code=0xB17F len=52
+[I] ML1 0xB17F PCI 28 → 132 (corrected from 0xB197)
+[I] ML1 0xB17F SCell: EARFCN=3750 PCI=132 RSRP=-94 RSRQ=-28(raw,dropped) RSSI=-83 (v5)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=3750 PCI=2 (v2)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=3750 PCI=2 (v2)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=3750 PCI=3 (v2)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=3750 PCI=0 (v2)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=3750 PCI=132 (v2)
+[D] QCP: log code=0xB0C1 len=23
+[D] LTE 0xB0C1 MIB: ver=2 plen=11
+[D] 0xB0C1 [11 bytes]: 02 40 00 A6 0E 00 00 EE 02 01 32 
+[D] LTE MIB v2: bandwidth=50 tx_antenna=1 sfn=750 earfcn=3750 pci=64
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=3750 PCI=132 (v2)
+[D] QCP: log code=0xB0C1 len=23
+[D] LTE 0xB0C1 MIB: ver=2 plen=11
+[D] 0xB0C1 [11 bytes]: 02 06 00 A6 0E 00 00 5E 03 02 32 
+[D] LTE MIB v2: bandwidth=50 tx_antenna=2 sfn=862 earfcn=3750 pci=6
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=3300 PCI=133 (v2)
+[D] QCP: log code=0xB0C1 len=23
+[D] LTE 0xB0C1 MIB: ver=2 plen=11
+[D] 0xB0C1 [11 bytes]: 02 90 00 E4 0C 00 00 5F 01 04 32 
+[D] LTE MIB v2: bandwidth=50 tx_antenna=4 sfn=351 earfcn=3300 pci=144
+[D] QCP: log code=0xB0C0 len=55
+[D] LTE 0xB0C0 RRC OTA: ver=27 plen=43
+[D] 0xB0C0 [43 bytes]: 1B 10 10 10 90 00 90 00 E4 0C 00 00 05 96 03 02 00 00 00 16 00 48 49 41 33 02 A6 BE BA 60 58 20 61 90 20 81 84 50 24 D5 50 00 00 
+[D] v25 item: rrc=16.16 nr_rrc=16.144 rbid=0 pci=144 earfcn=3300 sfn_subfn=38405 pdu_num=3 sib_mask=2 len=22
+[I] [SIB1] EARFCN=3300 PCI=144 MCC=250 MNC=99 CID=199992837 TAC=678 barred=0 csg=0
+[D] QCP: log code=0xB17F len=52
+[I] ML1 0xB17F PCI 29 → 133 (corrected from 0xB197)
+[I] ML1 0xB17F SCell: EARFCN=3300 PCI=133 RSRP=-84 RSRQ=-27(raw,dropped) RSSI=-79 (v5)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=3300 PCI=0 (v2)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=3300 PCI=1 (v2)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=3300 PCI=0 (v2)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=3300 PCI=1 (v2)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=1596 PCI=135 (v2)
+[D] QCP: log code=0xB0C1 len=23
+[D] LTE 0xB0C1 MIB: ver=2 plen=11
+[D] 0xB0C1 [11 bytes]: 02 BF 01 3C 06 00 00 E2 03 02 32 
+[D] LTE MIB v2: bandwidth=50 tx_antenna=2 sfn=994 earfcn=1596 pci=447
+[D] QCP: log code=0xB0C0 len=59
+[D] LTE 0xB0C0 RRC OTA: ver=27 plen=47
+[D] 0xB0C0 [47 bytes]: 1B 10 10 10 90 00 BF 01 3C 06 00 00 45 BE 03 02 00 00 00 1A 00 48 C9 40 05 92 80 46 3D 29 80 14 99 70 50 44 20 21 02 08 98 46 C2 46 A5 20 00 
+[D] v25 item: rrc=16.16 nr_rrc=16.144 rbid=0 pci=447 earfcn=1596 sfn_subfn=48709 pdu_num=3 sib_mask=2 len=26
+[I] [SIB1] EARFCN=1596 PCI=447 MCC=250 MNC=2 CID=201368779 TAC=7828 barred=0 csg=0
+[I] [SIB1] EARFCN=1596 PCI=447 MCC=250 MNC=11 CID=201368779 TAC=7828 barred=0 csg=0
+[D] QCP: log code=0xB17F len=52
+[I] ML1 0xB17F PCI 31 → 135 (corrected from 0xB197)
+[I] ML1 0xB17F SCell: EARFCN=1596 PCI=135 RSRP=-83 RSRQ=-25(raw,dropped) RSSI=-82 (v5)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=1596 PCI=134 (v2)
+[D] QCP: log code=0xB0C1 len=23
+[D] LTE 0xB0C1 MIB: ver=2 plen=11
+[D] 0xB0C1 [11 bytes]: 02 13 01 3C 06 00 00 29 02 02 32 
+[D] LTE MIB v2: bandwidth=50 tx_antenna=2 sfn=553 earfcn=1596 pci=275
+[D] QCP: log code=0xB0C0 len=59
+[D] LTE 0xB0C0 RRC OTA: ver=27 plen=47
+[D] 0xB0C0 [47 bytes]: 1B 10 10 10 90 00 13 01 3C 06 00 00 A5 62 03 02 00 00 00 1A 00 48 C9 40 05 92 80 46 3D 29 7D 1D F9 50 50 44 20 21 02 08 98 46 C2 47 05 20 00 
+[D] v25 item: rrc=16.16 nr_rrc=16.144 rbid=0 pci=275 earfcn=1596 sfn_subfn=25253 pdu_num=3 sib_mask=2 len=26
+[I] [SIB1] EARFCN=1596 PCI=275 MCC=250 MNC=2 CID=199815114 TAC=7828 barred=0 csg=0
+[I] [SIB1] EARFCN=1596 PCI=275 MCC=250 MNC=11 CID=199815114 TAC=7828 barred=0 csg=0
+[D] QCP: log code=0xB17F len=52
+[I] ML1 0xB17F PCI 30 → 134 (corrected from 0xB197)
+[I] ML1 0xB17F SCell: EARFCN=1596 PCI=134 RSRP=-87 RSRQ=-26(raw,dropped) RSSI=-83 (v5)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=1596 PCI=133 (v2)
+[D] QCP: log code=0xB0C1 len=23
+[D] LTE 0xB0C1 MIB: ver=2 plen=11
+[D] 0xB0C1 [11 bytes]: 02 9D 00 3C 06 00 00 33 02 02 32 
+[D] LTE MIB v2: bandwidth=50 tx_antenna=2 sfn=563 earfcn=1596 pci=157
+[D] QCP: log code=0xB0C0 len=59
+[D] LTE 0xB0C0 RRC OTA: ver=27 plen=47
+[D] 0xB0C0 [47 bytes]: 1B 10 10 10 90 00 9D 00 3C 06 00 00 45 A3 03 02 00 00 00 1A 00 48 C9 40 05 92 80 46 3D 29 7D 1D F9 30 50 44 20 21 02 08 98 46 C2 46 B5 20 00 
+[D] v25 item: rrc=16.16 nr_rrc=16.144 rbid=0 pci=157 earfcn=1596 sfn_subfn=41797 pdu_num=3 sib_mask=2 len=26
+[I] [SIB1] EARFCN=1596 PCI=157 MCC=250 MNC=2 CID=199815113 TAC=7828 barred=0 csg=0
+[I] [SIB1] EARFCN=1596 PCI=157 MCC=250 MNC=11 CID=199815113 TAC=7828 barred=0 csg=0
+[D] QCP: log code=0xB17F len=52
+[I] ML1 0xB17F PCI 29 → 133 (corrected from 0xB197)
+[I] ML1 0xB17F SCell: EARFCN=1596 PCI=133 RSRP=-89 RSRQ=-25(raw,dropped) RSSI=-85 (v5)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=1596 PCI=133 (v2)
+[D] QCP: log code=0xB0C1 len=23
+[D] LTE 0xB0C1 MIB: ver=2 plen=11
+[D] 0xB0C1 [11 bytes]: 02 EA 00 3C 06 00 00 D0 03 04 32 
+[D] LTE MIB v2: bandwidth=50 tx_antenna=4 sfn=976 earfcn=1596 pci=234
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=1596 PCI=133 (v2)
+[D] QCP: log code=0xB0C1 len=23
+[D] LTE 0xB0C1 MIB: ver=2 plen=11
+[D] 0xB0C1 [11 bytes]: 02 EA 00 3C 06 00 00 DE 03 04 32 
+[D] LTE MIB v2: bandwidth=50 tx_antenna=4 sfn=990 earfcn=1596 pci=234
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=6413 PCI=133 (v2)
+[D] QCP: log code=0xB0C1 len=23
+[D] LTE 0xB0C1 MIB: ver=2 plen=11
+[D] 0xB0C1 [11 bytes]: 02 8D 00 0D 19 00 00 30 03 02 19 
+[D] LTE MIB v2: bandwidth=25 tx_antenna=2 sfn=816 earfcn=6413 pci=141
+[D] QCP: log code=0xB0C0 len=55
+[D] LTE 0xB0C0 RRC OTA: ver=27 plen=43
+[D] 0xB0C0 [43 bytes]: 1B 10 10 10 90 00 8D 00 0D 19 00 00 25 73 03 02 00 00 00 16 00 48 49 41 33 0D 96 BE BE 80 18 21 31 90 20 81 84 50 24 CE 50 00 00 
+[D] v25 item: rrc=16.16 nr_rrc=16.144 rbid=0 pci=141 earfcn=6413 sfn_subfn=29477 pdu_num=3 sib_mask=2 len=22
+[I] [SIB1] EARFCN=6413 PCI=141 MCC=250 MNC=99 CID=200009729 TAC=3478 barred=0 csg=0
+[D] QCP: log code=0xB17F len=52
+[I] ML1 0xB17F PCI 29 → 133 (corrected from 0xB197)
+[I] ML1 0xB17F SCell: EARFCN=6413 PCI=133 RSRP=-80 RSRQ=-24(raw,dropped) RSSI=-85 (v5)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=6413 PCI=1 (v2)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=6413 PCI=2 (v2)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=6413 PCI=0 (v2)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=6413 PCI=2 (v2)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=6413 PCI=1 (v2)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=39146 PCI=132 (v2)
+[D] QCP: log code=0xB0C1 len=23
+[D] LTE 0xB0C1 MIB: ver=2 plen=11
+[D] 0xB0C1 [11 bytes]: 02 71 00 EA 98 00 00 6B 03 04 64 
+[D] LTE MIB v2: bandwidth=100 tx_antenna=4 sfn=875 earfcn=39146 pci=113
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=39146 PCI=132 (v2)
+[D] QCP: log code=0xB0C1 len=23
+[D] LTE 0xB0C1 MIB: ver=2 plen=11
+[D] 0xB0C1 [11 bytes]: 02 11 00 EA 98 00 00 93 03 04 64 
+[D] LTE MIB v2: bandwidth=100 tx_antenna=4 sfn=915 earfcn=39146 pci=17
+[D] QCP: log code=0xB0C0 len=55
+[D] LTE 0xB0C0 RRC OTA: ver=27 plen=43
+[D] 0xB0C0 [43 bytes]: 1B 10 10 10 90 00 11 00 EA 98 00 00 45 79 03 00 00 00 00 16 00 58 49 40 41 4E 3D BF A8 82 68 2A 71 80 81 84 4C 23 61 22 77 05 1C 
+[D] v25 item: rrc=16.16 nr_rrc=16.144 rbid=0 pci=17 earfcn=39146 sfn_subfn=31045 pdu_num=3 sib_mask=0 len=22
+[I] [SIB1] EARFCN=39146 PCI=17 MCC=250 MNC=20 CID=200968230 TAC=20029 barred=0 csg=0
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=39146 PCI=132 (v2)
+[D] QCP: log code=0xB0C1 len=23
+[D] LTE 0xB0C1 MIB: ver=2 plen=11
+[D] 0xB0C1 [11 bytes]: 02 78 00 EA 98 00 00 9C 03 04 64 
+[D] LTE MIB v2: bandwidth=100 tx_antenna=4 sfn=924 earfcn=39146 pci=120
+[D] QCP: log code=0xB0C0 len=55
+[D] LTE 0xB0C0 RRC OTA: ver=27 plen=43
+[D] 0xB0C0 [43 bytes]: 1B 10 10 10 90 00 78 00 EA 98 00 00 E5 B9 03 02 00 00 00 16 00 58 49 40 41 4E 3D BF 7B 02 78 2A 71 80 81 84 4C 23 61 22 76 55 1C 
+[D] v25 item: rrc=16.16 nr_rrc=16.144 rbid=0 pci=120 earfcn=39146 sfn_subfn=47589 pdu_num=3 sib_mask=2 len=22
+[I] [SIB1] EARFCN=39146 PCI=120 MCC=250 MNC=20 CID=200781863 TAC=20029 barred=0 csg=0
+[D] QCP: log code=0xB17F len=52
+[I] ML1 0xB17F PCI 28 → 132 (corrected from 0xB197)
+[I] ML1 0xB17F SCell: EARFCN=39146 PCI=132 RSRP=-117 RSRQ=-28(raw,dropped) RSSI=-91 (v5)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=39146 PCI=132 (v2)
+[D] QCP: log code=0xB0C1 len=23
+[D] LTE 0xB0C1 MIB: ver=2 plen=11
+[D] 0xB0C1 [11 bytes]: 02 11 00 EA 98 00 00 A7 03 04 64 
+[D] LTE MIB v2: bandwidth=100 tx_antenna=4 sfn=935 earfcn=39146 pci=17
+[D] QCP: log code=0xB0C0 len=55
+[D] LTE 0xB0C0 RRC OTA: ver=27 plen=43
+[D] 0xB0C0 [43 bytes]: 1B 10 10 10 90 00 11 00 EA 98 00 00 85 FA 03 02 00 00 00 16 00 58 49 40 41 4E 3D BF A8 82 68 2A 71 80 81 84 4C 23 61 22 77 05 1C 
+[D] v25 item: rrc=16.16 nr_rrc=16.144 rbid=0 pci=17 earfcn=39146 sfn_subfn=64133 pdu_num=3 sib_mask=2 len=22
+[I] [SIB1] EARFCN=39146 PCI=17 MCC=250 MNC=20 CID=200968230 TAC=20029 barred=0 csg=0
+[D] QCP: log code=0xB17F len=52
+[I] ML1 0xB17F PCI 28 → 132 (corrected from 0xB197)
+[I] ML1 0xB17F SCell: EARFCN=39146 PCI=132 RSRP=-116 RSRQ=-28(raw,dropped) RSSI=-93 (v5)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=3638 PCI=133 (v2)
+[D] QCP: log code=0xB0C1 len=23
+[D] LTE 0xB0C1 MIB: ver=2 plen=11
+[D] 0xB0C1 [11 bytes]: 02 AD 00 36 0E 00 00 CE 03 02 19 
+[D] LTE MIB v2: bandwidth=25 tx_antenna=2 sfn=974 earfcn=3638 pci=173
+[D] QCP: log code=0xB0C0 len=51
+[D] LTE 0xB0C0 RRC OTA: ver=27 plen=39
+[D] 0xB0C0 [39 bytes]: 1B 10 10 10 90 00 AD 00 36 0E 00 00 05 3D 03 02 00 00 00 12 00 40 49 40 03 45 8E 31 6D F1 C8 20 71 10 81 04 4C 24 C2 
+[D] v25 item: rrc=16.16 nr_rrc=16.144 rbid=0 pci=173 earfcn=3638 sfn_subfn=15621 pdu_num=3 sib_mask=2 len=18
+[I] [SIB1] EARFCN=3638 PCI=173 MCC=250 MNC=1 CID=51830556 TAC=17806 barred=0 csg=0
+[D] QCP: log code=0xB17F len=52
+[I] ML1 0xB17F PCI 29 → 133 (corrected from 0xB197)
+[I] ML1 0xB17F SCell: EARFCN=3638 PCI=133 RSRP=-70 RSRQ=-26(raw,dropped) RSSI=-77 (v5)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=3638 PCI=3 (v2)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=3638 PCI=2 (v2)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=3638 PCI=0 (v2)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=1820 PCI=7 (v2)
+[D] QCP: log code=0xB0C1 len=23
+[D] LTE 0xB0C1 MIB: ver=2 plen=11
+[D] 0xB0C1 [11 bytes]: 02 BF 01 1C 07 00 00 F1 00 02 19 
+[D] LTE MIB v2: bandwidth=25 tx_antenna=2 sfn=241 earfcn=1820 pci=447
+[D] QCP: log code=0xB0C0 len=59
+[D] LTE 0xB0C0 RRC OTA: ver=27 plen=47
+[D] 0xB0C0 [47 bytes]: 1B 10 10 10 90 00 BF 01 1C 07 00 00 25 8F 03 02 00 00 00 1A 00 48 C9 40 05 92 80 46 3D 29 80 14 99 F0 50 44 20 21 02 08 98 46 C2 46 45 20 00 
+[D] v25 item: rrc=16.16 nr_rrc=16.144 rbid=0 pci=447 earfcn=1820 sfn_subfn=36645 pdu_num=3 sib_mask=2 len=26
+[I] [SIB1] EARFCN=1820 PCI=447 MCC=250 MNC=2 CID=201368783 TAC=7828 barred=0 csg=0
+[I] [SIB1] EARFCN=1820 PCI=447 MCC=250 MNC=11 CID=201368783 TAC=7828 barred=0 csg=0
+[D] QCP: log code=0xB17F len=52
+[I] ML1 0xB17F PCI 31 → 7 (corrected from 0xB197)
+[I] ML1 0xB17F SCell: EARFCN=1820 PCI=7 RSRP=-85 RSRQ=-24(raw,dropped) RSSI=-87 (v5)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=1820 PCI=133 (v2)
+[D] QCP: log code=0xB0C1 len=23
+[D] LTE 0xB0C1 MIB: ver=2 plen=11
+[D] 0xB0C1 [11 bytes]: 02 9D 00 1C 07 00 00 38 03 02 19 
+[D] LTE MIB v2: bandwidth=25 tx_antenna=2 sfn=824 earfcn=1820 pci=157
+[D] QCP: log code=0xB0C0 len=59
+[D] LTE 0xB0C0 RRC OTA: ver=27 plen=47
+[D] 0xB0C0 [47 bytes]: 1B 10 10 10 90 00 9D 00 1C 07 00 00 A5 73 03 02 00 00 00 1A 00 48 C9 40 05 92 80 46 3D 29 7D 1D F9 90 50 44 20 21 02 08 98 46 C2 47 A5 20 00 
+[D] v25 item: rrc=16.16 nr_rrc=16.144 rbid=0 pci=157 earfcn=1820 sfn_subfn=29605 pdu_num=3 sib_mask=2 len=26
+[I] [SIB1] EARFCN=1820 PCI=157 MCC=250 MNC=2 CID=199815116 TAC=7828 barred=0 csg=0
+[I] [SIB1] EARFCN=1820 PCI=157 MCC=250 MNC=11 CID=199815116 TAC=7828 barred=0 csg=0
+[D] QCP: log code=0xB17F len=52
+[I] ML1 0xB17F PCI 29 → 133 (corrected from 0xB197)
+[I] ML1 0xB17F SCell: EARFCN=1820 PCI=133 RSRP=-88 RSRQ=-25(raw,dropped) RSSI=-88 (v5)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=1820 PCI=134 (v2)
+[D] QCP: log code=0xB0C1 len=23
+[D] LTE 0xB0C1 MIB: ver=2 plen=11
+[D] 0xB0C1 [11 bytes]: 02 13 01 1C 07 00 00 43 03 02 19 
+[D] LTE MIB v2: bandwidth=25 tx_antenna=2 sfn=835 earfcn=1820 pci=275
+[D] QCP: log code=0xB0C0 len=59
+[D] LTE 0xB0C0 RRC OTA: ver=27 plen=47
+[D] 0xB0C0 [47 bytes]: 1B 10 10 10 90 00 13 01 1C 07 00 00 85 74 03 02 00 00 00 1A 00 48 C9 40 05 92 80 46 3D 29 7D 1D F9 B0 50 44 20 21 02 08 98 46 C2 46 65 20 00 
+[D] v25 item: rrc=16.16 nr_rrc=16.144 rbid=0 pci=275 earfcn=1820 sfn_subfn=29829 pdu_num=3 sib_mask=2 len=26
+[I] [SIB1] EARFCN=1820 PCI=275 MCC=250 MNC=2 CID=199815117 TAC=7828 barred=0 csg=0
+[I] [SIB1] EARFCN=1820 PCI=275 MCC=250 MNC=11 CID=199815117 TAC=7828 barred=0 csg=0
+[D] QCP: log code=0xB17F len=52
+[I] ML1 0xB17F PCI 30 → 134 (corrected from 0xB197)
+[I] ML1 0xB17F SCell: EARFCN=1820 PCI=134 RSRP=-90 RSRQ=-26(raw,dropped) RSSI=-86 (v5)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=1820 PCI=2 (v2)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=1820 PCI=1 (v2)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=1820 PCI=2 (v2)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=1820 PCI=2 (v2)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=1275 PCI=133 (v2)
+[D] QCP: log code=0xB0C1 len=23
+[D] LTE 0xB0C1 MIB: ver=2 plen=11
+[D] 0xB0C1 [11 bytes]: 02 AE 00 FB 04 00 00 E0 01 02 4B 
+[D] LTE MIB v2: bandwidth=75 tx_antenna=2 sfn=480 earfcn=1275 pci=174
+[D] QCP: log code=0xB0C0 len=55
+[D] LTE 0xB0C0 RRC OTA: ver=27 plen=43
+[D] 0xB0C0 [43 bytes]: 1B 10 10 10 90 00 AE 00 FB 04 00 00 25 9E 03 02 00 00 00 16 00 48 49 40 41 4D 07 BF 2E 90 D8 1C 21 80 81 84 4C 23 61 23 12 8E 00 
+[D] v25 item: rrc=16.16 nr_rrc=16.144 rbid=0 pci=174 earfcn=1275 sfn_subfn=40485 pdu_num=3 sib_mask=2 len=22
+[I] [SIB1] EARFCN=1275 PCI=174 MCC=250 MNC=20 CID=200468749 TAC=19719 barred=0 csg=0
+[D] QCP: log code=0xB17F len=52
+[I] ML1 0xB17F PCI 29 → 133 (corrected from 0xB197)
+[I] ML1 0xB17F SCell: EARFCN=1275 PCI=133 RSRP=-80 RSRQ=-25(raw,dropped) RSSI=-81 (v5)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=1275 PCI=1 (v2)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=1275 PCI=0 (v2)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=1275 PCI=0 (v2)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=1275 PCI=1 (v2)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=3400 PCI=135 (v2)
+[D] QCP: log code=0xB0C1 len=23
+[D] LTE 0xB0C1 MIB: ver=2 plen=11
+[D] 0xB0C1 [11 bytes]: 02 D4 01 48 0D 00 00 0D 02 02 32 
+[D] LTE MIB v2: bandwidth=50 tx_antenna=2 sfn=525 earfcn=3400 pci=468
+[D] QCP: log code=0xB0C0 len=55
+[D] LTE 0xB0C0 RRC OTA: ver=27 plen=43
+[D] 0xB0C0 [43 bytes]: 1B 10 10 10 90 00 D4 01 48 0D 00 00 E5 A0 03 02 00 00 00 16 00 48 49 40 41 4D 07 BF 2E 91 78 20 61 80 81 84 4C 23 61 23 3A 8E 00 
+[D] v25 item: rrc=16.16 nr_rrc=16.144 rbid=0 pci=468 earfcn=3400 sfn_subfn=41189 pdu_num=3 sib_mask=2 len=22
+[I] [SIB1] EARFCN=3400 PCI=468 MCC=250 MNC=20 CID=200468759 TAC=19719 barred=0 csg=0
+[D] QCP: log code=0xB17F len=52
+[I] ML1 0xB17F PCI 31 → 135 (corrected from 0xB197)
+[I] ML1 0xB17F SCell: EARFCN=3400 PCI=135 RSRP=-91 RSRQ=-24(raw,dropped) RSSI=-88 (v5)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=3400 PCI=133 (v2)
+[D] QCP: log code=0xB0C1 len=23
+[D] LTE 0xB0C1 MIB: ver=2 plen=11
+[D] 0xB0C1 [11 bytes]: 02 DE 00 48 0D 00 00 70 00 02 32 
+[D] LTE MIB v2: bandwidth=50 tx_antenna=2 sfn=112 earfcn=3400 pci=222
+[D] QCP: log code=0xB0C0 len=55
+[D] LTE 0xB0C0 RRC OTA: ver=27 plen=43
+[D] 0xB0C0 [43 bytes]: 1B 10 10 10 90 00 DE 00 48 0D 00 00 45 87 03 02 00 00 00 16 00 48 49 40 41 4E 3D BE BF 81 68 20 61 80 81 84 4C 23 61 23 52 8E 00 
+[D] v25 item: rrc=16.16 nr_rrc=16.144 rbid=0 pci=222 earfcn=3400 sfn_subfn=34629 pdu_num=3 sib_mask=2 len=22
+[I] [SIB1] EARFCN=3400 PCI=222 MCC=250 MNC=20 CID=200013846 TAC=20029 barred=0 csg=0
+[D] QCP: log code=0xB17F len=52
+[I] ML1 0xB17F PCI 29 → 133 (corrected from 0xB197)
+[I] ML1 0xB17F SCell: EARFCN=3400 PCI=133 RSRP=-108 RSRQ=-28(raw,dropped) RSSI=-90 (v5)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=38750 PCI=132 (v2)
+[D] QCP: log code=0xB0C1 len=23
+[D] LTE 0xB0C1 MIB: ver=2 plen=11
+[D] 0xB0C1 [11 bytes]: 02 71 00 5E 97 00 00 81 00 04 64 
+[D] LTE MIB v2: bandwidth=100 tx_antenna=4 sfn=129 earfcn=38750 pci=113
+[D] QCP: log code=0xB0C0 len=55
+[D] LTE 0xB0C0 RRC OTA: ver=27 plen=43
+[D] 0xB0C0 [43 bytes]: 1B 10 10 10 90 00 71 00 5E 97 00 00 25 88 03 02 00 00 00 16 00 58 49 40 41 4E 3D BF 7B 02 08 2A 71 80 81 84 4C 23 61 22 76 55 1C 
+[D] v25 item: rrc=16.16 nr_rrc=16.144 rbid=0 pci=113 earfcn=38750 sfn_subfn=34853 pdu_num=3 sib_mask=2 len=22
+[I] [SIB1] EARFCN=38750 PCI=113 MCC=250 MNC=20 CID=200781856 TAC=20029 barred=0 csg=0
+[D] QCP: log code=0xB17F len=52
+[I] ML1 0xB17F PCI 28 → 132 (corrected from 0xB197)
+[I] ML1 0xB17F SCell: EARFCN=38750 PCI=132 RSRP=-109 RSRQ=-26(raw,dropped) RSSI=-92 (v5)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=38750 PCI=132 (v2)
+[D] QCP: log code=0xB0C1 len=23
+[D] LTE 0xB0C1 MIB: ver=2 plen=11
+[D] 0xB0C1 [11 bytes]: 02 11 00 5E 97 00 00 8A 00 04 64 
+[D] LTE MIB v2: bandwidth=100 tx_antenna=4 sfn=138 earfcn=38750 pci=17
+[D] QCP: log code=0xB0C0 len=55
+[D] LTE 0xB0C0 RRC OTA: ver=27 plen=43
+[D] 0xB0C0 [43 bytes]: 1B 10 10 10 90 00 11 00 5E 97 00 00 C5 C8 03 02 00 00 00 16 00 58 49 40 41 4E 3D BF A8 82 08 2A 71 80 81 84 4C 23 61 22 76 E5 1C 
+[D] v25 item: rrc=16.16 nr_rrc=16.144 rbid=0 pci=17 earfcn=38750 sfn_subfn=51397 pdu_num=3 sib_mask=2 len=22
+[I] [SIB1] EARFCN=38750 PCI=17 MCC=250 MNC=20 CID=200968224 TAC=20029 barred=0 csg=0
+[D] QCP: log code=0xB17F len=52
+[I] ML1 0xB17F PCI 28 → 132 (corrected from 0xB197)
+[I] ML1 0xB17F SCell: EARFCN=38750 PCI=132 RSRP=-112 RSRQ=-27(raw,dropped) RSSI=-92 (v5)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=38750 PCI=132 (v2)
+[D] QCP: log code=0xB0C1 len=23
+[D] LTE 0xB0C1 MIB: ver=2 plen=11
+[D] 0xB0C1 [11 bytes]: 02 78 00 5E 97 00 00 95 00 04 64 
+[D] LTE MIB v2: bandwidth=100 tx_antenna=4 sfn=149 earfcn=38750 pci=120
+[D] QCP: log code=0xB0C0 len=55
+[D] LTE 0xB0C0 RRC OTA: ver=27 plen=43
+[D] 0xB0C0 [43 bytes]: 1B 10 10 10 90 00 78 00 5E 97 00 00 C5 C9 03 02 00 00 00 16 00 58 49 40 41 4E 3D BF 7B 02 18 2A 71 80 81 84 4C 23 61 22 76 55 1C 
+[D] v25 item: rrc=16.16 nr_rrc=16.144 rbid=0 pci=120 earfcn=38750 sfn_subfn=51653 pdu_num=3 sib_mask=2 len=22
+[I] [SIB1] EARFCN=38750 PCI=120 MCC=250 MNC=20 CID=200781857 TAC=20029 barred=0 csg=0
+[D] QCP: log code=0xB17F len=52
+[I] ML1 0xB17F PCI 28 → 132 (corrected from 0xB197)
+[I] ML1 0xB17F SCell: EARFCN=38750 PCI=132 RSRP=-115 RSRQ=-27(raw,dropped) RSSI=-92 (v5)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=38750 PCI=2 (v2)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=38750 PCI=135 (v2)
+[D] QCP: log code=0xB0C1 len=23
+[D] LTE 0xB0C1 MIB: ver=2 plen=11
+[D] 0xB0C1 [11 bytes]: 02 99 01 5E 97 00 00 AF 00 04 64 
+[D] LTE MIB v2: bandwidth=100 tx_antenna=4 sfn=175 earfcn=38750 pci=409
+[D] QCP: log code=0x7130 len=15
+[W] UMTS NAS OTA: payload too short (3)
+[D] QCP: log code=0x7130 len=15
+[W] UMTS NAS OTA: payload too short (3)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=3638 PCI=133 (v2)
+[D] QCP: log code=0xB0C1 len=23
+[D] LTE 0xB0C1 MIB: ver=2 plen=11
+[D] 0xB0C1 [11 bytes]: 02 AD 00 36 0E 00 00 E0 00 02 19 
+[D] LTE MIB v2: bandwidth=25 tx_antenna=2 sfn=224 earfcn=3638 pci=173
+[D] QCP: log code=0xB0C0 len=51
+[D] LTE 0xB0C0 RRC OTA: ver=27 plen=39
+[D] 0xB0C0 [39 bytes]: 1B 10 10 10 90 00 AD 00 36 0E 00 00 25 CE 03 02 00 00 00 12 00 40 49 40 03 45 8E 31 6D F1 C8 20 71 10 81 04 4C 24 C2 
+[D] v25 item: rrc=16.16 nr_rrc=16.144 rbid=0 pci=173 earfcn=3638 sfn_subfn=52773 pdu_num=3 sib_mask=2 len=18
+[I] [SIB1] EARFCN=3638 PCI=173 MCC=250 MNC=1 CID=51830556 TAC=17806 barred=0 csg=0
+[D] QCP: log code=0xB17F len=52
+[I] ML1 0xB17F PCI 29 → 133 (corrected from 0xB197)
+[I] ML1 0xB17F SCell: EARFCN=3638 PCI=133 RSRP=-69 RSRQ=-26(raw,dropped) RSSI=-77 (v5)
+[D] QCP: log code=0x7130 len=15
+[W] UMTS NAS OTA: payload too short (3)
+[D] QCP: log code=0x7130 len=15
+[W] UMTS NAS OTA: payload too short (3)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=3638 PCI=133 (v2)
+[D] QCP: log code=0xB0C1 len=23
+[D] LTE 0xB0C1 MIB: ver=2 plen=11
+[D] 0xB0C1 [11 bytes]: 02 AD 00 36 0E 00 00 0D 01 02 19 
+[D] LTE MIB v2: bandwidth=25 tx_antenna=2 sfn=269 earfcn=3638 pci=173
+[D] QCP: log code=0xB0C0 len=51
+[D] LTE 0xB0C0 RRC OTA: ver=27 plen=39
+[D] 0xB0C0 [39 bytes]: 1B 10 10 10 90 00 AD 00 36 0E 00 00 E5 D0 03 02 00 00 00 12 00 40 49 40 03 45 8E 31 6D F1 C8 20 71 10 81 04 4C 24 C2 
+[D] v25 item: rrc=16.16 nr_rrc=16.144 rbid=0 pci=173 earfcn=3638 sfn_subfn=53477 pdu_num=3 sib_mask=2 len=18
+[I] [SIB1] EARFCN=3638 PCI=173 MCC=250 MNC=1 CID=51830556 TAC=17806 barred=0 csg=0
+[D] QCP: log code=0xB17F len=52
+[I] ML1 0xB17F PCI 29 → 133 (corrected from 0xB197)
+[I] ML1 0xB17F SCell: EARFCN=3638 PCI=133 RSRP=-69 RSRQ=-26(raw,dropped) RSSI=-77 (v5)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=3638 PCI=3 (v2)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=1275 PCI=133 (v2)
+[D] QCP: log code=0xB0C1 len=23
+[D] LTE 0xB0C1 MIB: ver=2 plen=11
+[D] 0xB0C1 [11 bytes]: 02 AE 00 FB 04 00 00 CB 02 02 4B 
+[D] LTE MIB v2: bandwidth=75 tx_antenna=2 sfn=715 earfcn=1275 pci=174
+[D] QCP: log code=0xB0C0 len=55
+[D] LTE 0xB0C0 RRC OTA: ver=27 plen=43
+[D] 0xB0C0 [43 bytes]: 1B 10 10 10 90 00 AE 00 FB 04 00 00 C5 2C 03 02 00 00 00 16 00 48 49 40 41 4D 07 BF 2E 90 D8 1C 21 80 81 84 4C 23 61 23 12 8E 00 
+[D] v25 item: rrc=16.16 nr_rrc=16.144 rbid=0 pci=174 earfcn=1275 sfn_subfn=11461 pdu_num=3 sib_mask=2 len=22
+[I] [SIB1] EARFCN=1275 PCI=174 MCC=250 MNC=20 CID=200468749 TAC=19719 barred=0 csg=0
+[D] QCP: log code=0xB17F len=52
+[I] ML1 0xB17F PCI 29 → 133 (corrected from 0xB197)
+[I] ML1 0xB17F SCell: EARFCN=1275 PCI=133 RSRP=-78 RSRQ=-25(raw,dropped) RSSI=-78 (v5)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=1275 PCI=1 (v2)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=1275 PCI=0 (v2)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=1275 PCI=0 (v2)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=1275 PCI=2 (v2)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=3300 PCI=133 (v2)
+[D] QCP: log code=0xB0C1 len=23
+[D] LTE 0xB0C1 MIB: ver=2 plen=11
+[D] 0xB0C1 [11 bytes]: 02 90 00 E4 0C 00 00 F6 03 04 32 
+[D] LTE MIB v2: bandwidth=50 tx_antenna=4 sfn=1014 earfcn=3300 pci=144
+[D] QCP: log code=0xB0C0 len=55
+[D] LTE 0xB0C0 RRC OTA: ver=27 plen=43
+[D] 0xB0C0 [43 bytes]: 1B 10 10 10 90 00 90 00 E4 0C 00 00 85 3F 03 02 00 00 00 16 00 48 49 41 33 02 A6 BE BA 60 58 20 61 90 20 81 84 50 24 D5 50 00 00 
+[D] v25 item: rrc=16.16 nr_rrc=16.144 rbid=0 pci=144 earfcn=3300 sfn_subfn=16261 pdu_num=3 sib_mask=2 len=22
+[I] [SIB1] EARFCN=3300 PCI=144 MCC=250 MNC=99 CID=199992837 TAC=678 barred=0 csg=0
+[D] QCP: log code=0xB17F len=52
+[I] ML1 0xB17F PCI 29 → 133 (corrected from 0xB197)
+[I] ML1 0xB17F SCell: EARFCN=3300 PCI=133 RSRP=-87 RSRQ=-26(raw,dropped) RSSI=-84 (v5)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=3300 PCI=132 (v2)
+[D] QCP: log code=0xB0C1 len=23
+[D] LTE 0xB0C1 MIB: ver=2 plen=11
+[D] 0xB0C1 [11 bytes]: 02 4D 00 E4 0C 00 00 02 00 04 32 
+[D] LTE MIB v2: bandwidth=50 tx_antenna=4 sfn=2 earfcn=3300 pci=77
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=3300 PCI=1 (v2)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=3300 PCI=2 (v2)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=3300 PCI=133 (v2)
+[D] QCP: log code=0xB0C1 len=23
+[D] LTE 0xB0C1 MIB: ver=2 plen=11
+[D] 0xB0C1 [11 bytes]: 02 8D 00 E4 0C 00 00 70 01 04 32 
+[D] LTE MIB v2: bandwidth=50 tx_antenna=4 sfn=368 earfcn=3300 pci=141
+[D] QCP: log code=0xB0C0 len=55
+[D] LTE 0xB0C0 RRC OTA: ver=27 plen=43
+[D] 0xB0C0 [43 bytes]: 1B 10 10 10 90 00 8D 00 E4 0C 00 00 A5 57 03 02 00 00 00 16 00 48 49 41 33 0D 96 BE BE 80 48 20 61 90 20 81 84 50 24 CA 50 00 00 
+[D] v25 item: rrc=16.16 nr_rrc=16.144 rbid=0 pci=141 earfcn=3300 sfn_subfn=22437 pdu_num=3 sib_mask=2 len=22
+[I] [SIB1] EARFCN=3300 PCI=141 MCC=250 MNC=99 CID=200009732 TAC=3478 barred=0 csg=0
+[D] QCP: log code=0xB17F len=52
+[I] ML1 0xB17F PCI 29 → 133 (corrected from 0xB197)
+[I] ML1 0xB17F SCell: EARFCN=3300 PCI=133 RSRP=-99 RSRQ=-27(raw,dropped) RSSI=-87 (v5)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=3300 PCI=2 (v2)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=3300 PCI=132 (v2)
+[D] QCP: log code=0xB0C1 len=23
+[D] LTE 0xB0C1 MIB: ver=2 plen=11
+[D] 0xB0C1 [11 bytes]: 02 4D 00 E4 0C 00 00 3A 00 04 32 
+[D] LTE MIB v2: bandwidth=50 tx_antenna=4 sfn=58 earfcn=3300 pci=77
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=3300 PCI=128 (v2)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=3300 PCI=2 (v2)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=3300 PCI=0 (v2)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=3300 PCI=1 (v2)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=3300 PCI=1 (v2)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=3300 PCI=3 (v2)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=3750 PCI=134 (v2)
+[D] QCP: log code=0xB0C1 len=23
+[D] LTE 0xB0C1 MIB: ver=2 plen=11
+[D] 0xB0C1 [11 bytes]: 02 67 01 A6 0E 00 00 1F 01 02 32 
+[D] LTE MIB v2: bandwidth=50 tx_antenna=2 sfn=287 earfcn=3750 pci=359
+[D] QCP: log code=0xB0C0 len=59
+[D] LTE 0xB0C0 RRC OTA: ver=27 plen=47
+[D] 0xB0C0 [47 bytes]: 1B 10 10 10 90 00 67 01 A6 0E 00 00 05 12 03 02 00 00 00 1A 00 48 C9 40 05 92 80 46 3D 29 7D 1D FF 90 50 E4 20 21 02 08 98 46 C2 47 65 20 00 
+[D] v25 item: rrc=16.16 nr_rrc=16.144 rbid=0 pci=359 earfcn=3750 sfn_subfn=4613 pdu_num=3 sib_mask=2 len=26
+[I] [SIB1] EARFCN=3750 PCI=359 MCC=250 MNC=2 CID=199815164 TAC=7828 barred=0 csg=0
+[I] [SIB1] EARFCN=3750 PCI=359 MCC=250 MNC=11 CID=199815164 TAC=7828 barred=0 csg=0
+[D] QCP: log code=0xB17F len=52
+[I] ML1 0xB17F PCI 30 → 134 (corrected from 0xB197)
+[I] ML1 0xB17F SCell: EARFCN=3750 PCI=134 RSRP=-88 RSRQ=-25(raw,dropped) RSSI=-85 (v5)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=3750 PCI=134 (v2)
+[D] QCP: log code=0xB0C1 len=23
+[D] LTE 0xB0C1 MIB: ver=2 plen=11
+[D] 0xB0C1 [11 bytes]: 02 3C 01 A6 0E 00 00 29 01 02 32 
+[D] LTE MIB v2: bandwidth=50 tx_antenna=2 sfn=297 earfcn=3750 pci=316
+[D] QCP: log code=0xB0C0 len=59
+[D] LTE 0xB0C0 RRC OTA: ver=27 plen=47
+[D] 0xB0C0 [47 bytes]: 1B 10 10 10 90 00 3C 01 A6 0E 00 00 A5 52 03 02 00 00 00 1A 00 48 C9 40 05 92 80 46 3D 29 7D 1D FF 70 50 E4 20 21 02 08 98 46 C2 47 45 20 00 
+[D] v25 item: rrc=16.16 nr_rrc=16.144 rbid=0 pci=316 earfcn=3750 sfn_subfn=21157 pdu_num=3 sib_mask=2 len=26
+[I] [SIB1] EARFCN=3750 PCI=316 MCC=250 MNC=2 CID=199815163 TAC=7828 barred=0 csg=0
+[I] [SIB1] EARFCN=3750 PCI=316 MCC=250 MNC=11 CID=199815163 TAC=7828 barred=0 csg=0
+[D] QCP: log code=0xB17F len=52
+[I] ML1 0xB17F PCI 30 → 134 (corrected from 0xB197)
+[I] ML1 0xB17F SCell: EARFCN=3750 PCI=134 RSRP=-88 RSRQ=-26(raw,dropped) RSSI=-83 (v5)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=1596 PCI=135 (v2)
+[D] QCP: log code=0xB0C1 len=23
+[D] LTE 0xB0C1 MIB: ver=2 plen=11
+[D] 0xB0C1 [11 bytes]: 02 BF 01 3C 06 00 00 FB 02 02 32 
+[D] LTE MIB v2: bandwidth=50 tx_antenna=2 sfn=763 earfcn=1596 pci=447
+[D] QCP: log code=0xB0C0 len=59
+[D] LTE 0xB0C0 RRC OTA: ver=27 plen=47
+[D] 0xB0C0 [47 bytes]: 1B 10 10 10 90 00 BF 01 3C 06 00 00 C5 EF 03 00 00 00 00 1A 00 48 C9 40 05 92 80 46 3D 29 80 14 99 70 50 44 20 21 02 08 98 46 C2 46 A5 20 00 
+[D] v25 item: rrc=16.16 nr_rrc=16.144 rbid=0 pci=447 earfcn=1596 sfn_subfn=61381 pdu_num=3 sib_mask=0 len=26
+[I] [SIB1] EARFCN=1596 PCI=447 MCC=250 MNC=2 CID=201368779 TAC=7828 barred=0 csg=0
+[I] [SIB1] EARFCN=1596 PCI=447 MCC=250 MNC=11 CID=201368779 TAC=7828 barred=0 csg=0
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=1596 PCI=133 (v2)
+[D] QCP: log code=0xB0C1 len=23
+[D] LTE 0xB0C1 MIB: ver=2 plen=11
+[D] 0xB0C1 [11 bytes]: 02 9D 00 3C 06 00 00 41 01 02 32 
+[D] LTE MIB v2: bandwidth=50 tx_antenna=2 sfn=321 earfcn=1596 pci=157
+[D] QCP: log code=0xB0C0 len=59
+[D] LTE 0xB0C0 RRC OTA: ver=27 plen=47
+[D] 0xB0C0 [47 bytes]: 1B 10 10 10 90 00 9D 00 3C 06 00 00 25 94 03 02 00 00 00 1A 00 48 C9 40 05 92 80 46 3D 29 7D 1D F9 30 50 44 20 21 02 08 98 46 C2 46 B5 20 00 
+[D] v25 item: rrc=16.16 nr_rrc=16.144 rbid=0 pci=157 earfcn=1596 sfn_subfn=37925 pdu_num=3 sib_mask=2 len=26
+[I] [SIB1] EARFCN=1596 PCI=157 MCC=250 MNC=2 CID=199815113 TAC=7828 barred=0 csg=0
+[I] [SIB1] EARFCN=1596 PCI=157 MCC=250 MNC=11 CID=199815113 TAC=7828 barred=0 csg=0
+[D] QCP: log code=0xB17F len=52
+[I] ML1 0xB17F PCI 29 → 133 (corrected from 0xB197)
+[I] ML1 0xB17F SCell: EARFCN=1596 PCI=133 RSRP=-86 RSRQ=-26(raw,dropped) RSSI=-81 (v5)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=1596 PCI=135 (v2)
+[D] QCP: log code=0xB0C1 len=23
+[D] LTE 0xB0C1 MIB: ver=2 plen=11
+[D] 0xB0C1 [11 bytes]: 02 BF 01 3C 06 00 00 0E 03 02 32 
+[D] LTE MIB v2: bandwidth=50 tx_antenna=2 sfn=782 earfcn=1596 pci=447
+[D] QCP: log code=0xB0C0 len=59
+[D] LTE 0xB0C0 RRC OTA: ver=27 plen=47
+[D] 0xB0C0 [47 bytes]: 1B 10 10 10 90 00 BF 01 3C 06 00 00 05 B1 03 02 00 00 00 1A 00 48 C9 40 05 92 80 46 3D 29 80 14 99 70 50 44 20 21 02 08 98 46 C2 46 A5 20 00 
+[D] v25 item: rrc=16.16 nr_rrc=16.144 rbid=0 pci=447 earfcn=1596 sfn_subfn=45317 pdu_num=3 sib_mask=2 len=26
+[I] [SIB1] EARFCN=1596 PCI=447 MCC=250 MNC=2 CID=201368779 TAC=7828 barred=0 csg=0
+[I] [SIB1] EARFCN=1596 PCI=447 MCC=250 MNC=11 CID=201368779 TAC=7828 barred=0 csg=0
+[D] QCP: log code=0xB17F len=52
+[I] ML1 0xB17F PCI 31 → 135 (corrected from 0xB197)
+[I] ML1 0xB17F SCell: EARFCN=1596 PCI=135 RSRP=-81 RSRQ=-25(raw,dropped) RSSI=-82 (v5)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=1596 PCI=134 (v2)
+[D] QCP: log code=0xB0C1 len=23
+[D] LTE 0xB0C1 MIB: ver=2 plen=11
+[D] 0xB0C1 [11 bytes]: 02 13 01 3C 06 00 00 55 01 02 32 
+[D] LTE MIB v2: bandwidth=50 tx_antenna=2 sfn=341 earfcn=1596 pci=275
+[D] QCP: log code=0xB0C0 len=59
+[D] LTE 0xB0C0 RRC OTA: ver=27 plen=47
+[D] 0xB0C0 [47 bytes]: 1B 10 10 10 90 00 13 01 3C 06 00 00 65 55 03 02 00 00 00 1A 00 48 C9 40 05 92 80 46 3D 29 7D 1D F9 50 50 44 20 21 02 08 98 46 C2 47 05 20 00 
+[D] v25 item: rrc=16.16 nr_rrc=16.144 rbid=0 pci=275 earfcn=1596 sfn_subfn=21861 pdu_num=3 sib_mask=2 len=26
+[I] [SIB1] EARFCN=1596 PCI=275 MCC=250 MNC=2 CID=199815114 TAC=7828 barred=0 csg=0
+[I] [SIB1] EARFCN=1596 PCI=275 MCC=250 MNC=11 CID=199815114 TAC=7828 barred=0 csg=0
+[D] QCP: log code=0xB17F len=52
+[I] ML1 0xB17F PCI 30 → 134 (corrected from 0xB197)
+[I] ML1 0xB17F SCell: EARFCN=1596 PCI=134 RSRP=-87 RSRQ=-26(raw,dropped) RSSI=-80 (v5)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=1596 PCI=1 (v2)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=1596 PCI=1 (v2)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=1820 PCI=7 (v2)
+[D] QCP: log code=0xB0C1 len=23
+[D] LTE 0xB0C1 MIB: ver=2 plen=11
+[D] 0xB0C1 [11 bytes]: 02 BF 01 1C 07 00 00 35 03 02 19 
+[D] LTE MIB v2: bandwidth=25 tx_antenna=2 sfn=821 earfcn=1820 pci=447
+[D] QCP: log code=0xB0C0 len=59
+[D] LTE 0xB0C0 RRC OTA: ver=27 plen=47
+[D] 0xB0C0 [47 bytes]: 1B 10 10 10 90 00 BF 01 1C 07 00 00 65 F3 03 02 00 00 00 1A 00 48 C9 40 05 92 80 46 3D 29 80 14 99 F0 50 44 20 21 02 08 98 46 C2 46 45 20 00 
+[D] v25 item: rrc=16.16 nr_rrc=16.144 rbid=0 pci=447 earfcn=1820 sfn_subfn=62309 pdu_num=3 sib_mask=2 len=26
+[I] [SIB1] EARFCN=1820 PCI=447 MCC=250 MNC=2 CID=201368783 TAC=7828 barred=0 csg=0
+[I] [SIB1] EARFCN=1820 PCI=447 MCC=250 MNC=11 CID=201368783 TAC=7828 barred=0 csg=0
+[D] QCP: log code=0xB17F len=52
+[I] ML1 0xB17F PCI 31 → 7 (corrected from 0xB197)
+[I] ML1 0xB17F SCell: EARFCN=1820 PCI=7 RSRP=-82 RSRQ=-26(raw,dropped) RSSI=-83 (v5)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=1820 PCI=133 (v2)
+[D] QCP: log code=0xB0C1 len=23
+[D] LTE 0xB0C1 MIB: ver=2 plen=11
+[D] 0xB0C1 [11 bytes]: 02 9D 00 1C 07 00 00 7B 01 02 19 
+[D] LTE MIB v2: bandwidth=25 tx_antenna=2 sfn=379 earfcn=1820 pci=157
+[D] QCP: log code=0xB0C0 len=59
+[D] LTE 0xB0C0 RRC OTA: ver=27 plen=47
+[D] 0xB0C0 [47 bytes]: 1B 10 10 10 90 00 9D 00 1C 07 00 00 C5 97 03 02 00 00 00 1A 00 48 C9 40 05 92 80 46 3D 29 7D 1D F9 90 50 44 20 21 02 08 98 46 C2 47 A5 20 00 
+[D] v25 item: rrc=16.16 nr_rrc=16.144 rbid=0 pci=157 earfcn=1820 sfn_subfn=38853 pdu_num=3 sib_mask=2 len=26
+[I] [SIB1] EARFCN=1820 PCI=157 MCC=250 MNC=2 CID=199815116 TAC=7828 barred=0 csg=0
+[I] [SIB1] EARFCN=1820 PCI=157 MCC=250 MNC=11 CID=199815116 TAC=7828 barred=0 csg=0
+[D] QCP: log code=0xB17F len=52
+[I] ML1 0xB17F PCI 29 → 133 (corrected from 0xB197)
+[I] ML1 0xB17F SCell: EARFCN=1820 PCI=133 RSRP=-86 RSRQ=-25(raw,dropped) RSSI=-83 (v5)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=1820 PCI=134 (v2)
+[D] QCP: log code=0xB0C1 len=23
+[D] LTE 0xB0C1 MIB: ver=2 plen=11
+[D] 0xB0C1 [11 bytes]: 02 13 01 1C 07 00 00 85 01 02 19 
+[D] LTE MIB v2: bandwidth=25 tx_antenna=2 sfn=389 earfcn=1820 pci=275
+[D] QCP: log code=0xB0C0 len=59
+[D] LTE 0xB0C0 RRC OTA: ver=27 plen=47
+[D] 0xB0C0 [47 bytes]: 1B 10 10 10 90 00 13 01 1C 07 00 00 65 D8 03 02 00 00 00 1A 00 48 C9 40 05 92 80 46 3D 29 7D 1D F9 B0 50 44 20 21 02 08 98 46 C2 46 65 20 00 
+[D] v25 item: rrc=16.16 nr_rrc=16.144 rbid=0 pci=275 earfcn=1820 sfn_subfn=55397 pdu_num=3 sib_mask=2 len=26
+[I] [SIB1] EARFCN=1820 PCI=275 MCC=250 MNC=2 CID=199815117 TAC=7828 barred=0 csg=0
+[I] [SIB1] EARFCN=1820 PCI=275 MCC=250 MNC=11 CID=199815117 TAC=7828 barred=0 csg=0
+[D] QCP: log code=0xB17F len=52
+[I] ML1 0xB17F PCI 30 → 134 (corrected from 0xB197)
+[I] ML1 0xB17F SCell: EARFCN=1820 PCI=134 RSRP=-87 RSRQ=-26(raw,dropped) RSSI=-83 (v5)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=6413 PCI=133 (v2)
+[D] QCP: log code=0xB0C1 len=23
+[D] LTE 0xB0C1 MIB: ver=2 plen=11
+[D] 0xB0C1 [11 bytes]: 02 8D 00 0D 19 00 00 51 02 02 19 
+[D] LTE MIB v2: bandwidth=25 tx_antenna=2 sfn=593 earfcn=6413 pci=141
+[D] QCP: log code=0xB0C0 len=55
+[D] LTE 0xB0C0 RRC OTA: ver=27 plen=43
+[D] 0xB0C0 [43 bytes]: 1B 10 10 10 90 00 8D 00 0D 19 00 00 25 25 03 02 00 00 00 16 00 48 49 41 33 0D 96 BE BE 80 18 21 31 90 20 81 84 50 24 CE 50 00 00 
+[D] v25 item: rrc=16.16 nr_rrc=16.144 rbid=0 pci=141 earfcn=6413 sfn_subfn=9509 pdu_num=3 sib_mask=2 len=22
+[I] [SIB1] EARFCN=6413 PCI=141 MCC=250 MNC=99 CID=200009729 TAC=3478 barred=0 csg=0
+[D] QCP: log code=0xB17F len=52
+[I] ML1 0xB17F PCI 29 → 133 (corrected from 0xB197)
+[I] ML1 0xB17F SCell: EARFCN=6413 PCI=133 RSRP=-84 RSRQ=-24(raw,dropped) RSSI=-87 (v5)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=6413 PCI=0 (v2)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=6413 PCI=1 (v2)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=3400 PCI=135 (v2)
+[D] QCP: log code=0xB0C1 len=23
+[D] LTE 0xB0C1 MIB: ver=2 plen=11
+[D] 0xB0C1 [11 bytes]: 02 D4 01 48 0D 00 00 1D 00 02 32 
+[D] LTE MIB v2: bandwidth=50 tx_antenna=2 sfn=29 earfcn=3400 pci=468
+[D] QCP: log code=0xB0C0 len=55
+[D] LTE 0xB0C0 RRC OTA: ver=27 plen=43
+[D] 0xB0C0 [43 bytes]: 1B 10 10 10 90 00 D4 01 48 0D 00 00 E5 41 03 02 00 00 00 16 00 48 49 40 41 4D 07 BF 2E 91 78 20 61 80 81 84 4C 23 61 23 3A 8E 00 
+[D] v25 item: rrc=16.16 nr_rrc=16.144 rbid=0 pci=468 earfcn=3400 sfn_subfn=16869 pdu_num=3 sib_mask=2 len=22
+[I] [SIB1] EARFCN=3400 PCI=468 MCC=250 MNC=20 CID=200468759 TAC=19719 barred=0 csg=0
+[D] QCP: log code=0xB17F len=52
+[I] ML1 0xB17F PCI 31 → 135 (corrected from 0xB197)
+[I] ML1 0xB17F SCell: EARFCN=3400 PCI=135 RSRP=-87 RSRQ=-25(raw,dropped) RSSI=-84 (v5)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=38750 PCI=132 (v2)
+[D] QCP: log code=0xB0C1 len=23
+[D] LTE 0xB0C1 MIB: ver=2 plen=11
+[D] 0xB0C1 [11 bytes]: 02 71 00 5E 97 00 00 83 02 04 64 
+[D] LTE MIB v2: bandwidth=100 tx_antenna=4 sfn=643 earfcn=38750 pci=113
+[D] QCP: log code=0xB0C0 len=55
+[D] LTE 0xB0C0 RRC OTA: ver=27 plen=43
+[D] 0xB0C0 [43 bytes]: 1B 10 10 10 90 00 71 00 5E 97 00 00 45 A8 03 02 00 00 00 16 00 58 49 40 41 4E 3D BF 7B 02 08 2A 71 80 81 84 4C 23 61 22 76 55 1C 
+[D] v25 item: rrc=16.16 nr_rrc=16.144 rbid=0 pci=113 earfcn=38750 sfn_subfn=43077 pdu_num=3 sib_mask=2 len=22
+[I] [SIB1] EARFCN=38750 PCI=113 MCC=250 MNC=20 CID=200781856 TAC=20029 barred=0 csg=0
+[D] QCP: log code=0xB17F len=52
+[I] ML1 0xB17F PCI 28 → 132 (corrected from 0xB197)
+[I] ML1 0xB17F SCell: EARFCN=38750 PCI=132 RSRP=-110 RSRQ=-26(raw,dropped) RSSI=-92 (v5)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=38750 PCI=132 (v2)
+[D] QCP: log code=0xB0C1 len=23
+[D] LTE 0xB0C1 MIB: ver=2 plen=11
+[D] 0xB0C1 [11 bytes]: 02 11 00 5E 97 00 00 8D 02 04 64 
+[D] LTE MIB v2: bandwidth=100 tx_antenna=4 sfn=653 earfcn=38750 pci=17
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=38750 PCI=3 (v2)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=38750 PCI=132 (v2)
+[D] QCP: log code=0xB0C1 len=23
+[D] LTE 0xB0C1 MIB: ver=2 plen=11
+[D] 0xB0C1 [11 bytes]: 02 78 00 5E 97 00 00 BE 02 04 64 
+[D] LTE MIB v2: bandwidth=100 tx_antenna=4 sfn=702 earfcn=38750 pci=120
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=38750 PCI=132 (v2)
+[D] QCP: log code=0xB0C1 len=23
+[D] LTE 0xB0C1 MIB: ver=2 plen=11
+[D] 0xB0C1 [11 bytes]: 02 78 00 5E 97 00 00 CB 02 04 64 
+[D] LTE MIB v2: bandwidth=100 tx_antenna=4 sfn=715 earfcn=38750 pci=120
+[D] QCP: log code=0xB0C0 len=55
+[D] LTE 0xB0C0 RRC OTA: ver=27 plen=43
+[D] 0xB0C0 [43 bytes]: 1B 10 10 10 90 00 78 00 5E 97 00 00 C5 6C 03 02 00 00 00 16 00 58 49 40 41 4E 3D BF 7B 02 18 2A 71 80 81 84 4C 23 61 22 76 55 1C 
+[D] v25 item: rrc=16.16 nr_rrc=16.144 rbid=0 pci=120 earfcn=38750 sfn_subfn=27845 pdu_num=3 sib_mask=2 len=22
+[I] [SIB1] EARFCN=38750 PCI=120 MCC=250 MNC=20 CID=200781857 TAC=20029 barred=0 csg=0
+[D] QCP: log code=0xB17F len=52
+[I] ML1 0xB17F PCI 28 → 132 (corrected from 0xB197)
+[I] ML1 0xB17F SCell: EARFCN=38750 PCI=132 RSRP=-113 RSRQ=-28(raw,dropped) RSSI=-91 (v5)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=38750 PCI=3 (v2)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=38750 PCI=1 (v2)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=39146 PCI=132 (v2)
+[D] QCP: log code=0xB0C1 len=23
+[D] LTE 0xB0C1 MIB: ver=2 plen=11
+[D] 0xB0C1 [11 bytes]: 02 71 00 EA 98 00 00 E8 02 04 64 
+[D] LTE MIB v2: bandwidth=100 tx_antenna=4 sfn=744 earfcn=39146 pci=113
+[D] QCP: log code=0xB0C0 len=55
+[D] LTE 0xB0C0 RRC OTA: ver=27 plen=43
+[D] 0xB0C0 [43 bytes]: 1B 10 10 10 90 00 71 00 EA 98 00 00 A5 6E 03 02 00 00 00 16 00 58 49 40 41 4E 3D BF 7B 02 68 2A 71 80 81 84 4C 23 61 22 76 75 1C 
+[D] v25 item: rrc=16.16 nr_rrc=16.144 rbid=0 pci=113 earfcn=39146 sfn_subfn=28325 pdu_num=3 sib_mask=2 len=22
+[I] [SIB1] EARFCN=39146 PCI=113 MCC=250 MNC=20 CID=200781862 TAC=20029 barred=0 csg=0
+[D] QCP: log code=0xB17F len=52
+[I] ML1 0xB17F PCI 28 → 132 (corrected from 0xB197)
+[I] ML1 0xB17F SCell: EARFCN=39146 PCI=132 RSRP=-112 RSRQ=-27(raw,dropped) RSSI=-92 (v5)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=39146 PCI=132 (v2)
+[D] QCP: log code=0xB0C1 len=23
+[D] LTE 0xB0C1 MIB: ver=2 plen=11
+[D] 0xB0C1 [11 bytes]: 02 11 00 EA 98 00 00 F3 02 04 64 
+[D] LTE MIB v2: bandwidth=100 tx_antenna=4 sfn=755 earfcn=39146 pci=17
+[D] QCP: log code=0xB0C0 len=55
+[D] LTE 0xB0C0 RRC OTA: ver=27 plen=43
+[D] 0xB0C0 [43 bytes]: 1B 10 10 10 90 00 11 00 EA 98 00 00 45 AF 03 02 00 00 00 16 00 58 49 40 41 4E 3D BF A8 82 68 2A 71 80 81 84 4C 23 61 22 77 05 1C 
+[D] v25 item: rrc=16.16 nr_rrc=16.144 rbid=0 pci=17 earfcn=39146 sfn_subfn=44869 pdu_num=3 sib_mask=2 len=22
+[I] [SIB1] EARFCN=39146 PCI=17 MCC=250 MNC=20 CID=200968230 TAC=20029 barred=0 csg=0
+[D] QCP: log code=0xB17F len=52
+[I] ML1 0xB17F PCI 28 → 132 (corrected from 0xB197)
+[I] ML1 0xB17F SCell: EARFCN=39146 PCI=132 RSRP=-119 RSRQ=-27(raw,dropped) RSSI=-94 (v5)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=39146 PCI=132 (v2)
+[D] QCP: log code=0xB0C1 len=23
+[D] LTE 0xB0C1 MIB: ver=2 plen=11
+[D] 0xB0C1 [11 bytes]: 02 78 00 EA 98 00 00 FE 02 04 64 
+[D] LTE MIB v2: bandwidth=100 tx_antenna=4 sfn=766 earfcn=39146 pci=120
+[D] QCP: log code=0xB0C0 len=55
+[D] LTE 0xB0C0 RRC OTA: ver=27 plen=43
+[D] 0xB0C0 [43 bytes]: 1B 10 10 10 90 00 78 00 EA 98 00 00 65 70 03 02 00 00 00 16 00 58 49 40 41 4E 3D BF 7B 02 78 2A 71 80 81 84 4C 23 61 22 76 55 1C 
+[D] v25 item: rrc=16.16 nr_rrc=16.144 rbid=0 pci=120 earfcn=39146 sfn_subfn=28773 pdu_num=3 sib_mask=2 len=22
+[I] [SIB1] EARFCN=39146 PCI=120 MCC=250 MNC=20 CID=200781863 TAC=20029 barred=0 csg=0
+[D] QCP: log code=0xB17F len=52
+[I] ML1 0xB17F PCI 28 → 132 (corrected from 0xB197)
+[I] ML1 0xB17F SCell: EARFCN=39146 PCI=132 RSRP=-118 RSRQ=-28(raw,dropped) RSSI=-94 (v5)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=39146 PCI=135 (v2)
+[D] QCP: log code=0xB0C1 len=23
+[D] LTE 0xB0C1 MIB: ver=2 plen=11
+[D] 0xB0C1 [11 bytes]: 02 EB 01 EA 98 00 00 14 03 04 64 
+[D] LTE MIB v2: bandwidth=100 tx_antenna=4 sfn=788 earfcn=39146 pci=491
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=39146 PCI=1 (v2)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=525 PCI=133 (v2)
+[D] QCP: log code=0xB0C1 len=23
+[D] LTE 0xB0C1 MIB: ver=2 plen=11
+[D] 0xB0C1 [11 bytes]: 02 B6 00 0D 02 00 00 10 02 04 4B 
+[D] LTE MIB v2: bandwidth=75 tx_antenna=4 sfn=528 earfcn=525 pci=182
+[D] QCP: log code=0xB0C0 len=55
+[D] LTE 0xB0C0 RRC OTA: ver=27 plen=43
+[D] 0xB0C0 [43 bytes]: 1B 10 10 10 90 00 B6 00 0D 02 00 00 25 21 03 02 00 00 00 16 00 48 49 41 33 02 A6 BE BA 66 68 20 01 90 20 81 84 50 24 C6 50 00 00 
+[D] v25 item: rrc=16.16 nr_rrc=16.144 rbid=0 pci=182 earfcn=525 sfn_subfn=8485 pdu_num=3 sib_mask=2 len=22
+[I] [SIB1] EARFCN=525 PCI=182 MCC=250 MNC=99 CID=199992934 TAC=678 barred=0 csg=0
+[D] QCP: log code=0xB17F len=52
+[I] ML1 0xB17F PCI 29 → 133 (corrected from 0xB197)
+[I] ML1 0xB17F SCell: EARFCN=525 PCI=133 RSRP=-87 RSRQ=-25(raw,dropped) RSSI=-83 (v5)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=525 PCI=133 (v2)
+[D] QCP: log code=0xB0C1 len=23
+[D] LTE 0xB0C1 MIB: ver=2 plen=11
+[D] 0xB0C1 [11 bytes]: 02 F4 00 0D 02 00 00 BC 00 04 4B 
+[D] LTE MIB v2: bandwidth=75 tx_antenna=4 sfn=188 earfcn=525 pci=244
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=525 PCI=133 (v2)
+[D] QCP: log code=0xB0C1 len=23
+[D] LTE 0xB0C1 MIB: ver=2 plen=11
+[D] 0xB0C1 [11 bytes]: 02 82 00 0D 02 00 00 30 02 04 4B 
+[D] LTE MIB v2: bandwidth=75 tx_antenna=4 sfn=560 earfcn=525 pci=130
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=525 PCI=133 (v2)
+[D] QCP: log code=0xB0C1 len=23
+[D] LTE 0xB0C1 MIB: ver=2 plen=11
+[D] 0xB0C1 [11 bytes]: 02 F4 00 0D 02 00 00 F5 00 04 4B 
+[D] LTE MIB v2: bandwidth=75 tx_antenna=4 sfn=245 earfcn=525 pci=244
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=525 PCI=2 (v2)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=525 PCI=1 (v2)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=525 PCI=1 (v2)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=525 PCI=0 (v2)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=525 PCI=1 (v2)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=525 PCI=0 (v2)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=525 PCI=0 (v2)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=525 PCI=0 (v2)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=1414 PCI=134 (v2)
+[D] QCP: log code=0xB0C1 len=23
+[D] LTE 0xB0C1 MIB: ver=2 plen=11
+[D] 0xB0C1 [11 bytes]: 02 03 01 86 05 00 00 BD 02 04 4B 
+[D] LTE MIB v2: bandwidth=75 tx_antenna=4 sfn=701 earfcn=1414 pci=259
+[D] QCP: log code=0xB0C0 len=55
+[D] LTE 0xB0C0 RRC OTA: ver=27 plen=43
+[D] 0xB0C0 [43 bytes]: 1B 10 10 10 90 00 03 01 86 05 00 00 E5 2B 03 02 00 00 00 16 00 48 49 41 33 02 A6 BE BA 60 88 20 21 90 20 81 84 50 24 D3 50 00 00 
+[D] v25 item: rrc=16.16 nr_rrc=16.144 rbid=0 pci=259 earfcn=1414 sfn_subfn=11237 pdu_num=3 sib_mask=2 len=22
+[I] [SIB1] EARFCN=1414 PCI=259 MCC=250 MNC=99 CID=199992840 TAC=678 barred=0 csg=0
+[D] QCP: log code=0xB17F len=52
+[I] ML1 0xB17F PCI 30 → 134 (corrected from 0xB197)
+[I] ML1 0xB17F SCell: EARFCN=1414 PCI=134 RSRP=-77 RSRQ=-26(raw,dropped) RSSI=-78 (v5)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=1414 PCI=133 (v2)
+[D] QCP: log code=0xB0C1 len=23
+[D] LTE 0xB0C1 MIB: ver=2 plen=11
+[D] 0xB0C1 [11 bytes]: 02 AF 00 86 05 00 00 64 01 04 4B 
+[D] LTE MIB v2: bandwidth=75 tx_antenna=4 sfn=356 earfcn=1414 pci=175
+[D] QCP: log code=0xB0C0 len=55
+[D] LTE 0xB0C0 RRC OTA: ver=27 plen=43
+[D] 0xB0C0 [43 bytes]: 1B 10 10 10 90 00 AF 00 86 05 00 00 25 D7 03 02 00 00 00 16 00 48 49 41 33 02 A6 BE B9 D0 88 20 21 90 20 81 84 50 24 C5 50 00 00 
+[D] v25 item: rrc=16.16 nr_rrc=16.144 rbid=0 pci=175 earfcn=1414 sfn_subfn=55077 pdu_num=3 sib_mask=2 len=22
+[I] [SIB1] EARFCN=1414 PCI=175 MCC=250 MNC=99 CID=199990536 TAC=678 barred=0 csg=0
+[D] QCP: log code=0xB17F len=52
+[I] ML1 0xB17F PCI 29 → 133 (corrected from 0xB197)
+[I] ML1 0xB17F SCell: EARFCN=1414 PCI=133 RSRP=-94 RSRQ=-28(raw,dropped) RSSI=-80 (v5)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=1414 PCI=134 (v2)
+[D] QCP: log code=0xB0C1 len=23
+[D] LTE 0xB0C1 MIB: ver=2 plen=11
+[D] 0xB0C1 [11 bytes]: 02 4C 01 86 05 00 00 E0 02 04 4B 
+[D] LTE MIB v2: bandwidth=75 tx_antenna=4 sfn=736 earfcn=1414 pci=332
+[D] QCP: log code=0xB0C0 len=55
+[D] LTE 0xB0C0 RRC OTA: ver=27 plen=43
+[D] 0xB0C0 [43 bytes]: 1B 10 10 10 90 00 4C 01 86 05 00 00 65 6E 03 02 00 00 00 16 00 48 49 41 33 02 A6 BE BA 60 98 20 21 90 20 81 84 50 24 D6 50 00 00 
+[D] v25 item: rrc=16.16 nr_rrc=16.144 rbid=0 pci=332 earfcn=1414 sfn_subfn=28261 pdu_num=3 sib_mask=2 len=22
+[I] [SIB1] EARFCN=1414 PCI=332 MCC=250 MNC=99 CID=199992841 TAC=678 barred=0 csg=0
+[D] QCP: log code=0xB17F len=52
+[I] ML1 0xB17F PCI 30 → 134 (corrected from 0xB197)
+[I] ML1 0xB17F SCell: EARFCN=1414 PCI=134 RSRP=-89 RSRQ=-27(raw,dropped) RSSI=-81 (v5)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=1414 PCI=0 (v2)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=1414 PCI=0 (v2)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=1414 PCI=1 (v2)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=1414 PCI=2 (v2)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=3048 PCI=135 (v2)
+[D] QCP: log code=0xB0C1 len=23
+[D] LTE 0xB0C1 MIB: ver=2 plen=11
+[D] 0xB0C1 [11 bytes]: 02 B6 01 E8 0B 00 00 12 01 02 64 
+[D] LTE MIB v2: bandwidth=100 tx_antenna=2 sfn=274 earfcn=3048 pci=438
+[D] QCP: log code=0xB0C0 len=59
+[D] LTE 0xB0C0 RRC OTA: ver=27 plen=47
+[D] 0xB0C0 [47 bytes]: 1B 10 10 10 90 00 B6 01 E8 0B 00 00 45 51 03 02 00 00 00 1A 00 48 C9 40 05 92 80 46 3D 29 7E D0 20 30 50 C4 20 21 02 08 98 46 C2 47 C5 20 00 
+[D] v25 item: rrc=16.16 nr_rrc=16.144 rbid=0 pci=438 earfcn=3048 sfn_subfn=20805 pdu_num=3 sib_mask=2 len=26
+[I] [SIB1] EARFCN=3048 PCI=438 MCC=250 MNC=2 CID=200704257 TAC=7828 barred=0 csg=0
+[I] [SIB1] EARFCN=3048 PCI=438 MCC=250 MNC=11 CID=200704257 TAC=7828 barred=0 csg=0
+[D] QCP: log code=0xB17F len=52
+[I] ML1 0xB17F PCI 31 → 135 (corrected from 0xB197)
+[I] ML1 0xB17F SCell: EARFCN=3048 PCI=135 RSRP=-84 RSRQ=-25(raw,dropped) RSSI=-81 (v5)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=3048 PCI=6 (v2)
+[D] QCP: log code=0xB0C1 len=23
+[D] LTE 0xB0C1 MIB: ver=2 plen=11
+[D] 0xB0C1 [11 bytes]: 02 6F 01 E8 0B 00 00 B0 03 02 64 
+[D] LTE MIB v2: bandwidth=100 tx_antenna=2 sfn=944 earfcn=3048 pci=367
+[D] QCP: log code=0xB0C0 len=59
+[D] LTE 0xB0C0 RRC OTA: ver=27 plen=47
+[D] 0xB0C0 [47 bytes]: 1B 10 10 10 90 00 6F 01 E8 0B 00 00 25 FB 03 02 00 00 00 1A 00 48 C9 40 05 92 80 46 3D 29 7D 1D F1 F0 50 C4 20 21 02 08 98 46 C2 47 55 20 00 
+[D] v25 item: rrc=16.16 nr_rrc=16.144 rbid=0 pci=367 earfcn=3048 sfn_subfn=64293 pdu_num=3 sib_mask=2 len=26
+[I] [SIB1] EARFCN=3048 PCI=367 MCC=250 MNC=2 CID=199815055 TAC=7828 barred=0 csg=0
+[I] [SIB1] EARFCN=3048 PCI=367 MCC=250 MNC=11 CID=199815055 TAC=7828 barred=0 csg=0
+[D] QCP: log code=0xB17F len=52
+[I] ML1 0xB17F PCI 30 → 6 (corrected from 0xB197)
+[I] ML1 0xB17F SCell: EARFCN=3048 PCI=6 RSRP=-91 RSRQ=-27(raw,dropped) RSSI=-81 (v5)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=3048 PCI=7 (v2)
+[D] QCP: log code=0xB0C1 len=23
+[D] LTE 0xB0C1 MIB: ver=2 plen=11
+[D] 0xB0C1 [11 bytes]: 02 8E 01 E8 0B 00 00 BC 03 02 64 
+[D] LTE MIB v2: bandwidth=100 tx_antenna=2 sfn=956 earfcn=3048 pci=398
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=3048 PCI=3 (v2)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=2850 PCI=135 (v2)
+[D] QCP: log code=0xB0C1 len=23
+[D] LTE 0xB0C1 MIB: ver=2 plen=11
+[D] 0xB0C1 [11 bytes]: 02 B6 01 22 0B 00 00 5D 01 02 64 
+[D] LTE MIB v2: bandwidth=100 tx_antenna=2 sfn=349 earfcn=2850 pci=438
+[D] QCP: log code=0xB0C0 len=59
+[D] LTE 0xB0C0 RRC OTA: ver=27 plen=47
+[D] 0xB0C0 [47 bytes]: 1B 10 10 10 90 00 B6 01 22 0B 00 00 E5 15 03 02 00 00 00 1A 00 48 C9 40 05 92 80 46 3D 29 7E D0 20 90 50 C4 20 21 02 08 98 46 C2 46 95 20 00 
+[D] v25 item: rrc=16.16 nr_rrc=16.144 rbid=0 pci=438 earfcn=2850 sfn_subfn=5605 pdu_num=3 sib_mask=2 len=26
+[I] [SIB1] EARFCN=2850 PCI=438 MCC=250 MNC=2 CID=200704260 TAC=7828 barred=0 csg=0
+[I] [SIB1] EARFCN=2850 PCI=438 MCC=250 MNC=11 CID=200704260 TAC=7828 barred=0 csg=0
+[D] QCP: log code=0xB17F len=52
+[I] ML1 0xB17F PCI 31 → 135 (corrected from 0xB197)
+[I] ML1 0xB17F SCell: EARFCN=2850 PCI=135 RSRP=-83 RSRQ=-25(raw,dropped) RSSI=-81 (v5)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=2850 PCI=7 (v2)
+[D] QCP: log code=0xB0C1 len=23
+[D] LTE 0xB0C1 MIB: ver=2 plen=11
+[D] 0xB0C1 [11 bytes]: 02 8E 01 22 0B 00 00 F9 03 02 64 
+[D] LTE MIB v2: bandwidth=100 tx_antenna=2 sfn=1017 earfcn=2850 pci=398
+[D] QCP: log code=0xB0C1 len=23
+[D] LTE 0xB0C1 MIB: ver=2 plen=11
+[D] 0xB0C1 [11 bytes]: 02 8E 01 22 0B 00 00 00 00 02 64 
+[D] LTE MIB v2: bandwidth=100 tx_antenna=2 sfn=0 earfcn=2850 pci=398
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=2850 PCI=6 (v2)
+[D] QCP: log code=0xB0C1 len=23
+[D] LTE 0xB0C1 MIB: ver=2 plen=11
+[D] 0xB0C1 [11 bytes]: 02 6F 01 22 0B 00 00 21 00 02 64 
+[D] LTE MIB v2: bandwidth=100 tx_antenna=2 sfn=33 earfcn=2850 pci=367
+[D] QCP: log code=0xB0C0 len=59
+[D] LTE 0xB0C0 RRC OTA: ver=27 plen=47
+[D] 0xB0C0 [47 bytes]: 1B 10 10 10 90 00 6F 01 22 0B 00 00 25 02 03 02 00 00 00 1A 00 48 C9 40 05 92 80 46 3D 29 7D 1D F1 D0 50 C4 20 21 02 08 98 46 C2 46 D5 20 00 
+[D] v25 item: rrc=16.16 nr_rrc=16.144 rbid=0 pci=367 earfcn=2850 sfn_subfn=549 pdu_num=3 sib_mask=2 len=26
+[I] [SIB1] EARFCN=2850 PCI=367 MCC=250 MNC=2 CID=199815054 TAC=7828 barred=0 csg=0
+[I] [SIB1] EARFCN=2850 PCI=367 MCC=250 MNC=11 CID=199815054 TAC=7828 barred=0 csg=0
+[D] QCP: log code=0xB17F len=52
+[I] ML1 0xB17F PCI 30 → 6 (corrected from 0xB197)
+[I] ML1 0xB17F SCell: EARFCN=2850 PCI=6 RSRP=-92 RSRQ=-26(raw,dropped) RSSI=-85 (v5)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=2850 PCI=0 (v2)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=2850 PCI=3 (v2)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=38100 PCI=135 (v2)
+[D] QCP: log code=0xB0C1 len=23
+[D] LTE 0xB0C1 MIB: ver=2 plen=11
+[D] 0xB0C1 [11 bytes]: 02 C7 01 D4 94 00 00 04 01 04 64 
+[D] LTE MIB v2: bandwidth=100 tx_antenna=4 sfn=260 earfcn=38100 pci=455
+[D] QCP: log code=0xB0C0 len=59
+[D] LTE 0xB0C0 RRC OTA: ver=27 plen=47
+[D] 0xB0C0 [47 bytes]: 1B 10 10 10 90 00 C7 01 D4 94 00 00 65 50 03 02 00 00 00 1A 00 58 49 40 03 45 8E 31 6D F1 68 22 51 10 81 04 4C 24 4F B3 01 42 80 00 00 00 00 
+[D] v25 item: rrc=16.16 nr_rrc=16.144 rbid=0 pci=455 earfcn=38100 sfn_subfn=20581 pdu_num=3 sib_mask=2 len=26
+[I] [SIB1] EARFCN=38100 PCI=455 MCC=250 MNC=1 CID=51830550 TAC=17806 barred=0 csg=0
+[D] QCP: log code=0xB17F len=52
+[I] ML1 0xB17F PCI 31 → 135 (corrected from 0xB197)
+[I] ML1 0xB17F SCell: EARFCN=38100 PCI=135 RSRP=-89 RSRQ=-26(raw,dropped) RSSI=-82 (v5)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=38100 PCI=135 (v2)
+[D] QCP: log code=0xB0C1 len=23
+[D] LTE 0xB0C1 MIB: ver=2 plen=11
+[D] 0xB0C1 [11 bytes]: 02 87 01 D4 94 00 00 10 01 04 64 
+[D] LTE MIB v2: bandwidth=100 tx_antenna=4 sfn=272 earfcn=38100 pci=391
+[D] QCP: log code=0xB0C0 len=59
+[D] LTE 0xB0C0 RRC OTA: ver=27 plen=47
+[D] 0xB0C0 [47 bytes]: 1B 10 10 10 90 00 87 01 D4 94 00 00 85 11 03 02 00 00 00 1A 00 58 49 40 03 45 8E 31 6D F1 58 22 51 10 81 04 4C 24 4F A3 01 42 80 00 00 00 00 
+[D] v25 item: rrc=16.16 nr_rrc=16.144 rbid=0 pci=391 earfcn=38100 sfn_subfn=4485 pdu_num=3 sib_mask=2 len=26
+[I] [SIB1] EARFCN=38100 PCI=391 MCC=250 MNC=1 CID=51830549 TAC=17806 barred=0 csg=0
+[D] QCP: log code=0xB17F len=52
+[I] ML1 0xB17F PCI 31 → 135 (corrected from 0xB197)
+[I] ML1 0xB17F SCell: EARFCN=38100 PCI=135 RSRP=-104 RSRQ=-29(raw,dropped) RSSI=-84 (v5)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=38100 PCI=3 (v2)
+[I] DAEMON: client disconnected
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=38100 PCI=2 (v2)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=38100 PCI=2 (v2)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=6275 PCI=134 (v2)
+[D] QCP: log code=0xB0C1 len=23
+[D] LTE 0xB0C1 MIB: ver=2 plen=11
+[D] 0xB0C1 [11 bytes]: 02 16 01 83 18 00 00 3B 01 02 19 
+[D] LTE MIB v2: bandwidth=25 tx_antenna=2 sfn=315 earfcn=6275 pci=278
+[D] QCP: log code=0xB0C0 len=51
+[D] LTE 0xB0C0 RRC OTA: ver=27 plen=39
+[D] 0xB0C0 [39 bytes]: 1B 10 10 10 90 00 16 01 83 18 00 00 C5 93 03 02 00 00 00 12 00 40 49 40 03 45 8E 31 6D F0 88 21 31 10 81 04 4C 24 DD 
+[D] v25 item: rrc=16.16 nr_rrc=16.144 rbid=0 pci=278 earfcn=6275 sfn_subfn=37829 pdu_num=3 sib_mask=2 len=18
+[I] [SIB1] EARFCN=6275 PCI=278 MCC=250 MNC=1 CID=51830536 TAC=17806 barred=0 csg=0
+[D] QCP: log code=0xB17F len=52
+[I] ML1 0xB17F PCI 30 → 134 (corrected from 0xB197)
+[I] ML1 0xB17F SCell: EARFCN=6275 PCI=134 RSRP=-82 RSRQ=-24(raw,dropped) RSSI=-85 (v5)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=6275 PCI=1 (v2)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=100 PCI=133 (v2)
+[D] QCP: log code=0xB0C1 len=23
+[D] LTE 0xB0C1 MIB: ver=2 plen=11
+[D] 0xB0C1 [11 bytes]: 02 AE 00 64 00 00 00 F8 02 02 32 
+[D] LTE MIB v2: bandwidth=50 tx_antenna=2 sfn=760 earfcn=100 pci=174
+[D] QCP: log code=0xB0C0 len=55
+[D] LTE 0xB0C0 RRC OTA: ver=27 plen=43
+[D] 0xB0C0 [43 bytes]: 1B 10 10 10 90 00 AE 00 64 00 00 00 A5 EF 03 02 00 00 00 16 00 48 49 40 41 4D 07 BF 2E 93 58 20 01 80 81 84 4C 23 61 23 3A 8E 00 
+[D] v25 item: rrc=16.16 nr_rrc=16.144 rbid=0 pci=174 earfcn=100 sfn_subfn=61349 pdu_num=3 sib_mask=2 len=22
+[I] [SIB1] EARFCN=100 PCI=174 MCC=250 MNC=20 CID=200468789 TAC=19719 barred=0 csg=0
+[D] QCP: log code=0xB17F len=52
+[I] ML1 0xB17F PCI 29 → 133 (corrected from 0xB197)
+[I] ML1 0xB17F SCell: EARFCN=100 PCI=133 RSRP=-86 RSRQ=-26(raw,dropped) RSSI=-83 (v5)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=100 PCI=132 (v2)
+[D] QCP: log code=0xB0C1 len=23
+[D] LTE 0xB0C1 MIB: ver=2 plen=11
+[D] 0xB0C1 [11 bytes]: 02 12 00 64 00 00 00 5F 01 02 32 
+[D] LTE MIB v2: bandwidth=50 tx_antenna=2 sfn=351 earfcn=100 pci=18
+[D] QCP: log code=0xB0C0 len=55
+[D] LTE 0xB0C0 RRC OTA: ver=27 plen=43
+[D] 0xB0C0 [43 bytes]: 1B 10 10 10 90 00 12 00 64 00 00 00 05 D7 03 02 00 00 00 16 00 48 49 40 41 4E 3D BE BF 83 48 20 01 80 81 84 4C 23 61 23 52 8E 00 
+[D] v25 item: rrc=16.16 nr_rrc=16.144 rbid=0 pci=18 earfcn=100 sfn_subfn=55045 pdu_num=3 sib_mask=2 len=22
+[I] [SIB1] EARFCN=100 PCI=18 MCC=250 MNC=20 CID=200013876 TAC=20029 barred=0 csg=0
+[D] QCP: log code=0xB17F len=52
+[I] ML1 0xB17F PCI 28 → 132 (corrected from 0xB197)
+[I] ML1 0xB17F SCell: EARFCN=100 PCI=132 RSRP=-102 RSRQ=-29(raw,dropped) RSSI=-83 (v5)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=200 PCI=7 (v2)
+[D] QCP: log code=0xB0C1 len=23
+[D] LTE 0xB0C1 MIB: ver=2 plen=11
+[D] 0xB0C1 [11 bytes]: 02 D2 01 C8 00 00 00 B8 00 01 32 
+[D] LTE MIB v2: bandwidth=50 tx_antenna=1 sfn=184 earfcn=200 pci=466
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=200 PCI=5 (v2)
+[D] QCP: log code=0xB0C1 len=23
+[D] LTE 0xB0C1 MIB: ver=2 plen=11
+[D] 0xB0C1 [11 bytes]: 02 E0 00 C8 00 00 00 C1 00 01 32 
+[D] LTE MIB v2: bandwidth=50 tx_antenna=1 sfn=193 earfcn=200 pci=224
+[D] QCP: log code=0xB0C0 len=59
+[D] LTE 0xB0C0 RRC OTA: ver=27 plen=47
+[D] 0xB0C0 [47 bytes]: 1B 10 10 10 90 00 E0 00 C8 00 00 00 25 8C 03 02 00 00 00 1A 00 48 C9 40 05 92 80 46 3D 29 7D 1D EC D0 50 04 20 21 02 08 98 46 C2 47 A5 20 00 
+[D] v25 item: rrc=16.16 nr_rrc=16.144 rbid=0 pci=224 earfcn=200 sfn_subfn=35877 pdu_num=3 sib_mask=2 len=26
+[I] [SIB1] EARFCN=200 PCI=224 MCC=250 MNC=2 CID=199815014 TAC=7828 barred=0 csg=0
+[I] [SIB1] EARFCN=200 PCI=224 MCC=250 MNC=11 CID=199815014 TAC=7828 barred=0 csg=0
+[D] QCP: log code=0xB17F len=52
+[I] ML1 0xB17F PCI 29 → 5 (corrected from 0xB197)
+[I] ML1 0xB17F SCell: EARFCN=200 PCI=5 RSRP=-92 RSRQ=-26(raw,dropped) RSSI=-86 (v5)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=200 PCI=7 (v2)
+[D] QCP: log code=0xB0C1 len=23
+[D] LTE 0xB0C1 MIB: ver=2 plen=11
+[D] 0xB0C1 [11 bytes]: 02 D2 01 C8 00 00 00 CB 00 01 32 
+[D] LTE MIB v2: bandwidth=50 tx_antenna=1 sfn=203 earfcn=200 pci=466
+[D] QCP: log code=0xB0C0 len=59
+[D] LTE 0xB0C0 RRC OTA: ver=27 plen=47
+[D] 0xB0C0 [47 bytes]: 1B 10 10 10 90 00 D2 01 C8 00 00 00 C5 0C 03 02 00 00 00 1A 00 48 C9 40 05 92 80 46 3D 29 7D 1D EC B0 50 04 20 21 02 08 98 46 C2 47 85 20 00 
+[D] v25 item: rrc=16.16 nr_rrc=16.144 rbid=0 pci=466 earfcn=200 sfn_subfn=3269 pdu_num=3 sib_mask=2 len=26
+[I] [SIB1] EARFCN=200 PCI=466 MCC=250 MNC=2 CID=199815013 TAC=7828 barred=0 csg=0
+[I] [SIB1] EARFCN=200 PCI=466 MCC=250 MNC=11 CID=199815013 TAC=7828 barred=0 csg=0
+[D] QCP: log code=0xB17F len=52
+[I] ML1 0xB17F PCI 31 → 7 (corrected from 0xB197)
+[I] ML1 0xB17F SCell: EARFCN=200 PCI=7 RSRP=-96 RSRQ=-24(raw,dropped) RSSI=-89 (v5)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=200 PCI=1 (v2)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=200 PCI=3 (v2)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=200 PCI=0 (v2)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=6350 PCI=132 (v2)
+[D] QCP: log code=0xB0C1 len=23
+[D] LTE 0xB0C1 MIB: ver=2 plen=11
+[D] 0xB0C1 [11 bytes]: 02 53 00 CE 18 00 00 00 01 02 19 
+[D] LTE MIB v2: bandwidth=25 tx_antenna=2 sfn=256 earfcn=6350 pci=83
+[D] QCP: log code=0xB0C0 len=59
+[D] LTE 0xB0C0 RRC OTA: ver=27 plen=47
+[D] 0xB0C0 [47 bytes]: 1B 10 10 10 90 00 53 00 CE 18 00 00 25 10 03 02 00 00 00 1A 00 48 C9 40 05 92 80 46 3D 29 81 4B 21 B0 52 64 20 21 02 08 98 46 C2 46 F5 20 00 
+[D] v25 item: rrc=16.16 nr_rrc=16.144 rbid=0 pci=83 earfcn=6350 sfn_subfn=4133 pdu_num=3 sib_mask=2 len=26
+[I] [SIB1] EARFCN=6350 PCI=83 MCC=250 MNC=2 CID=202004749 TAC=7828 barred=0 csg=0
+[I] [SIB1] EARFCN=6350 PCI=83 MCC=250 MNC=11 CID=202004749 TAC=7828 barred=0 csg=0
+[D] QCP: log code=0xB17F len=52
+[I] ML1 0xB17F PCI 28 → 132 (corrected from 0xB197)
+[I] ML1 0xB17F SCell: EARFCN=6350 PCI=132 RSRP=-102 RSRQ=-25(raw,dropped) RSSI=-95 (v5)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=6350 PCI=132 (v2)
+[D] QCP: log code=0xB0C1 len=23
+[D] LTE 0xB0C1 MIB: ver=2 plen=11
+[D] 0xB0C1 [11 bytes]: 02 52 00 CE 18 00 00 0A 01 02 19 
+[D] LTE MIB v2: bandwidth=25 tx_antenna=2 sfn=266 earfcn=6350 pci=82
+[D] QCP: log code=0xB0C0 len=59
+[D] LTE 0xB0C0 RRC OTA: ver=27 plen=47
+[D] 0xB0C0 [47 bytes]: 1B 10 10 10 90 00 52 00 CE 18 00 00 C5 50 03 02 00 00 00 1A 00 48 C9 40 05 92 80 46 3D 29 81 4B 21 70 52 64 20 21 02 08 98 46 C2 47 85 20 00 
+[D] v25 item: rrc=16.16 nr_rrc=16.144 rbid=0 pci=82 earfcn=6350 sfn_subfn=20677 pdu_num=3 sib_mask=2 len=26
+[I] [SIB1] EARFCN=6350 PCI=82 MCC=250 MNC=2 CID=202004747 TAC=7828 barred=0 csg=0
+[I] [SIB1] EARFCN=6350 PCI=82 MCC=250 MNC=11 CID=202004747 TAC=7828 barred=0 csg=0
+[D] QCP: log code=0xB17F len=52
+[I] ML1 0xB17F PCI 28 → 132 (corrected from 0xB197)
+[I] ML1 0xB17F SCell: EARFCN=6350 PCI=132 RSRP=-106 RSRQ=-25(raw,dropped) RSSI=-95 (v5)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=6350 PCI=132 (v2)
+[D] QCP: log code=0xB0C1 len=23
+[D] LTE 0xB0C1 MIB: ver=2 plen=11
+[D] 0xB0C1 [11 bytes]: 02 51 00 CE 18 00 00 16 01 02 19 
+[D] LTE MIB v2: bandwidth=25 tx_antenna=2 sfn=278 earfcn=6350 pci=81
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=38948 PCI=134 (v2)
+[D] QCP: log code=0xB0C1 len=23
+[D] LTE 0xB0C1 MIB: ver=2 plen=11
+[D] 0xB0C1 [11 bytes]: 02 5A 01 24 98 00 00 F8 01 04 64 
+[D] LTE MIB v2: bandwidth=100 tx_antenna=4 sfn=504 earfcn=38948 pci=346
+[D] QCP: log code=0xB0C0 len=55
+[D] LTE 0xB0C0 RRC OTA: ver=27 plen=43
+[D] 0xB0C0 [43 bytes]: 1B 10 10 10 90 00 5A 01 24 98 00 00 A5 1F 03 02 00 00 00 16 00 58 49 40 41 4E 3D BF A8 82 38 2A 71 80 81 84 4C 23 61 22 76 E5 1C 
+[D] v25 item: rrc=16.16 nr_rrc=16.144 rbid=0 pci=346 earfcn=38948 sfn_subfn=8101 pdu_num=3 sib_mask=2 len=22
+[I] [SIB1] EARFCN=38948 PCI=346 MCC=250 MNC=20 CID=200968227 TAC=20029 barred=0 csg=0
+[D] QCP: log code=0xB17F len=52
+[I] ML1 0xB17F PCI 30 → 134 (corrected from 0xB197)
+[I] ML1 0xB17F SCell: EARFCN=38948 PCI=134 RSRP=-121 RSRQ=-28(raw,dropped) RSSI=-93 (v5)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=38948 PCI=134 (v2)
+[D] QCP: log code=0xB0C1 len=23
+[D] LTE 0xB0C1 MIB: ver=2 plen=11
+[D] 0xB0C1 [11 bytes]: 02 0C 01 24 98 00 00 02 02 04 64 
+[D] LTE MIB v2: bandwidth=100 tx_antenna=4 sfn=514 earfcn=38948 pci=268
+[D] QCP: log code=0xB0C0 len=55
+[D] LTE 0xB0C0 RRC OTA: ver=27 plen=43
+[D] 0xB0C0 [43 bytes]: 1B 10 10 10 90 00 0C 01 24 98 00 00 45 A0 03 02 00 00 00 16 00 58 49 40 41 4E 3D BF 7B 02 38 2A 71 80 81 84 4C 23 61 22 76 55 1C 
+[D] v25 item: rrc=16.16 nr_rrc=16.144 rbid=0 pci=268 earfcn=38948 sfn_subfn=41029 pdu_num=3 sib_mask=2 len=22
+[I] [SIB1] EARFCN=38948 PCI=268 MCC=250 MNC=20 CID=200781859 TAC=20029 barred=0 csg=0
+[D] QCP: log code=0xB17F len=52
+[I] ML1 0xB17F PCI 30 → 134 (corrected from 0xB197)
+[I] ML1 0xB17F SCell: EARFCN=38948 PCI=134 RSRP=-118 RSRQ=-28(raw,dropped) RSSI=-92 (v5)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=38948 PCI=132 (v2)
+[D] QCP: log code=0xB0C1 len=23
+[D] LTE 0xB0C1 MIB: ver=2 plen=11
+[D] 0xB0C1 [11 bytes]: 02 4D 00 24 98 00 00 0E 02 04 64 
+[D] LTE MIB v2: bandwidth=100 tx_antenna=4 sfn=526 earfcn=38948 pci=77
+[D] QCP: log code=0xB0C0 len=55
+[D] LTE 0xB0C0 RRC OTA: ver=27 plen=43
+[D] 0xB0C0 [43 bytes]: 1B 10 10 10 90 00 4D 00 24 98 00 00 C5 E1 03 02 00 00 00 16 00 58 49 40 41 4E 3D BF 7B 02 48 2A 71 80 81 84 4C 23 61 22 76 55 1C 
+[D] v25 item: rrc=16.16 nr_rrc=16.144 rbid=0 pci=77 earfcn=38948 sfn_subfn=57797 pdu_num=3 sib_mask=2 len=22
+[I] [SIB1] EARFCN=38948 PCI=77 MCC=250 MNC=20 CID=200781860 TAC=20029 barred=0 csg=0
+[D] QCP: log code=0xB17F len=52
+[I] ML1 0xB17F PCI 28 → 132 (corrected from 0xB197)
+[I] ML1 0xB17F SCell: EARFCN=38948 PCI=132 RSRP=-119 RSRQ=-28(raw,dropped) RSSI=-94 (v5)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=38948 PCI=2 (v2)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=38948 PCI=2 (v2)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=1721 PCI=134 (v2)
+[D] QCP: log code=0xB0C1 len=23
+[D] LTE 0xB0C1 MIB: ver=2 plen=11
+[D] 0xB0C1 [11 bytes]: 02 5F 01 B9 06 00 00 43 02 04 32 
+[D] LTE MIB v2: bandwidth=50 tx_antenna=4 sfn=579 earfcn=1721 pci=351
+[D] QCP: log code=0xB0C0 len=51
+[D] LTE 0xB0C0 RRC OTA: ver=27 plen=39
+[D] 0xB0C0 [39 bytes]: 1B 10 10 10 90 00 5F 01 B9 06 00 00 45 E4 03 02 00 00 00 12 00 40 49 40 03 45 8E 31 6D F0 58 20 21 10 81 04 4C 24 CF 
+[D] v25 item: rrc=16.16 nr_rrc=16.144 rbid=0 pci=351 earfcn=1721 sfn_subfn=58437 pdu_num=3 sib_mask=2 len=18
+[I] [SIB1] EARFCN=1721 PCI=351 MCC=250 MNC=1 CID=51830533 TAC=17806 barred=0 csg=0
+[D] QCP: log code=0xB17F len=52
+[I] ML1 0xB17F PCI 30 → 134 (corrected from 0xB197)
+[I] ML1 0xB17F SCell: EARFCN=1721 PCI=134 RSRP=-71 RSRQ=-26(raw,dropped) RSSI=-76 (v5)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=1721 PCI=3 (v2)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=375 PCI=133 (v2)
+[D] QCP: log code=0xB0C1 len=23
+[D] LTE 0xB0C1 MIB: ver=2 plen=11
+[D] 0xB0C1 [11 bytes]: 02 9C 00 77 01 00 00 58 02 04 4B 
+[D] LTE MIB v2: bandwidth=75 tx_antenna=4 sfn=600 earfcn=375 pci=156
+[D] QCP: log code=0xB0C0 len=51
+[D] LTE 0xB0C0 RRC OTA: ver=27 plen=39
+[D] 0xB0C0 [39 bytes]: 1B 10 10 10 90 00 9C 00 77 01 00 00 A5 65 03 02 00 00 00 12 00 40 49 40 03 45 8E 31 6D F1 98 20 01 10 81 04 4C 24 D2 
+[D] v25 item: rrc=16.16 nr_rrc=16.144 rbid=0 pci=156 earfcn=375 sfn_subfn=26021 pdu_num=3 sib_mask=2 len=18
+[I] [SIB1] EARFCN=375 PCI=156 MCC=250 MNC=1 CID=51830553 TAC=17806 barred=0 csg=0
+[D] QCP: log code=0xB17F len=52
+[I] ML1 0xB17F PCI 29 → 133 (corrected from 0xB197)
+[I] ML1 0xB17F SCell: EARFCN=375 PCI=133 RSRP=-82 RSRQ=-28(raw,dropped) RSSI=-77 (v5)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=375 PCI=0 (v2)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=375 PCI=3 (v2)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=3200 PCI=133 (v2)
+[D] QCP: log code=0xB0C1 len=23
+[D] LTE 0xB0C1 MIB: ver=2 plen=11
+[D] 0xB0C1 [11 bytes]: 02 82 00 80 0C 00 00 76 02 04 32 
+[D] LTE MIB v2: bandwidth=50 tx_antenna=4 sfn=630 earfcn=3200 pci=130
+[D] QCP: log code=0xB0C0 len=51
+[D] LTE 0xB0C0 RRC OTA: ver=27 plen=39
+[D] 0xB0C0 [39 bytes]: 1B 10 10 10 90 00 82 00 80 0C 00 00 85 67 03 02 00 00 00 12 00 40 49 40 03 45 8E 31 6D F0 28 20 61 10 81 04 4C 24 DF 
+[D] v25 item: rrc=16.16 nr_rrc=16.144 rbid=0 pci=130 earfcn=3200 sfn_subfn=26501 pdu_num=3 sib_mask=2 len=18
+[I] [SIB1] EARFCN=3200 PCI=130 MCC=250 MNC=1 CID=51830530 TAC=17806 barred=0 csg=0
+[D] QCP: log code=0xB17F len=52
+[I] ML1 0xB17F PCI 29 → 133 (corrected from 0xB197)
+[I] ML1 0xB17F SCell: EARFCN=3200 PCI=133 RSRP=-82 RSRQ=-26(raw,dropped) RSSI=-80 (v5)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=6200 PCI=132 (v2)
+[D] QCP: log code=0xB0C1 len=23
+[D] LTE 0xB0C1 MIB: ver=2 plen=11
+[D] 0xB0C1 [11 bytes]: 02 03 00 38 18 00 00 2D 00 02 32 
+[D] LTE MIB v2: bandwidth=50 tx_antenna=2 sfn=45 earfcn=6200 pci=3
+[D] QCP: log code=0xB0C0 len=55
+[D] LTE 0xB0C0 RRC OTA: ver=27 plen=43
+[D] 0xB0C0 [43 bytes]: 1B 10 10 10 90 00 03 00 38 18 00 00 E5 42 03 02 00 00 00 16 00 48 49 40 41 4D 07 BF 2E 95 38 25 31 80 81 84 4C 23 61 23 4A 8E 00 
+[D] v25 item: rrc=16.16 nr_rrc=16.144 rbid=0 pci=3 earfcn=6200 sfn_subfn=17125 pdu_num=3 sib_mask=2 len=22
+[I] [SIB1] EARFCN=6200 PCI=3 MCC=250 MNC=20 CID=200468819 TAC=19719 barred=0 csg=0
+[D] QCP: log code=0xB17F len=52
+[I] ML1 0xB17F PCI 28 → 132 (corrected from 0xB197)
+[I] ML1 0xB17F SCell: EARFCN=6200 PCI=132 RSRP=-78 RSRQ=-26(raw,dropped) RSSI=-79 (v5)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=6200 PCI=0 (v2)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=6200 PCI=3 (v2)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=6200 PCI=0 (v2)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=40991 PCI=0 (v2)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=41438 PCI=1 (v2)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=41188 PCI=0 (v2)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=41189 PCI=1 (v2)
+[D] QCP: log code=0x7130 len=15
+[W] UMTS NAS OTA: payload too short (3)
+[D] QCP: log code=0x7130 len=15
+[W] UMTS NAS OTA: payload too short (3)
+[D] QCP: log code=0x7130 len=15
+[W] UMTS NAS OTA: payload too short (3)
+[D] QCP: log code=0x7130 len=15
+[W] UMTS NAS OTA: payload too short (3)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=1721 PCI=134 (v2)
+[D] QCP: log code=0xB0C1 len=23
+[D] LTE 0xB0C1 MIB: ver=2 plen=11
+[D] 0xB0C1 [11 bytes]: 02 5F 01 B9 06 00 00 39 01 04 32 
+[D] LTE MIB v2: bandwidth=50 tx_antenna=4 sfn=313 earfcn=1721 pci=351
+[D] QCP: log code=0xB0C0 len=51
+[D] LTE 0xB0C0 RRC OTA: ver=27 plen=39
+[D] 0xB0C0 [39 bytes]: 1B 10 10 10 90 00 5F 01 B9 06 00 00 A5 93 03 02 00 00 00 12 00 40 49 40 03 45 8E 31 6D F0 58 20 21 10 81 04 4C 24 CF 
+[D] v25 item: rrc=16.16 nr_rrc=16.144 rbid=0 pci=351 earfcn=1721 sfn_subfn=37797 pdu_num=3 sib_mask=2 len=18
+[I] [SIB1] EARFCN=1721 PCI=351 MCC=250 MNC=1 CID=51830533 TAC=17806 barred=0 csg=0
+[D] QCP: log code=0xB0C0 len=82
+[D] LTE 0xB0C0 RRC OTA: ver=27 plen=70
+[D] 0xB0C0 [70 bytes]: 1B 10 10 10 90 00 5F 01 B9 06 00 00 00 D4 03 0C 00 00 00 31 00 00 82 5C 31 18 6F F9 2C AC 36 07 A1 60 10 00 0C 04 10 EE 31 6A A0 54 06 90 06 01 25 C8 2C 18 48 40 03 00 19 A5 15 72 3E C9 E0 28 ...(+6)
+[D] v25 item: rrc=16.16 nr_rrc=16.144 rbid=0 pci=351 earfcn=1721 sfn_subfn=54272 pdu_num=3 sib_mask=12 len=49
+[D] [B0C0/SIB1] decode failed (plen=49, earfcn=1721, pci=351): ASN.1 decode failed
+[D] QCP: log code=0xB17F len=52
+[I] ML1 0xB17F PCI 30 → 134 (corrected from 0xB197)
+[I] ML1 0xB17F SCell: EARFCN=1721 PCI=134 RSRP=-72 RSRQ=-26(raw,dropped) RSSI=-76 (v5)
+[D] QCP: log code=0xB0C2 len=41
+[I] RAWCAP code=0xB0C2 ver=3 plen=29  (LTE RRC Serving Cell Info)
+[I] RAWCAP 0xB0C2 v3 +000 03 5F 01 B9 06 00 00 09 4D 00 00 32 32 05 DF 16 03 8E 45 03 00 00 00 FA 00 02 01 00 01 
+[B0C2] FIRST packet ver=3 plen=29 hex: 03 5F 01 B9 06 00 00 09 4D 00 00 32 32 05 DF 16 03 8E 45 03 00 00 00 FA 00 02 01 00 01
+[I] [B0C2] count=1 (ver=3 plen=29)
+[D] LTE 0xB0C2 ver=3 plen=29
+[D] 0xB0C2 [29 bytes]: 03 5F 01 B9 06 00 00 09 4D 00 00 32 32 05 DF 16 03 8E 45 03 00 00 00 FA 00 02 01 00 01 
+[B0C2-v3] decoded pci=351 dl_earfcn=1721 ul_earfcn=19721 cell_id=0x316DF05 tac=0x458E band=3 mcc=250 mnc=1  [OK]
+[I] LTE RRC SCell v3: EARFCN=1721/19721 Band=3 BW=50/50 PCI=351 CID=0x316DF05 TAC=0x458E MCC=250 MNC=01
+[D] QCP: log code=0xB0C0 len=74
+[D] LTE 0xB0C0 RRC OTA: ver=27 plen=62
+[D] 0xB0C0 [62 bytes]: 1B 10 10 10 90 00 5F 01 B9 06 00 00 40 94 03 20 00 00 00 29 00 00 0F 04 00 BB 90 4A 58 A8 80 C8 02 09 4A D5 11 29 A8 41 52 AA A2 03 8D 88 25 32 34 40 C4 19 04 A6 46 80 82 01 D0 8A 00 00 
+[D] v25 item: rrc=16.16 nr_rrc=16.144 rbid=0 pci=351 earfcn=1721 sfn_subfn=37952 pdu_num=3 sib_mask=32 len=41
+[D] QCP: log code=0xB193 len=176
+[I] RAWCAP code=0xB193 ver=1 plen=164  (LTE ML1 SCell Meas Response)
+[I] RAWCAP 0xB193 v1 +000 01 01 00 01 19 3B A0 00 B9 06 00 00 01 00 00 00 03 00 00 00 00 01 FF FF 5F 81 00 00 4B 25 00 00 
+[I] RAWCAP 0xB193 v1 +032 50 C5 01 00 A8 E2 60 0A 4C 89 1B 00 E2 46 61 00 13 06 00 00 60 09 96 00 00 20 46 00 E2 26 6E 00 
+[I] RAWCAP 0xB193 v1 +064 17 5D 94 12 29 01 00 00 29 A5 94 12 5B D4 1B 00 00 00 00 00 5B 04 00 00 DF FF EC FF 00 00 00 00 
+[I] RAWCAP 0xB193 v1 +096 1D 00 23 00 00 00 00 00 00 00 00 00 D5 58 23 00 76 FF 27 00 00 00 00 00 00 00 00 00 7B 06 0A 00 
+[I] RAWCAP 0xB193 v1 +128 00 00 00 00 6B 2E 00 00 CF 33 00 00 00 00 00 00 00 00 00 00 A7 C5 5A 00 00 00 00 00 00 00 00 00 
+[I] RAWCAP 0xB193 v1 +160 29 01 00 00 
+[I] === RAW 0xB193 len=164 ver=1 (capture this) ===
+[D] B193-RAW [164 bytes]: 01 01 00 01 19 3B A0 00 B9 06 00 00 01 00 00 00 03 00 00 00 00 01 FF FF 5F 81 00 00 4B 25 00 00 50 C5 01 00 A8 E2 60 0A 4C 89 1B 00 E2 46 61 00 13 06 00 00 60 09 96 00 00 20 46 00 E2 26 6E 00 17 5D 94 12 29 01 00 00 29 A5 94 12 5B D4 1B 00 00 00 00 00 5B 04 00 00 DF FF EC FF 00 00 00 00 1D 00 23 00 00 00 00 00 00 00 00 00 D5 58 23 00 76 FF 27 00 00 00 00 00 00 00 00 00 7B 06 0A 00 00 00 00 00 6B 2E 00 00 CF 33 00 00 00 00 00 00 00 00 00 00 A7 C5 5A 00 00 00 00 00 00 00 00 00 29 01 00 00 
+[D] QCP: log code=0xB17F len=52
+[I] ML1 0xB17F PCI 62 → 134 (corrected from 0xB197)
+[I] ML1 0xB17F SCell: EARFCN=1721 PCI=134 RSRP=-70 RSRQ=-25(raw,dropped) RSSI=-75 (v5)
+[D] QCP: log code=0xB193 len=176
+[D] QCP: log code=0xB17F len=52
+[I] ML1 0xB17F PCI 62 → 134 (corrected from 0xB197)
+[I] ML1 0xB17F SCell: EARFCN=1721 PCI=134 RSRP=-71 RSRQ=-26(raw,dropped) RSSI=-76 (v5)
+[D] QCP: log code=0xB0C1 len=23
+[D] LTE 0xB0C1 MIB: ver=2 plen=11
+[D] 0xB0C1 [11 bytes]: 02 82 00 80 0C 00 00 D4 01 04 32 
+[D] LTE MIB v2: bandwidth=50 tx_antenna=4 sfn=468 earfcn=3200 pci=130
+[D] QCP: log code=0xB0C0 len=51
+[D] LTE 0xB0C0 RRC OTA: ver=27 plen=39
+[D] 0xB0C0 [39 bytes]: 1B 10 10 10 90 00 82 00 80 0C 00 00 A5 5D 03 02 00 00 00 12 00 40 49 40 03 45 8E 31 6D F0 28 20 61 10 81 04 4C 24 DF 
+[D] v25 item: rrc=16.16 nr_rrc=16.144 rbid=0 pci=130 earfcn=3200 sfn_subfn=23973 pdu_num=3 sib_mask=2 len=18
+[I] [SIB1] EARFCN=3200 PCI=130 MCC=250 MNC=1 CID=51830530 TAC=17806 barred=0 csg=0
+[D] QCP: log code=0xB0C0 len=82
+[D] LTE 0xB0C0 RRC OTA: ver=27 plen=70
+[D] 0xB0C0 [70 bytes]: 1B 10 10 10 90 00 82 00 80 0C 00 00 00 9E 03 0C 00 00 00 31 00 00 82 5E 39 18 6F F9 28 C0 66 07 96 60 10 00 0C 01 B0 EE 31 6A A0 54 06 90 06 01 25 C8 2C 18 48 40 03 00 19 A5 1D 72 3E C9 E0 28 ...(+6)
+[D] v25 item: rrc=16.16 nr_rrc=16.144 rbid=0 pci=130 earfcn=3200 sfn_subfn=40448 pdu_num=3 sib_mask=12 len=49
+[D] [B0C0/SIB1] decode failed (plen=49, earfcn=3200, pci=130): ASN.1 decode failed
+[D] QCP: log code=0xB17F len=52
+[I] ML1 0xB17F SCell: EARFCN=3200 PCI=21 RSRP=-76 RSRQ=-28(raw,dropped) RSSI=-75 (v5)
+[D] QCP: log code=0xB197 len=48
+[I] ML1 0xB197 ServInfo: EARFCN=3200 PCI=133 (v2)
+[D] QCP: log code=0xB0C2 len=41
+[I] [B0C2] count=2 (ver=3 plen=29)
+[D] LTE 0xB0C2 ver=3 plen=29
+[D] 0xB0C2 [29 bytes]: 03 82 00 80 0C 00 00 D0 52 00 00 32 32 02 DF 16 03 8E 45 07 00 00 00 FA 00 02 01 00 01 
+[B0C2-v3] decoded pci=130 dl_earfcn=3200 ul_earfcn=21200 cell_id=0x316DF02 tac=0x458E band=7 mcc=250 mnc=1  [OK]
+[I] LTE RRC SCell v3: EARFCN=3200/21200 Band=7 BW=50/50 PCI=130 CID=0x316DF02 TAC=0x458E MCC=250 MNC=01
+[D] QCP: log code=0xB0C0 len=74
+[D] LTE 0xB0C0 RRC OTA: ver=27 plen=62
+[D] 0xB0C0 [62 bytes]: 1B 10 10 10 90 00 82 00 80 0C 00 00 40 5E 03 20 00 00 00 29 00 00 0F 04 00 BB 90 4A 58 A8 80 6B 92 09 4A D5 11 29 A8 41 52 AA A2 03 8D 88 25 32 34 40 C4 19 04 A6 46 80 82 01 D0 8A 00 00 
+[D] v25 item: rrc=16.16 nr_rrc=16.144 rbid=0 pci=130 earfcn=3200 sfn_subfn=24128 pdu_num=3 sib_mask=32 len=41
+[I] DiagDciClient: stopping (client_id=1)...
+[D] DiagDciClient: log mask disabled
+[D] DiagDciClient: event mask disabled
+[D] DiagDciClient: released client_id=0
+[D] DiagDciClient: Diag_LSM_DeInit() done
+[I] libdiag: unloaded
+[I] DiagDciClient: stopped. Stats: logs=697 events=0 parsed=683 errors=14

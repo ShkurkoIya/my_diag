@@ -215,9 +215,12 @@ void print_cell(const QCom::CellIdentity& cell) {
   for (const auto& n : cell.radio.geran_neighbors)
     std::cout << "    └─ GERAN ARFCN=" << n.arfcn_start
               << " thresh_hi=" << static_cast<int>(n.thresh_x_high) << "\n";
-  for (const auto& n : cell.radio.meas_neighbors)
-    std::cout << "    └─ MeasReport PCI=" << n.pci << " RSRP_idx=" << static_cast<int>(n.rsrp)
-              << " RSRQ_idx=" << static_cast<int>(n.rsrq) << "\n";
+  for (const auto& n : cell.radio.meas_neighbors) {
+    std::cout << "    └─ MeasReport PCI=" << n.pci;
+    if (n.has_rsrp) std::cout << " RSRP=" << n.rsrp_dbm << " dBm";
+    if (n.has_rsrq) std::cout << " RSRQ=" << n.rsrq_db << " dB";
+    std::cout << "\n";
+  }
 }
 
 void feed(QCom::QualcomParser& p, const char* name, std::span<const uint8_t> data) {

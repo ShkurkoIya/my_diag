@@ -52,7 +52,10 @@ TEST_CASE("Validity checks", "[utils]") {
   SECTION("LTE RSRP") {
     CHECK(valid_lte_rsrp(-100.0f));
     CHECK(valid_lte_rsrp(-140.0f));
-    CHECK_FALSE(valid_lte_rsrp(-29.0f));
+    CHECK(valid_lte_rsrp(-150.0f));
+    CHECK_FALSE(valid_lte_rsrp(-39.0f));
+    CHECK_FALSE(valid_lte_rsrp(-30.0f));
+    CHECK_FALSE(valid_lte_rsrp(-151.0f));
     CHECK_FALSE(valid_lte_rsrp(-181.0f));
   }
   SECTION("NR") {

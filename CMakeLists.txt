@@ -64,10 +64,42 @@ target_link_libraries(qcom_parser PUBLIC
 )
 
 # =============================================================================
-# Executable: scanner (CLI demo)
+# Executable: scanner (CLI demo — synthetic packets)
 # =============================================================================
 add_executable(scanner app/main.cpp)
 target_link_libraries(scanner PRIVATE qcom_parser)
+
+# =============================================================================
+# Optional: qmi_observer (QMI NAS facade for modem scan/control)
+# =============================================================================
+option(BUILD_QMI_OBSERVER "Build qmi_observer library and examples" ON)
+
+if(BUILD_QMI_OBSERVER)
+    add_subdirectory(qmi_observer)
+
+    # Live DIAG pipeline: DeviceCatalog → LinuxSource → parser → tracker
+    add_executable(live_scanner app/live_scanner.cpp)
+    target_include_directories(live_scanner PRIVATE ${CMAKE_SOURCE_DIR}/tools/journal_replay)
+    target_link_libraries(live_scanner PRIVATE qcom_parser qcom_protocol qmi_observer)
+endif()
+
+# =============================================================================
+# Offline tools (cuttable — not part of runtime scanner)
+# =============================================================================
+option(BUILD_TOOLS "Build offline tools (journal_replay)" ON)
+
+if(BUILD_TOOLS)
+    add_executable(journal_replay
+        tools/journal_replay/main.cpp
+    )
+    target_include_directories(journal_replay PRIVATE
+        ${CMAKE_SOURCE_DIR}/tools/journal_replay
+    )
+    target_link_libraries(journal_replay PRIVATE qcom_parser)
+
+    add_executable(dump_diag_codes tools/dump_diag_codes.cpp)
+    target_link_libraries(dump_diag_codes PRIVATE qcom_parser qcom_protocol)
+endif()
 
 # =============================================================================
 # Tests: Catch2 via FetchContent
@@ -84,19 +116,33 @@ if(BUILD_TESTS)
     )
     FetchContent_MakeAvailable(Catch2)
 
-    add_executable(tests
+    set(_test_sources
         tests/test_utils.cpp
         tests/test_lte_binary.cpp
         tests/test_cell_tracker.cpp
         tests/test_lte_asn1.cpp
+        tests/test_at_cereg_parse.cpp
         tests/test_protocol.cpp
+        tests/test_dump_fixtures.cpp
     )
+    if(BUILD_QMI_OBSERVER)
+        list(APPEND _test_sources
+            qmi_observer/tests/test_qmi_observer.cpp
+            qmi_observer/tests/test_device_catalog.cpp
+        )
+    endif()
+
+    add_executable(tests ${_test_sources})
 
     target_link_libraries(tests PRIVATE
         qcom_parser
         qcom_protocol
         Catch2::Catch2WithMain
     )
+
+    if(BUILD_QMI_OBSERVER)
+        target_link_libraries(tests PRIVATE qmi_observer)
+    endif()
 
     list(APPEND CMAKE_MODULE_PATH ${catch2_SOURCE_DIR}/extras)
     include(CTest)

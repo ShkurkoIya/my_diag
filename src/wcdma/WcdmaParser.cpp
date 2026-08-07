@@ -127,6 +127,7 @@ std::expected<std::vector<Events::RrcEvent>, ParserError> WcdmaParser::parse_res
       sig.signal_data = WcdmaSignalParams{
           .rscp = static_cast<float>(rscp),
           .ecio = static_cast<float>(ecio),
+          .has_ecio = true,
       };
       events.push_back(Events::SignalUpdateEvent{.signal = std::move(sig)});
       events.push_back(Events::ServingChangedEvent{.is_serving = true});

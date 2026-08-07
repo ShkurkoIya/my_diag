@@ -4,6 +4,7 @@
 #include <functional>
 #include <memory>
 #include <span>
+#include <string_view>
 #include <unordered_map>
 #include <vector>
 
@@ -12,6 +13,13 @@
 #include "core/ParserInterface.h"
 
 namespace QCom {
+
+struct LogCodeStats {
+  uint64_t seen{0};
+  uint64_t with_events{0};  ///< parse OK and produced ≥1 tracker event
+  uint64_t empty{0};        ///< parse OK but no events (unsupported PDU / fail-closed)
+  uint64_t error{0};        ///< parse returned ParserError
+};
 
 // Top-level Qualcomm DIAG packet router.
 // Receives raw DIAG frames, extracts LogCode, dispatches to the correct
@@ -36,15 +44,26 @@ public:
   std::expected<void, ParserError> on_packet(QualcommPacketView pkt);
 
   [[nodiscard]] const CellTracker& tracker() const noexcept { return m_tracker; }
+  [[nodiscard]] CellTracker& tracker() noexcept { return m_tracker; }
+
+  [[nodiscard]] const std::unordered_map<LogCode, LogCodeStats>& code_stats() const noexcept {
+    return m_code_stats;
+  }
+  [[nodiscard]] bool is_supported(LogCode code) const noexcept {
+    return m_dispatch.contains(code);
+  }
+  [[nodiscard]] std::string_view code_name(LogCode code) const noexcept;
 
 private:
   std::unordered_map<LogCode, std::shared_ptr<IRatParser>> m_dispatch;
+  std::unordered_map<LogCode, LogCodeStats> m_code_stats;
   CellTracker m_tracker;
   CellCallback m_cell_cb;
 
   [[nodiscard]] static RatType classify_rat(LogCode code) noexcept;
   [[nodiscard]] static LocalCellKey extract_cell_key(const QualcommPacketView& pkt,
                                                      RatType rat) noexcept;
+  void handle_diag_event(std::span<const uint8_t> buf);
 };
 
 }  // namespace QCom

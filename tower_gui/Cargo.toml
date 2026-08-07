@@ -2,7 +2,7 @@
 name = "tower_gui"
 version = "0.1.0"
 edition = "2021"
-description = "GUI browser for qcom.towers.v4 JSON dumps"
+description = "GUI browser for qcom.towers JSON dumps"
 
 [dependencies]
 eframe = { version = "0.31", default-features = true, features = ["default_fonts", "glow"] }

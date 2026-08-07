@@ -1,0 +1,3606 @@
+{
+  "meta": {
+    "source": "scan_dumps/android_vlad_20260729/files/observer_cells_gsm-wcdma-lte_20260729_172858.csv",
+    "situation_as_of": "2026-07-29 17:28:14",
+    "tower_count": "90",
+    "raw_tower_count": "526",
+    "filter": "complete_passport_rf_unique_cid_latest",
+    "serving_count": "30",
+    "towers_with_neighbors": "0",
+    "gsm": "23",
+    "lte": "63",
+    "wcdma": "4",
+    "nr": "0",
+    "schema": "qcom.towers.v4",
+    "origin": "vlad"
+  },
+  "towers": {
+    "gsm": [
+      {
+        "key": "GSM|81|49",
+        "meta": {
+          "serving": "0",
+          "seen": "1442",
+          "first_seen": "2026-07-29 16:58:49",
+          "last_seen": "2026-07-29 17:28:14"
+        },
+        "identity": {
+          "mcc": "250",
+          "mnc": "99",
+          "mcc_mnc": "250-99",
+          "lac": "14757",
+          "cid": "12227"
+        },
+        "radio": {
+          "arfcn": "81",
+          "bsic": "49",
+          "ncc": "6",
+          "bcc": "1",
+          "band": "GSM900",
+          "dl_code": "49"
+        },
+        "signal": {
+          "rxl": "-65",
+          "snr": "",
+          "rxqual": "",
+          "c1": "44",
+          "c2": "44"
+        },
+        "neighbors": {
+          "nb_gsm": []
+        }
+      },
+      {
+        "key": "GSM|78|0",
+        "meta": {
+          "serving": "0",
+          "seen": "889",
+          "first_seen": "2026-07-29 17:02:39",
+          "last_seen": "2026-07-29 17:28:14"
+        },
+        "identity": {
+          "mcc": "250",
+          "mnc": "99",
+          "mcc_mnc": "250-99",
+          "lac": "14757",
+          "cid": "11196"
+        },
+        "radio": {
+          "arfcn": "78",
+          "bsic": "",
+          "ncc": "",
+          "bcc": "",
+          "band": "GSM900",
+          "dl_code": ""
+        },
+        "signal": {
+          "rxl": "-76",
+          "snr": "",
+          "rxqual": "",
+          "c1": "33",
+          "c2": "33"
+        },
+        "neighbors": {
+          "nb_gsm": []
+        }
+      },
+      {
+        "key": "GSM|81|32",
+        "meta": {
+          "serving": "0",
+          "seen": "601",
+          "first_seen": "2026-07-29 17:10:02",
+          "last_seen": "2026-07-29 17:28:14"
+        },
+        "identity": {
+          "mcc": "250",
+          "mnc": "99",
+          "mcc_mnc": "250-99",
+          "lac": "14757",
+          "cid": "12885"
+        },
+        "radio": {
+          "arfcn": "81",
+          "bsic": "32",
+          "ncc": "4",
+          "bcc": "0",
+          "band": "GSM900",
+          "dl_code": "32"
+        },
+        "signal": {
+          "rxl": "-69",
+          "snr": "",
+          "rxqual": "",
+          "c1": "",
+          "c2": ""
+        },
+        "neighbors": {
+          "nb_gsm": []
+        }
+      },
+      {
+        "key": "GSM|1019|41",
+        "meta": {
+          "serving": "1",
+          "seen": "31397",
+          "first_seen": "2026-07-29 16:58:47",
+          "last_seen": "2026-07-29 17:22:33"
+        },
+        "identity": {
+          "mcc": "250",
+          "mnc": "01",
+          "mcc_mnc": "250-01",
+          "lac": "234",
+          "cid": "24635"
+        },
+        "radio": {
+          "arfcn": "1019",
+          "bsic": "41",
+          "ncc": "5",
+          "bcc": "1",
+          "band": "GSM900",
+          "dl_code": "41"
+        },
+        "signal": {
+          "rxl": "-64",
+          "snr": "",
+          "rxqual": "",
+          "c1": "46",
+          "c2": "46"
+        },
+        "neighbors": {
+          "nb_gsm": []
+        }
+      },
+      {
+        "key": "GSM|1019|58",
+        "meta": {
+          "serving": "0",
+          "seen": "2028",
+          "first_seen": "2026-07-29 16:58:49",
+          "last_seen": "2026-07-29 17:22:33"
+        },
+        "identity": {
+          "mcc": "250",
+          "mnc": "01",
+          "mcc_mnc": "250-01",
+          "lac": "234",
+          "cid": "29741"
+        },
+        "radio": {
+          "arfcn": "1019",
+          "bsic": "58",
+          "ncc": "7",
+          "bcc": "2",
+          "band": "GSM900",
+          "dl_code": "58"
+        },
+        "signal": {
+          "rxl": "-54",
+          "snr": "",
+          "rxqual": "",
+          "c1": "51",
+          "c2": "51"
+        },
+        "neighbors": {
+          "nb_gsm": []
+        }
+      },
+      {
+        "key": "GSM|1019|11",
+        "meta": {
+          "serving": "0",
+          "seen": "1269",
+          "first_seen": "2026-07-29 16:59:01",
+          "last_seen": "2026-07-29 17:22:33"
+        },
+        "identity": {
+          "mcc": "250",
+          "mnc": "01",
+          "mcc_mnc": "250-01",
+          "lac": "234",
+          "cid": "24633"
+        },
+        "radio": {
+          "arfcn": "1019",
+          "bsic": "11",
+          "ncc": "1",
+          "bcc": "3",
+          "band": "GSM900",
+          "dl_code": "11"
+        },
+        "signal": {
+          "rxl": "-55",
+          "snr": "",
+          "rxqual": "",
+          "c1": "",
+          "c2": ""
+        },
+        "neighbors": {
+          "nb_gsm": []
+        }
+      },
+      {
+        "key": "GSM|679|53",
+        "meta": {
+          "serving": "1",
+          "seen": "824560",
+          "first_seen": "2026-07-29 16:59:07",
+          "last_seen": "2026-07-29 17:22:33"
+        },
+        "identity": {
+          "mcc": "250",
+          "mnc": "01",
+          "mcc_mnc": "250-01",
+          "lac": "234",
+          "cid": "24636"
+        },
+        "radio": {
+          "arfcn": "679",
+          "bsic": "53",
+          "ncc": "6",
+          "bcc": "5",
+          "band": "DCS1800",
+          "dl_code": "53"
+        },
+        "signal": {
+          "rxl": "-39",
+          "snr": "",
+          "rxqual": "",
+          "c1": "62",
+          "c2": "50"
+        },
+        "neighbors": {
+          "nb_gsm": []
+        }
+      },
+      {
+        "key": "GSM|59|32",
+        "meta": {
+          "serving": "0",
+          "seen": "625",
+          "first_seen": "2026-07-29 17:02:39",
+          "last_seen": "2026-07-29 17:22:33"
+        },
+        "identity": {
+          "mcc": "250",
+          "mnc": "01",
+          "mcc_mnc": "250-01",
+          "lac": "234",
+          "cid": "36581"
+        },
+        "radio": {
+          "arfcn": "59",
+          "bsic": "32",
+          "ncc": "4",
+          "bcc": "0",
+          "band": "GSM900",
+          "dl_code": "32"
+        },
+        "signal": {
+          "rxl": "-73",
+          "snr": "",
+          "rxqual": "",
+          "c1": "",
+          "c2": ""
+        },
+        "neighbors": {
+          "nb_gsm": []
+        }
+      },
+      {
+        "key": "GSM|71|12",
+        "meta": {
+          "serving": "1",
+          "seen": "10991",
+          "first_seen": "2026-07-29 17:06:14",
+          "last_seen": "2026-07-29 17:18:38"
+        },
+        "identity": {
+          "mcc": "250",
+          "mnc": "99",
+          "mcc_mnc": "250-99",
+          "lac": "14757",
+          "cid": "12226"
+        },
+        "radio": {
+          "arfcn": "71",
+          "bsic": "12",
+          "ncc": "1",
+          "bcc": "4",
+          "band": "GSM900",
+          "dl_code": "12"
+        },
+        "signal": {
+          "rxl": "-55",
+          "snr": "",
+          "rxqual": "",
+          "c1": "50",
+          "c2": "50"
+        },
+        "neighbors": {
+          "nb_gsm": []
+        }
+      },
+      {
+        "key": "GSM|860|52",
+        "meta": {
+          "serving": "1",
+          "seen": "38612",
+          "first_seen": "2026-07-29 16:58:45",
+          "last_seen": "2026-07-29 17:18:23"
+        },
+        "identity": {
+          "mcc": "250",
+          "mnc": "20",
+          "mcc_mnc": "250-20",
+          "lac": "19719",
+          "cid": "813"
+        },
+        "radio": {
+          "arfcn": "860",
+          "bsic": "52",
+          "ncc": "6",
+          "bcc": "4",
+          "band": "DCS1800",
+          "dl_code": "52"
+        },
+        "signal": {
+          "rxl": "-54",
+          "snr": "",
+          "rxqual": "",
+          "c1": "51",
+          "c2": "81"
+        },
+        "neighbors": {
+          "nb_gsm": []
+        }
+      },
+      {
+        "key": "GSM|862|39",
+        "meta": {
+          "serving": "0",
+          "seen": "2704",
+          "first_seen": "2026-07-29 16:58:45",
+          "last_seen": "2026-07-29 17:15:00"
+        },
+        "identity": {
+          "mcc": "250",
+          "mnc": "20",
+          "mcc_mnc": "250-20",
+          "lac": "20029",
+          "cid": "4723"
+        },
+        "radio": {
+          "arfcn": "862",
+          "bsic": "39",
+          "ncc": "4",
+          "bcc": "7",
+          "band": "DCS1800",
+          "dl_code": "39"
+        },
+        "signal": {
+          "rxl": "-75",
+          "snr": "",
+          "rxqual": "",
+          "c1": "35",
+          "c2": "35"
+        },
+        "neighbors": {
+          "nb_gsm": []
+        }
+      },
+      {
+        "key": "GSM|865|24",
+        "meta": {
+          "serving": "0",
+          "seen": "987",
+          "first_seen": "2026-07-29 16:58:45",
+          "last_seen": "2026-07-29 17:15:00"
+        },
+        "identity": {
+          "mcc": "250",
+          "mnc": "20",
+          "mcc_mnc": "250-20",
+          "lac": "19719",
+          "cid": "812"
+        },
+        "radio": {
+          "arfcn": "865",
+          "bsic": "24",
+          "ncc": "3",
+          "bcc": "0",
+          "band": "DCS1800",
+          "dl_code": "24"
+        },
+        "signal": {
+          "rxl": "-81",
+          "snr": "",
+          "rxqual": "",
+          "c1": "29",
+          "c2": "29"
+        },
+        "neighbors": {
+          "nb_gsm": []
+        }
+      },
+      {
+        "key": "GSM|872|6",
+        "meta": {
+          "serving": "0",
+          "seen": "1113",
+          "first_seen": "2026-07-29 16:59:31",
+          "last_seen": "2026-07-29 17:15:00"
+        },
+        "identity": {
+          "mcc": "250",
+          "mnc": "20",
+          "mcc_mnc": "250-20",
+          "lac": "19719",
+          "cid": "811"
+        },
+        "radio": {
+          "arfcn": "872",
+          "bsic": "6",
+          "ncc": "0",
+          "bcc": "6",
+          "band": "DCS1800",
+          "dl_code": "6"
+        },
+        "signal": {
+          "rxl": "-83",
+          "snr": "",
+          "rxqual": "",
+          "c1": "",
+          "c2": ""
+        },
+        "neighbors": {
+          "nb_gsm": []
+        }
+      },
+      {
+        "key": "GSM|863|45",
+        "meta": {
+          "serving": "0",
+          "seen": "625",
+          "first_seen": "2026-07-29 17:09:58",
+          "last_seen": "2026-07-29 17:15:00"
+        },
+        "identity": {
+          "mcc": "250",
+          "mnc": "20",
+          "mcc_mnc": "250-20",
+          "lac": "20029",
+          "cid": "13042"
+        },
+        "radio": {
+          "arfcn": "863",
+          "bsic": "45",
+          "ncc": "5",
+          "bcc": "5",
+          "band": "DCS1800",
+          "dl_code": "45"
+        },
+        "signal": {
+          "rxl": "-77",
+          "snr": "",
+          "rxqual": "",
+          "c1": "",
+          "c2": ""
+        },
+        "neighbors": {
+          "nb_gsm": []
+        }
+      },
+      {
+        "key": "GSM|871|7",
+        "meta": {
+          "serving": "0",
+          "seen": "479",
+          "first_seen": "2026-07-29 17:10:28",
+          "last_seen": "2026-07-29 17:15:00"
+        },
+        "identity": {
+          "mcc": "250",
+          "mnc": "20",
+          "mcc_mnc": "250-20",
+          "lac": "20029",
+          "cid": "20321"
+        },
+        "radio": {
+          "arfcn": "871",
+          "bsic": "7",
+          "ncc": "0",
+          "bcc": "7",
+          "band": "DCS1800",
+          "dl_code": "7"
+        },
+        "signal": {
+          "rxl": "-85",
+          "snr": "",
+          "rxqual": "",
+          "c1": "",
+          "c2": ""
+        },
+        "neighbors": {
+          "nb_gsm": []
+        }
+      },
+      {
+        "key": "GSM|871|4",
+        "meta": {
+          "serving": "0",
+          "seen": "1002",
+          "first_seen": "2026-07-29 16:58:45",
+          "last_seen": "2026-07-29 17:14:36"
+        },
+        "identity": {
+          "mcc": "250",
+          "mnc": "20",
+          "mcc_mnc": "250-20",
+          "lac": "20029",
+          "cid": "4722"
+        },
+        "radio": {
+          "arfcn": "871",
+          "bsic": "4",
+          "ncc": "0",
+          "bcc": "4",
+          "band": "DCS1800",
+          "dl_code": "4"
+        },
+        "signal": {
+          "rxl": "-84",
+          "snr": "",
+          "rxqual": "",
+          "c1": "26",
+          "c2": "26"
+        },
+        "neighbors": {
+          "nb_gsm": []
+        }
+      },
+      {
+        "key": "GSM|663|18",
+        "meta": {
+          "serving": "1",
+          "seen": "2547",
+          "first_seen": "2026-07-29 17:13:59",
+          "last_seen": "2026-07-29 17:14:06"
+        },
+        "identity": {
+          "mcc": "250",
+          "mnc": "01",
+          "mcc_mnc": "250-01",
+          "lac": "234",
+          "cid": "2106"
+        },
+        "radio": {
+          "arfcn": "663",
+          "bsic": "18",
+          "ncc": "2",
+          "bcc": "2",
+          "band": "DCS1800",
+          "dl_code": "18"
+        },
+        "signal": {
+          "rxl": "-96",
+          "snr": "",
+          "rxqual": "",
+          "c1": "9",
+          "c2": "39"
+        },
+        "neighbors": {
+          "nb_gsm": []
+        }
+      },
+      {
+        "key": "GSM|4|18",
+        "meta": {
+          "serving": "0",
+          "seen": "2465",
+          "first_seen": "2026-07-29 16:58:45",
+          "last_seen": "2026-07-29 17:10:53"
+        },
+        "identity": {
+          "mcc": "250",
+          "mnc": "02",
+          "mcc_mnc": "250-02",
+          "lac": "7840",
+          "cid": "13255"
+        },
+        "radio": {
+          "arfcn": "4",
+          "bsic": "18",
+          "ncc": "2",
+          "bcc": "2",
+          "band": "GSM900",
+          "dl_code": "18"
+        },
+        "signal": {
+          "rxl": "-75",
+          "snr": "",
+          "rxqual": "",
+          "c1": "9",
+          "c2": "39"
+        },
+        "neighbors": {
+          "nb_gsm": []
+        }
+      },
+      {
+        "key": "GSM|843|43",
+        "meta": {
+          "serving": "0",
+          "seen": "2114",
+          "first_seen": "2026-07-29 16:58:45",
+          "last_seen": "2026-07-29 17:10:53"
+        },
+        "identity": {
+          "mcc": "250",
+          "mnc": "02",
+          "mcc_mnc": "250-02",
+          "lac": "7840",
+          "cid": "17126"
+        },
+        "radio": {
+          "arfcn": "843",
+          "bsic": "43",
+          "ncc": "5",
+          "bcc": "3",
+          "band": "DCS1800",
+          "dl_code": "43"
+        },
+        "signal": {
+          "rxl": "-65",
+          "snr": "",
+          "rxqual": "",
+          "c1": "25",
+          "c2": "55"
+        },
+        "neighbors": {
+          "nb_gsm": []
+        }
+      },
+      {
+        "key": "GSM|1019|47",
+        "meta": {
+          "serving": "0",
+          "seen": "2582",
+          "first_seen": "2026-07-29 16:58:47",
+          "last_seen": "2026-07-29 17:10:53"
+        },
+        "identity": {
+          "mcc": "250",
+          "mnc": "02",
+          "mcc_mnc": "250-02",
+          "lac": "7840",
+          "cid": "27983"
+        },
+        "radio": {
+          "arfcn": "1019",
+          "bsic": "47",
+          "ncc": "5",
+          "bcc": "7",
+          "band": "GSM900",
+          "dl_code": "47"
+        },
+        "signal": {
+          "rxl": "-54",
+          "snr": "",
+          "rxqual": "",
+          "c1": "56",
+          "c2": "56"
+        },
+        "neighbors": {
+          "nb_gsm": []
+        }
+      },
+      {
+        "key": "GSM|17|58",
+        "meta": {
+          "serving": "0",
+          "seen": "1530",
+          "first_seen": "2026-07-29 16:58:49",
+          "last_seen": "2026-07-29 17:10:53"
+        },
+        "identity": {
+          "mcc": "250",
+          "mnc": "02",
+          "mcc_mnc": "250-02",
+          "lac": "7840",
+          "cid": "12040"
+        },
+        "radio": {
+          "arfcn": "17",
+          "bsic": "58",
+          "ncc": "7",
+          "bcc": "2",
+          "band": "GSM900",
+          "dl_code": "58"
+        },
+        "signal": {
+          "rxl": "-77",
+          "snr": "",
+          "rxqual": "",
+          "c1": "",
+          "c2": ""
+        },
+        "neighbors": {
+          "nb_gsm": []
+        }
+      },
+      {
+        "key": "GSM|21|21",
+        "meta": {
+          "serving": "0",
+          "seen": "1055",
+          "first_seen": "2026-07-29 16:59:19",
+          "last_seen": "2026-07-29 17:10:53"
+        },
+        "identity": {
+          "mcc": "250",
+          "mnc": "02",
+          "mcc_mnc": "250-02",
+          "lac": "7840",
+          "cid": "22122"
+        },
+        "radio": {
+          "arfcn": "21",
+          "bsic": "21",
+          "ncc": "2",
+          "bcc": "5",
+          "band": "GSM900",
+          "dl_code": "21"
+        },
+        "signal": {
+          "rxl": "-74",
+          "snr": "",
+          "rxqual": "",
+          "c1": "16",
+          "c2": "16"
+        },
+        "neighbors": {
+          "nb_gsm": []
+        }
+      },
+      {
+        "key": "GSM|798|33",
+        "meta": {
+          "serving": "1",
+          "seen": "173793",
+          "first_seen": "2026-07-29 16:59:01",
+          "last_seen": "2026-07-29 17:06:58"
+        },
+        "identity": {
+          "mcc": "250",
+          "mnc": "02",
+          "mcc_mnc": "250-02",
+          "lac": "7840",
+          "cid": "12064"
+        },
+        "radio": {
+          "arfcn": "798",
+          "bsic": "33",
+          "ncc": "4",
+          "bcc": "1",
+          "band": "DCS1800",
+          "dl_code": "33"
+        },
+        "signal": {
+          "rxl": "-63",
+          "snr": "",
+          "rxqual": "",
+          "c1": "22",
+          "c2": "52"
+        },
+        "neighbors": {
+          "nb_gsm": []
+        }
+      }
+    ],
+    "lte": [
+      {
+        "key": "LTE|6350|82",
+        "meta": {
+          "serving": "0",
+          "seen": "1185166",
+          "first_seen": "2026-07-29 16:56:37",
+          "last_seen": "2026-07-29 17:28:14"
+        },
+        "identity": {
+          "mcc": "250",
+          "mnc": "02",
+          "mcc_mnc": "250-02",
+          "tac": "7828",
+          "cid": "202004747",
+          "enb_id": "789081",
+          "ncell_id": "11"
+        },
+        "radio": {
+          "earfcn": "6350",
+          "ul_earfcn": "",
+          "pci": "82",
+          "dl_code": "82",
+          "ul_code": "82",
+          "band": "B20",
+          "duplex_type": "",
+          "dl_freq": "",
+          "ul_freq": "",
+          "bandwidth": "",
+          "ul_bw": ""
+        },
+        "signal": {
+          "rxl": "",
+          "rsrq": "",
+          "snr": "",
+          "rssi": ""
+        },
+        "neighbors": {
+          "nb_lte": [],
+          "nb_gsm": [],
+          "nb_umts": []
+        }
+      },
+      {
+        "key": "LTE|6350|83",
+        "meta": {
+          "serving": "0",
+          "seen": "1185908",
+          "first_seen": "2026-07-29 16:56:37",
+          "last_seen": "2026-07-29 17:28:14"
+        },
+        "identity": {
+          "mcc": "250",
+          "mnc": "02",
+          "mcc_mnc": "250-02",
+          "tac": "7828",
+          "cid": "202004749",
+          "enb_id": "789081",
+          "ncell_id": "13"
+        },
+        "radio": {
+          "earfcn": "6350",
+          "ul_earfcn": "",
+          "pci": "83",
+          "dl_code": "83",
+          "ul_code": "83",
+          "band": "B20",
+          "duplex_type": "",
+          "dl_freq": "",
+          "ul_freq": "",
+          "bandwidth": "",
+          "ul_bw": ""
+        },
+        "signal": {
+          "rxl": "",
+          "rsrq": "",
+          "snr": "",
+          "rssi": ""
+        },
+        "neighbors": {
+          "nb_lte": [],
+          "nb_gsm": [],
+          "nb_umts": []
+        }
+      },
+      {
+        "key": "LTE|200|466",
+        "meta": {
+          "serving": "0",
+          "seen": "1191473",
+          "first_seen": "2026-07-29 16:56:37",
+          "last_seen": "2026-07-29 17:28:14"
+        },
+        "identity": {
+          "mcc": "250",
+          "mnc": "02",
+          "mcc_mnc": "250-02",
+          "tac": "7828",
+          "cid": "199815013",
+          "enb_id": "780527",
+          "ncell_id": "101"
+        },
+        "radio": {
+          "earfcn": "200",
+          "ul_earfcn": "",
+          "pci": "466",
+          "dl_code": "466",
+          "ul_code": "466",
+          "band": "B1",
+          "duplex_type": "",
+          "dl_freq": "",
+          "ul_freq": "",
+          "bandwidth": "",
+          "ul_bw": ""
+        },
+        "signal": {
+          "rxl": "",
+          "rsrq": "",
+          "snr": "",
+          "rssi": ""
+        },
+        "neighbors": {
+          "nb_lte": [],
+          "nb_gsm": [],
+          "nb_umts": []
+        }
+      },
+      {
+        "key": "LTE|100|18",
+        "meta": {
+          "serving": "1",
+          "seen": "1188877",
+          "first_seen": "2026-07-29 16:56:37",
+          "last_seen": "2026-07-29 17:28:14"
+        },
+        "identity": {
+          "mcc": "250",
+          "mnc": "20",
+          "mcc_mnc": "250-20",
+          "tac": "20029",
+          "cid": "200013876",
+          "enb_id": "781304",
+          "ncell_id": "52"
+        },
+        "radio": {
+          "earfcn": "100",
+          "ul_earfcn": "",
+          "pci": "18",
+          "dl_code": "18",
+          "ul_code": "18",
+          "band": "B1",
+          "duplex_type": "",
+          "dl_freq": "",
+          "ul_freq": "",
+          "bandwidth": "",
+          "ul_bw": ""
+        },
+        "signal": {
+          "rxl": "",
+          "rsrq": "",
+          "snr": "",
+          "rssi": ""
+        },
+        "neighbors": {
+          "nb_lte": [],
+          "nb_gsm": [],
+          "nb_umts": []
+        }
+      },
+      {
+        "key": "LTE|1596|447",
+        "meta": {
+          "serving": "0",
+          "seen": "1174076",
+          "first_seen": "2026-07-29 16:56:41",
+          "last_seen": "2026-07-29 17:28:14"
+        },
+        "identity": {
+          "mcc": "250",
+          "mnc": "02",
+          "mcc_mnc": "250-02",
+          "tac": "7828",
+          "cid": "201368779",
+          "enb_id": "786596",
+          "ncell_id": "203"
+        },
+        "radio": {
+          "earfcn": "1596",
+          "ul_earfcn": "",
+          "pci": "447",
+          "dl_code": "447",
+          "ul_code": "447",
+          "band": "B3",
+          "duplex_type": "",
+          "dl_freq": "",
+          "ul_freq": "",
+          "bandwidth": "",
+          "ul_bw": ""
+        },
+        "signal": {
+          "rxl": "",
+          "rsrq": "",
+          "snr": "",
+          "rssi": ""
+        },
+        "neighbors": {
+          "nb_lte": [],
+          "nb_gsm": [],
+          "nb_umts": []
+        }
+      },
+      {
+        "key": "LTE|1596|157",
+        "meta": {
+          "serving": "0",
+          "seen": "1175553",
+          "first_seen": "2026-07-29 16:56:41",
+          "last_seen": "2026-07-29 17:28:14"
+        },
+        "identity": {
+          "mcc": "250",
+          "mnc": "02",
+          "mcc_mnc": "250-02",
+          "tac": "7828",
+          "cid": "199815113",
+          "enb_id": "780527",
+          "ncell_id": "201"
+        },
+        "radio": {
+          "earfcn": "1596",
+          "ul_earfcn": "",
+          "pci": "157",
+          "dl_code": "157",
+          "ul_code": "157",
+          "band": "B3",
+          "duplex_type": "",
+          "dl_freq": "",
+          "ul_freq": "",
+          "bandwidth": "",
+          "ul_bw": ""
+        },
+        "signal": {
+          "rxl": "",
+          "rsrq": "",
+          "snr": "",
+          "rssi": ""
+        },
+        "neighbors": {
+          "nb_lte": [],
+          "nb_gsm": [],
+          "nb_umts": []
+        }
+      },
+      {
+        "key": "LTE|1596|275",
+        "meta": {
+          "serving": "0",
+          "seen": "1174814",
+          "first_seen": "2026-07-29 16:56:41",
+          "last_seen": "2026-07-29 17:28:14"
+        },
+        "identity": {
+          "mcc": "250",
+          "mnc": "02",
+          "mcc_mnc": "250-02",
+          "tac": "7828",
+          "cid": "199815114",
+          "enb_id": "780527",
+          "ncell_id": "202"
+        },
+        "radio": {
+          "earfcn": "1596",
+          "ul_earfcn": "",
+          "pci": "275",
+          "dl_code": "275",
+          "ul_code": "275",
+          "band": "B3",
+          "duplex_type": "",
+          "dl_freq": "",
+          "ul_freq": "",
+          "bandwidth": "",
+          "ul_bw": ""
+        },
+        "signal": {
+          "rxl": "",
+          "rsrq": "",
+          "snr": "",
+          "rssi": ""
+        },
+        "neighbors": {
+          "nb_lte": [],
+          "nb_gsm": [],
+          "nb_umts": []
+        }
+      },
+      {
+        "key": "LTE|525|182",
+        "meta": {
+          "serving": "0",
+          "seen": "1156072",
+          "first_seen": "2026-07-29 16:56:45",
+          "last_seen": "2026-07-29 17:28:14"
+        },
+        "identity": {
+          "mcc": "250",
+          "mnc": "99",
+          "mcc_mnc": "250-99",
+          "tac": "678",
+          "cid": "199992934",
+          "enb_id": "781222",
+          "ncell_id": "102"
+        },
+        "radio": {
+          "earfcn": "525",
+          "ul_earfcn": "",
+          "pci": "182",
+          "dl_code": "182",
+          "ul_code": "182",
+          "band": "B1",
+          "duplex_type": "",
+          "dl_freq": "",
+          "ul_freq": "",
+          "bandwidth": "",
+          "ul_bw": ""
+        },
+        "signal": {
+          "rxl": "",
+          "rsrq": "",
+          "snr": "",
+          "rssi": ""
+        },
+        "neighbors": {
+          "nb_lte": [],
+          "nb_gsm": [],
+          "nb_umts": []
+        }
+      },
+      {
+        "key": "LTE|39146|491",
+        "meta": {
+          "serving": "0",
+          "seen": "1164146",
+          "first_seen": "2026-07-29 16:56:45",
+          "last_seen": "2026-07-29 17:28:14"
+        },
+        "identity": {
+          "mcc": "250",
+          "mnc": "20",
+          "mcc_mnc": "250-20",
+          "tac": "19703",
+          "cid": "200774181",
+          "enb_id": "784274",
+          "ncell_id": "37"
+        },
+        "radio": {
+          "earfcn": "39146",
+          "ul_earfcn": "",
+          "pci": "491",
+          "dl_code": "491",
+          "ul_code": "491",
+          "band": "B40",
+          "duplex_type": "",
+          "dl_freq": "",
+          "ul_freq": "",
+          "bandwidth": "",
+          "ul_bw": ""
+        },
+        "signal": {
+          "rxl": "",
+          "rsrq": "",
+          "snr": "",
+          "rssi": ""
+        },
+        "neighbors": {
+          "nb_lte": [],
+          "nb_gsm": [],
+          "nb_umts": []
+        }
+      },
+      {
+        "key": "LTE|38948|389",
+        "meta": {
+          "serving": "0",
+          "seen": "1168183",
+          "first_seen": "2026-07-29 16:56:45",
+          "last_seen": "2026-07-29 17:28:14"
+        },
+        "identity": {
+          "mcc": "250",
+          "mnc": "20",
+          "mcc_mnc": "250-20",
+          "tac": "19703",
+          "cid": "200774178",
+          "enb_id": "784274",
+          "ncell_id": "34"
+        },
+        "radio": {
+          "earfcn": "38948",
+          "ul_earfcn": "",
+          "pci": "389",
+          "dl_code": "389",
+          "ul_code": "389",
+          "band": "B40",
+          "duplex_type": "",
+          "dl_freq": "",
+          "ul_freq": "",
+          "bandwidth": "",
+          "ul_bw": ""
+        },
+        "signal": {
+          "rxl": "",
+          "rsrq": "",
+          "snr": "",
+          "rssi": ""
+        },
+        "neighbors": {
+          "nb_lte": [],
+          "nb_gsm": [],
+          "nb_umts": []
+        }
+      },
+      {
+        "key": "LTE|3750|316",
+        "meta": {
+          "serving": "1",
+          "seen": "1160843",
+          "first_seen": "2026-07-29 16:56:45",
+          "last_seen": "2026-07-29 17:28:14"
+        },
+        "identity": {
+          "mcc": "250",
+          "mnc": "02",
+          "mcc_mnc": "250-02",
+          "tac": "7828",
+          "cid": "199815163",
+          "enb_id": "780527",
+          "ncell_id": "251"
+        },
+        "radio": {
+          "earfcn": "3750",
+          "ul_earfcn": "",
+          "pci": "316",
+          "dl_code": "316",
+          "ul_code": "316",
+          "band": "B8",
+          "duplex_type": "",
+          "dl_freq": "",
+          "ul_freq": "",
+          "bandwidth": "",
+          "ul_bw": ""
+        },
+        "signal": {
+          "rxl": "",
+          "rsrq": "",
+          "snr": "",
+          "rssi": ""
+        },
+        "neighbors": {
+          "nb_lte": [],
+          "nb_gsm": [],
+          "nb_umts": []
+        }
+      },
+      {
+        "key": "LTE|1820|447",
+        "meta": {
+          "serving": "0",
+          "seen": "1157540",
+          "first_seen": "2026-07-29 16:56:45",
+          "last_seen": "2026-07-29 17:28:14"
+        },
+        "identity": {
+          "mcc": "250",
+          "mnc": "02",
+          "mcc_mnc": "250-02",
+          "tac": "7828",
+          "cid": "201368783",
+          "enb_id": "786596",
+          "ncell_id": "207"
+        },
+        "radio": {
+          "earfcn": "1820",
+          "ul_earfcn": "",
+          "pci": "447",
+          "dl_code": "447",
+          "ul_code": "447",
+          "band": "B3",
+          "duplex_type": "",
+          "dl_freq": "",
+          "ul_freq": "",
+          "bandwidth": "",
+          "ul_bw": ""
+        },
+        "signal": {
+          "rxl": "",
+          "rsrq": "",
+          "snr": "",
+          "rssi": ""
+        },
+        "neighbors": {
+          "nb_lte": [],
+          "nb_gsm": [],
+          "nb_umts": []
+        }
+      },
+      {
+        "key": "LTE|1820|157",
+        "meta": {
+          "serving": "0",
+          "seen": "1158274",
+          "first_seen": "2026-07-29 16:56:45",
+          "last_seen": "2026-07-29 17:28:14"
+        },
+        "identity": {
+          "mcc": "250",
+          "mnc": "02",
+          "mcc_mnc": "250-02",
+          "tac": "7828",
+          "cid": "199815116",
+          "enb_id": "780527",
+          "ncell_id": "204"
+        },
+        "radio": {
+          "earfcn": "1820",
+          "ul_earfcn": "",
+          "pci": "157",
+          "dl_code": "157",
+          "ul_code": "157",
+          "band": "B3",
+          "duplex_type": "",
+          "dl_freq": "",
+          "ul_freq": "",
+          "bandwidth": "",
+          "ul_bw": ""
+        },
+        "signal": {
+          "rxl": "",
+          "rsrq": "",
+          "snr": "",
+          "rssi": ""
+        },
+        "neighbors": {
+          "nb_lte": [],
+          "nb_gsm": [],
+          "nb_umts": []
+        }
+      },
+      {
+        "key": "LTE|3750|359",
+        "meta": {
+          "serving": "0",
+          "seen": "1160109",
+          "first_seen": "2026-07-29 16:56:45",
+          "last_seen": "2026-07-29 17:28:14"
+        },
+        "identity": {
+          "mcc": "250",
+          "mnc": "02",
+          "mcc_mnc": "250-02",
+          "tac": "7828",
+          "cid": "199815164",
+          "enb_id": "780527",
+          "ncell_id": "252"
+        },
+        "radio": {
+          "earfcn": "3750",
+          "ul_earfcn": "",
+          "pci": "359",
+          "dl_code": "359",
+          "ul_code": "359",
+          "band": "B8",
+          "duplex_type": "",
+          "dl_freq": "",
+          "ul_freq": "",
+          "bandwidth": "",
+          "ul_bw": ""
+        },
+        "signal": {
+          "rxl": "",
+          "rsrq": "",
+          "snr": "",
+          "rssi": ""
+        },
+        "neighbors": {
+          "nb_lte": [],
+          "nb_gsm": [],
+          "nb_umts": []
+        }
+      },
+      {
+        "key": "LTE|38750|491",
+        "meta": {
+          "serving": "0",
+          "seen": "1109314",
+          "first_seen": "2026-07-29 16:57:13",
+          "last_seen": "2026-07-29 17:28:14"
+        },
+        "identity": {
+          "mcc": "250",
+          "mnc": "20",
+          "mcc_mnc": "250-20",
+          "tac": "19703",
+          "cid": "200774175",
+          "enb_id": "784274",
+          "ncell_id": "31"
+        },
+        "radio": {
+          "earfcn": "38750",
+          "ul_earfcn": "",
+          "pci": "491",
+          "dl_code": "491",
+          "ul_code": "491",
+          "band": "B40",
+          "duplex_type": "",
+          "dl_freq": "",
+          "ul_freq": "",
+          "bandwidth": "",
+          "ul_bw": ""
+        },
+        "signal": {
+          "rxl": "",
+          "rsrq": "",
+          "snr": "",
+          "rssi": ""
+        },
+        "neighbors": {
+          "nb_lte": [],
+          "nb_gsm": [],
+          "nb_umts": []
+        }
+      },
+      {
+        "key": "LTE|3300|333",
+        "meta": {
+          "serving": "0",
+          "seen": "1107178",
+          "first_seen": "2026-07-29 16:57:13",
+          "last_seen": "2026-07-29 17:28:14"
+        },
+        "identity": {
+          "mcc": "250",
+          "mnc": "99",
+          "mcc_mnc": "250-99",
+          "tac": "678",
+          "cid": "199990533",
+          "enb_id": "781213",
+          "ncell_id": "5"
+        },
+        "radio": {
+          "earfcn": "3300",
+          "ul_earfcn": "",
+          "pci": "333",
+          "dl_code": "333",
+          "ul_code": "333",
+          "band": "B7",
+          "duplex_type": "",
+          "dl_freq": "",
+          "ul_freq": "",
+          "bandwidth": "",
+          "ul_bw": ""
+        },
+        "signal": {
+          "rxl": "",
+          "rsrq": "",
+          "snr": "",
+          "rssi": ""
+        },
+        "neighbors": {
+          "nb_lte": [],
+          "nb_gsm": [],
+          "nb_umts": []
+        }
+      },
+      {
+        "key": "LTE|3300|144",
+        "meta": {
+          "serving": "0",
+          "seen": "1107890",
+          "first_seen": "2026-07-29 16:57:13",
+          "last_seen": "2026-07-29 17:28:14"
+        },
+        "identity": {
+          "mcc": "250",
+          "mnc": "99",
+          "mcc_mnc": "250-99",
+          "tac": "678",
+          "cid": "199992837",
+          "enb_id": "781222",
+          "ncell_id": "5"
+        },
+        "radio": {
+          "earfcn": "3300",
+          "ul_earfcn": "",
+          "pci": "144",
+          "dl_code": "144",
+          "ul_code": "144",
+          "band": "B7",
+          "duplex_type": "",
+          "dl_freq": "",
+          "ul_freq": "",
+          "bandwidth": "",
+          "ul_bw": ""
+        },
+        "signal": {
+          "rxl": "",
+          "rsrq": "",
+          "snr": "",
+          "rssi": ""
+        },
+        "neighbors": {
+          "nb_lte": [],
+          "nb_gsm": [],
+          "nb_umts": []
+        }
+      },
+      {
+        "key": "LTE|3048|438",
+        "meta": {
+          "serving": "1",
+          "seen": "1100784",
+          "first_seen": "2026-07-29 16:57:15",
+          "last_seen": "2026-07-29 17:28:14"
+        },
+        "identity": {
+          "mcc": "250",
+          "mnc": "02",
+          "mcc_mnc": "250-02",
+          "tac": "7828",
+          "cid": "200704257",
+          "enb_id": "784001",
+          "ncell_id": "1"
+        },
+        "radio": {
+          "earfcn": "3048",
+          "ul_earfcn": "",
+          "pci": "438",
+          "dl_code": "438",
+          "ul_code": "438",
+          "band": "B7",
+          "duplex_type": "",
+          "dl_freq": "",
+          "ul_freq": "",
+          "bandwidth": "",
+          "ul_bw": ""
+        },
+        "signal": {
+          "rxl": "",
+          "rsrq": "",
+          "snr": "",
+          "rssi": ""
+        },
+        "neighbors": {
+          "nb_lte": [],
+          "nb_gsm": [],
+          "nb_umts": []
+        }
+      },
+      {
+        "key": "LTE|1414|332",
+        "meta": {
+          "serving": "0",
+          "seen": "1103624",
+          "first_seen": "2026-07-29 16:57:15",
+          "last_seen": "2026-07-29 17:28:14"
+        },
+        "identity": {
+          "mcc": "250",
+          "mnc": "99",
+          "mcc_mnc": "250-99",
+          "tac": "678",
+          "cid": "199992841",
+          "enb_id": "781222",
+          "ncell_id": "9"
+        },
+        "radio": {
+          "earfcn": "1414",
+          "ul_earfcn": "",
+          "pci": "332",
+          "dl_code": "332",
+          "ul_code": "332",
+          "band": "B3",
+          "duplex_type": "",
+          "dl_freq": "",
+          "ul_freq": "",
+          "bandwidth": "",
+          "ul_bw": ""
+        },
+        "signal": {
+          "rxl": "",
+          "rsrq": "",
+          "snr": "",
+          "rssi": ""
+        },
+        "neighbors": {
+          "nb_lte": [],
+          "nb_gsm": [],
+          "nb_umts": []
+        }
+      },
+      {
+        "key": "LTE|3048|367",
+        "meta": {
+          "serving": "0",
+          "seen": "1100074",
+          "first_seen": "2026-07-29 16:57:15",
+          "last_seen": "2026-07-29 17:28:14"
+        },
+        "identity": {
+          "mcc": "250",
+          "mnc": "02",
+          "mcc_mnc": "250-02",
+          "tac": "7828",
+          "cid": "199815055",
+          "enb_id": "780527",
+          "ncell_id": "143"
+        },
+        "radio": {
+          "earfcn": "3048",
+          "ul_earfcn": "",
+          "pci": "367",
+          "dl_code": "367",
+          "ul_code": "367",
+          "band": "B7",
+          "duplex_type": "",
+          "dl_freq": "",
+          "ul_freq": "",
+          "bandwidth": "",
+          "ul_bw": ""
+        },
+        "signal": {
+          "rxl": "",
+          "rsrq": "",
+          "snr": "",
+          "rssi": ""
+        },
+        "neighbors": {
+          "nb_lte": [],
+          "nb_gsm": [],
+          "nb_umts": []
+        }
+      },
+      {
+        "key": "LTE|3048|398",
+        "meta": {
+          "serving": "0",
+          "seen": "917779",
+          "first_seen": "2026-07-29 17:00:19",
+          "last_seen": "2026-07-29 17:28:14"
+        },
+        "identity": {
+          "mcc": "250",
+          "mnc": "02",
+          "mcc_mnc": "250-02",
+          "tac": "7828",
+          "cid": "199815057",
+          "enb_id": "780527",
+          "ncell_id": "145"
+        },
+        "radio": {
+          "earfcn": "3048",
+          "ul_earfcn": "",
+          "pci": "398",
+          "dl_code": "398",
+          "ul_code": "398",
+          "band": "B7",
+          "duplex_type": "",
+          "dl_freq": "",
+          "ul_freq": "",
+          "bandwidth": "",
+          "ul_bw": ""
+        },
+        "signal": {
+          "rxl": "",
+          "rsrq": "",
+          "snr": "",
+          "rssi": ""
+        },
+        "neighbors": {
+          "nb_lte": [],
+          "nb_gsm": [],
+          "nb_umts": []
+        }
+      },
+      {
+        "key": "LTE|200|184",
+        "meta": {
+          "serving": "0",
+          "seen": "911851",
+          "first_seen": "2026-07-29 17:00:23",
+          "last_seen": "2026-07-29 17:28:14"
+        },
+        "identity": {
+          "mcc": "250",
+          "mnc": "02",
+          "mcc_mnc": "250-02",
+          "tac": "7828",
+          "cid": "201368677",
+          "enb_id": "786596",
+          "ncell_id": "101"
+        },
+        "radio": {
+          "earfcn": "200",
+          "ul_earfcn": "",
+          "pci": "184",
+          "dl_code": "184",
+          "ul_code": "184",
+          "band": "B1",
+          "duplex_type": "",
+          "dl_freq": "",
+          "ul_freq": "",
+          "bandwidth": "",
+          "ul_bw": ""
+        },
+        "signal": {
+          "rxl": "",
+          "rsrq": "",
+          "snr": "",
+          "rssi": ""
+        },
+        "neighbors": {
+          "nb_lte": [],
+          "nb_gsm": [],
+          "nb_umts": []
+        }
+      },
+      {
+        "key": "LTE|100|216",
+        "meta": {
+          "serving": "0",
+          "seen": "905325",
+          "first_seen": "2026-07-29 17:00:26",
+          "last_seen": "2026-07-29 17:28:14"
+        },
+        "identity": {
+          "mcc": "250",
+          "mnc": "20",
+          "mcc_mnc": "250-20",
+          "tac": "20029",
+          "cid": "199800885",
+          "enb_id": "780472",
+          "ncell_id": "53"
+        },
+        "radio": {
+          "earfcn": "100",
+          "ul_earfcn": "",
+          "pci": "216",
+          "dl_code": "216",
+          "ul_code": "216",
+          "band": "B1",
+          "duplex_type": "",
+          "dl_freq": "",
+          "ul_freq": "",
+          "bandwidth": "",
+          "ul_bw": ""
+        },
+        "signal": {
+          "rxl": "",
+          "rsrq": "",
+          "snr": "",
+          "rssi": ""
+        },
+        "neighbors": {
+          "nb_lte": [],
+          "nb_gsm": [],
+          "nb_umts": []
+        }
+      },
+      {
+        "key": "LTE|3750|64",
+        "meta": {
+          "serving": "0",
+          "seen": "883140",
+          "first_seen": "2026-07-29 17:00:34",
+          "last_seen": "2026-07-29 17:28:14"
+        },
+        "identity": {
+          "mcc": "250",
+          "mnc": "02",
+          "mcc_mnc": "250-02",
+          "tac": "47885",
+          "cid": "202086651",
+          "enb_id": "789400",
+          "ncell_id": "251"
+        },
+        "radio": {
+          "earfcn": "3750",
+          "ul_earfcn": "",
+          "pci": "64",
+          "dl_code": "64",
+          "ul_code": "64",
+          "band": "B8",
+          "duplex_type": "",
+          "dl_freq": "",
+          "ul_freq": "",
+          "bandwidth": "",
+          "ul_bw": ""
+        },
+        "signal": {
+          "rxl": "",
+          "rsrq": "",
+          "snr": "",
+          "rssi": ""
+        },
+        "neighbors": {
+          "nb_lte": [],
+          "nb_gsm": [],
+          "nb_umts": []
+        }
+      },
+      {
+        "key": "LTE|525|130",
+        "meta": {
+          "serving": "0",
+          "seen": "858330",
+          "first_seen": "2026-07-29 17:00:57",
+          "last_seen": "2026-07-29 17:28:14"
+        },
+        "identity": {
+          "mcc": "250",
+          "mnc": "99",
+          "mcc_mnc": "250-99",
+          "tac": "678",
+          "cid": "199992935",
+          "enb_id": "781222",
+          "ncell_id": "103"
+        },
+        "radio": {
+          "earfcn": "525",
+          "ul_earfcn": "",
+          "pci": "130",
+          "dl_code": "130",
+          "ul_code": "130",
+          "band": "B1",
+          "duplex_type": "",
+          "dl_freq": "",
+          "ul_freq": "",
+          "bandwidth": "",
+          "ul_bw": ""
+        },
+        "signal": {
+          "rxl": "",
+          "rsrq": "",
+          "snr": "",
+          "rssi": ""
+        },
+        "neighbors": {
+          "nb_lte": [],
+          "nb_gsm": [],
+          "nb_umts": []
+        }
+      },
+      {
+        "key": "LTE|2850|398",
+        "meta": {
+          "serving": "0",
+          "seen": "525997",
+          "first_seen": "2026-07-29 17:04:40",
+          "last_seen": "2026-07-29 17:28:14"
+        },
+        "identity": {
+          "mcc": "250",
+          "mnc": "02",
+          "mcc_mnc": "250-02",
+          "tac": "7828",
+          "cid": "199815056",
+          "enb_id": "780527",
+          "ncell_id": "144"
+        },
+        "radio": {
+          "earfcn": "2850",
+          "ul_earfcn": "",
+          "pci": "398",
+          "dl_code": "398",
+          "ul_code": "398",
+          "band": "B7",
+          "duplex_type": "",
+          "dl_freq": "",
+          "ul_freq": "",
+          "bandwidth": "",
+          "ul_bw": ""
+        },
+        "signal": {
+          "rxl": "",
+          "rsrq": "",
+          "snr": "",
+          "rssi": ""
+        },
+        "neighbors": {
+          "nb_lte": [],
+          "nb_gsm": [],
+          "nb_umts": []
+        }
+      },
+      {
+        "key": "LTE|38948|77",
+        "meta": {
+          "serving": "0",
+          "seen": "188496",
+          "first_seen": "2026-07-29 17:12:21",
+          "last_seen": "2026-07-29 17:28:14"
+        },
+        "identity": {
+          "mcc": "250",
+          "mnc": "20",
+          "mcc_mnc": "250-20",
+          "tac": "20029",
+          "cid": "200781860",
+          "enb_id": "784304",
+          "ncell_id": "36"
+        },
+        "radio": {
+          "earfcn": "38948",
+          "ul_earfcn": "",
+          "pci": "77",
+          "dl_code": "77",
+          "ul_code": "77",
+          "band": "B40",
+          "duplex_type": "",
+          "dl_freq": "",
+          "ul_freq": "",
+          "bandwidth": "",
+          "ul_bw": ""
+        },
+        "signal": {
+          "rxl": "",
+          "rsrq": "",
+          "snr": "",
+          "rssi": ""
+        },
+        "neighbors": {
+          "nb_lte": [],
+          "nb_gsm": [],
+          "nb_umts": []
+        }
+      },
+      {
+        "key": "LTE|1414|207",
+        "meta": {
+          "serving": "0",
+          "seen": "129",
+          "first_seen": "2026-07-29 17:20:18",
+          "last_seen": "2026-07-29 17:28:14"
+        },
+        "identity": {
+          "mcc": "250",
+          "mnc": "99",
+          "mcc_mnc": "250-99",
+          "tac": "3478",
+          "cid": "200009735",
+          "enb_id": "781288",
+          "ncell_id": "7"
+        },
+        "radio": {
+          "earfcn": "1414",
+          "ul_earfcn": "",
+          "pci": "207",
+          "dl_code": "207",
+          "ul_code": "207",
+          "band": "B3",
+          "duplex_type": "",
+          "dl_freq": "",
+          "ul_freq": "",
+          "bandwidth": "",
+          "ul_bw": ""
+        },
+        "signal": {
+          "rxl": "",
+          "rsrq": "",
+          "snr": "",
+          "rssi": ""
+        },
+        "neighbors": {
+          "nb_lte": [],
+          "nb_gsm": [],
+          "nb_umts": []
+        }
+      },
+      {
+        "key": "LTE|1414|259",
+        "meta": {
+          "serving": "1",
+          "seen": "1105400",
+          "first_seen": "2026-07-29 16:57:15",
+          "last_seen": "2026-07-29 17:19:58"
+        },
+        "identity": {
+          "mcc": "250",
+          "mnc": "99",
+          "mcc_mnc": "250-99",
+          "tac": "678",
+          "cid": "199992840",
+          "enb_id": "781222",
+          "ncell_id": "8"
+        },
+        "radio": {
+          "earfcn": "1414",
+          "ul_earfcn": "",
+          "pci": "259",
+          "dl_code": "259",
+          "ul_code": "259",
+          "band": "B3",
+          "duplex_type": "",
+          "dl_freq": "",
+          "ul_freq": "",
+          "bandwidth": "",
+          "ul_bw": ""
+        },
+        "signal": {
+          "rxl": "",
+          "rsrq": "",
+          "snr": "",
+          "rssi": ""
+        },
+        "neighbors": {
+          "nb_lte": [],
+          "nb_gsm": [],
+          "nb_umts": []
+        }
+      },
+      {
+        "key": "LTE|3638|173",
+        "meta": {
+          "serving": "1",
+          "seen": "1176304",
+          "first_seen": "2026-07-29 16:56:41",
+          "last_seen": "2026-07-29 17:19:52"
+        },
+        "identity": {
+          "mcc": "250",
+          "mnc": "01",
+          "mcc_mnc": "250-01",
+          "tac": "17806",
+          "cid": "51830556",
+          "enb_id": "202463",
+          "ncell_id": "28"
+        },
+        "radio": {
+          "earfcn": "3638",
+          "ul_earfcn": "",
+          "pci": "173",
+          "dl_code": "173",
+          "ul_code": "173",
+          "band": "B8",
+          "duplex_type": "",
+          "dl_freq": "",
+          "ul_freq": "",
+          "bandwidth": "",
+          "ul_bw": ""
+        },
+        "signal": {
+          "rxl": "-73",
+          "rsrq": "-9",
+          "snr": "",
+          "rssi": ""
+        },
+        "neighbors": {
+          "nb_lte": [],
+          "nb_gsm": [],
+          "nb_umts": []
+        }
+      },
+      {
+        "key": "LTE|525|244",
+        "meta": {
+          "serving": "0",
+          "seen": "1154610",
+          "first_seen": "2026-07-29 16:56:47",
+          "last_seen": "2026-07-29 17:19:31"
+        },
+        "identity": {
+          "mcc": "250",
+          "mnc": "99",
+          "mcc_mnc": "250-99",
+          "tac": "678",
+          "cid": "199990630",
+          "enb_id": "781213",
+          "ncell_id": "102"
+        },
+        "radio": {
+          "earfcn": "525",
+          "ul_earfcn": "",
+          "pci": "244",
+          "dl_code": "244",
+          "ul_code": "244",
+          "band": "B1",
+          "duplex_type": "",
+          "dl_freq": "",
+          "ul_freq": "",
+          "bandwidth": "",
+          "ul_bw": ""
+        },
+        "signal": {
+          "rxl": "",
+          "rsrq": "",
+          "snr": "",
+          "rssi": ""
+        },
+        "neighbors": {
+          "nb_lte": [],
+          "nb_gsm": [],
+          "nb_umts": []
+        }
+      },
+      {
+        "key": "LTE|6413|141",
+        "meta": {
+          "serving": "1",
+          "seen": "1188135",
+          "first_seen": "2026-07-29 16:56:37",
+          "last_seen": "2026-07-29 17:16:55"
+        },
+        "identity": {
+          "mcc": "250",
+          "mnc": "99",
+          "mcc_mnc": "250-99",
+          "tac": "3478",
+          "cid": "200009729",
+          "enb_id": "781288",
+          "ncell_id": "1"
+        },
+        "radio": {
+          "earfcn": "6413",
+          "ul_earfcn": "",
+          "pci": "141",
+          "dl_code": "141",
+          "ul_code": "141",
+          "band": "B20",
+          "duplex_type": "",
+          "dl_freq": "",
+          "ul_freq": "",
+          "bandwidth": "",
+          "ul_bw": ""
+        },
+        "signal": {
+          "rxl": "-82",
+          "rsrq": "-9",
+          "snr": "",
+          "rssi": ""
+        },
+        "neighbors": {
+          "nb_lte": [],
+          "nb_gsm": [],
+          "nb_umts": []
+        }
+      },
+      {
+        "key": "LTE|38100|455",
+        "meta": {
+          "serving": "1",
+          "seen": "1171500",
+          "first_seen": "2026-07-29 16:56:43",
+          "last_seen": "2026-07-29 17:16:49"
+        },
+        "identity": {
+          "mcc": "250",
+          "mnc": "01",
+          "mcc_mnc": "250-01",
+          "tac": "17806",
+          "cid": "51830550",
+          "enb_id": "202463",
+          "ncell_id": "22"
+        },
+        "radio": {
+          "earfcn": "38100",
+          "ul_earfcn": "",
+          "pci": "455",
+          "dl_code": "455",
+          "ul_code": "455",
+          "band": "B38",
+          "duplex_type": "",
+          "dl_freq": "",
+          "ul_freq": "",
+          "bandwidth": "",
+          "ul_bw": ""
+        },
+        "signal": {
+          "rxl": "-87",
+          "rsrq": "-11",
+          "snr": "",
+          "rssi": ""
+        },
+        "neighbors": {
+          "nb_lte": [],
+          "nb_gsm": [],
+          "nb_umts": []
+        }
+      },
+      {
+        "key": "LTE|40740|391",
+        "meta": {
+          "serving": "0",
+          "seen": "1152417",
+          "first_seen": "2026-07-29 16:56:51",
+          "last_seen": "2026-07-29 17:16:49"
+        },
+        "identity": {
+          "mcc": "250",
+          "mnc": "01",
+          "mcc_mnc": "250-01",
+          "tac": "17806",
+          "cid": "51830549",
+          "enb_id": "202463",
+          "ncell_id": "21"
+        },
+        "radio": {
+          "earfcn": "40740",
+          "ul_earfcn": "",
+          "pci": "391",
+          "dl_code": "391",
+          "ul_code": "391",
+          "band": "B41",
+          "duplex_type": "",
+          "dl_freq": "",
+          "ul_freq": "",
+          "bandwidth": "",
+          "ul_bw": ""
+        },
+        "signal": {
+          "rxl": "-96",
+          "rsrq": "-14",
+          "snr": "",
+          "rssi": ""
+        },
+        "neighbors": {
+          "nb_lte": [],
+          "nb_gsm": [],
+          "nb_umts": []
+        }
+      },
+      {
+        "key": "LTE|1721|123",
+        "meta": {
+          "serving": "1",
+          "seen": "1162319",
+          "first_seen": "2026-07-29 16:56:45",
+          "last_seen": "2026-07-29 17:16:49"
+        },
+        "identity": {
+          "mcc": "250",
+          "mnc": "01",
+          "mcc_mnc": "250-01",
+          "tac": "17806",
+          "cid": "51830533",
+          "enb_id": "202463",
+          "ncell_id": "5"
+        },
+        "radio": {
+          "earfcn": "1721",
+          "ul_earfcn": "",
+          "pci": "123",
+          "dl_code": "123",
+          "ul_code": "123",
+          "band": "B3",
+          "duplex_type": "",
+          "dl_freq": "",
+          "ul_freq": "",
+          "bandwidth": "",
+          "ul_bw": ""
+        },
+        "signal": {
+          "rxl": "-69",
+          "rsrq": "-12",
+          "snr": "",
+          "rssi": ""
+        },
+        "neighbors": {
+          "nb_lte": [],
+          "nb_gsm": [],
+          "nb_umts": []
+        }
+      },
+      {
+        "key": "LTE|375|156",
+        "meta": {
+          "serving": "1",
+          "seen": "1151699",
+          "first_seen": "2026-07-29 16:56:53",
+          "last_seen": "2026-07-29 17:16:49"
+        },
+        "identity": {
+          "mcc": "250",
+          "mnc": "01",
+          "mcc_mnc": "250-01",
+          "tac": "17806",
+          "cid": "51830553",
+          "enb_id": "202463",
+          "ncell_id": "25"
+        },
+        "radio": {
+          "earfcn": "375",
+          "ul_earfcn": "",
+          "pci": "156",
+          "dl_code": "156",
+          "ul_code": "156",
+          "band": "B1",
+          "duplex_type": "",
+          "dl_freq": "",
+          "ul_freq": "",
+          "bandwidth": "",
+          "ul_bw": ""
+        },
+        "signal": {
+          "rxl": "-77",
+          "rsrq": "-12",
+          "snr": "",
+          "rssi": ""
+        },
+        "neighbors": {
+          "nb_lte": [],
+          "nb_gsm": [],
+          "nb_umts": []
+        }
+      },
+      {
+        "key": "LTE|1596|445",
+        "meta": {
+          "serving": "0",
+          "seen": "919658",
+          "first_seen": "2026-07-29 17:00:19",
+          "last_seen": "2026-07-29 17:16:34"
+        },
+        "identity": {
+          "mcc": "250",
+          "mnc": "02",
+          "mcc_mnc": "250-02",
+          "tac": "47885",
+          "cid": "202086600",
+          "enb_id": "789400",
+          "ncell_id": "200"
+        },
+        "radio": {
+          "earfcn": "1596",
+          "ul_earfcn": "",
+          "pci": "445",
+          "dl_code": "445",
+          "ul_code": "445",
+          "band": "B3",
+          "duplex_type": "",
+          "dl_freq": "",
+          "ul_freq": "",
+          "bandwidth": "",
+          "ul_bw": ""
+        },
+        "signal": {
+          "rxl": "",
+          "rsrq": "",
+          "snr": "",
+          "rssi": ""
+        },
+        "neighbors": {
+          "nb_lte": [],
+          "nb_gsm": [],
+          "nb_umts": []
+        }
+      },
+      {
+        "key": "LTE|1275|174",
+        "meta": {
+          "serving": "1",
+          "seen": "1179247",
+          "first_seen": "2026-07-29 16:56:39",
+          "last_seen": "2026-07-29 17:15:34"
+        },
+        "identity": {
+          "mcc": "250",
+          "mnc": "20",
+          "mcc_mnc": "250-20",
+          "tac": "19719",
+          "cid": "200468749",
+          "enb_id": "783081",
+          "ncell_id": "13"
+        },
+        "radio": {
+          "earfcn": "1275",
+          "ul_earfcn": "",
+          "pci": "174",
+          "dl_code": "174",
+          "ul_code": "174",
+          "band": "B3",
+          "duplex_type": "",
+          "dl_freq": "",
+          "ul_freq": "",
+          "bandwidth": "",
+          "ul_bw": ""
+        },
+        "signal": {
+          "rxl": "-74",
+          "rsrq": "-10",
+          "snr": "",
+          "rssi": ""
+        },
+        "neighbors": {
+          "nb_lte": [],
+          "nb_gsm": [],
+          "nb_umts": []
+        }
+      },
+      {
+        "key": "LTE|1275|216",
+        "meta": {
+          "serving": "1",
+          "seen": "191296",
+          "first_seen": "2026-07-29 17:07:46",
+          "last_seen": "2026-07-29 17:15:34"
+        },
+        "identity": {
+          "mcc": "250",
+          "mnc": "20",
+          "mcc_mnc": "250-20",
+          "tac": "20029",
+          "cid": "199800845",
+          "enb_id": "780472",
+          "ncell_id": "13"
+        },
+        "radio": {
+          "earfcn": "1275",
+          "ul_earfcn": "",
+          "pci": "216",
+          "dl_code": "216",
+          "ul_code": "216",
+          "band": "B3",
+          "duplex_type": "",
+          "dl_freq": "",
+          "ul_freq": "",
+          "bandwidth": "",
+          "ul_bw": ""
+        },
+        "signal": {
+          "rxl": "-89",
+          "rsrq": "-20",
+          "snr": "",
+          "rssi": ""
+        },
+        "neighbors": {
+          "nb_lte": [],
+          "nb_gsm": [],
+          "nb_umts": []
+        }
+      },
+      {
+        "key": "LTE|38750|120",
+        "meta": {
+          "serving": "1",
+          "seen": "1181469",
+          "first_seen": "2026-07-29 16:56:39",
+          "last_seen": "2026-07-29 17:15:28"
+        },
+        "identity": {
+          "mcc": "250",
+          "mnc": "20",
+          "mcc_mnc": "250-20",
+          "tac": "20029",
+          "cid": "200781857",
+          "enb_id": "784304",
+          "ncell_id": "33"
+        },
+        "radio": {
+          "earfcn": "38750",
+          "ul_earfcn": "",
+          "pci": "120",
+          "dl_code": "120",
+          "ul_code": "120",
+          "band": "B40",
+          "duplex_type": "",
+          "dl_freq": "",
+          "ul_freq": "",
+          "bandwidth": "",
+          "ul_bw": ""
+        },
+        "signal": {
+          "rxl": "-107",
+          "rsrq": "-10",
+          "snr": "",
+          "rssi": ""
+        },
+        "neighbors": {
+          "nb_lte": [],
+          "nb_gsm": [],
+          "nb_umts": []
+        }
+      },
+      {
+        "key": "LTE|38750|113",
+        "meta": {
+          "serving": "0",
+          "seen": "1182208",
+          "first_seen": "2026-07-29 16:56:39",
+          "last_seen": "2026-07-29 17:15:28"
+        },
+        "identity": {
+          "mcc": "250",
+          "mnc": "20",
+          "mcc_mnc": "250-20",
+          "tac": "20029",
+          "cid": "200781856",
+          "enb_id": "784304",
+          "ncell_id": "32"
+        },
+        "radio": {
+          "earfcn": "38750",
+          "ul_earfcn": "",
+          "pci": "113",
+          "dl_code": "113",
+          "ul_code": "113",
+          "band": "B40",
+          "duplex_type": "",
+          "dl_freq": "",
+          "ul_freq": "",
+          "bandwidth": "",
+          "ul_bw": ""
+        },
+        "signal": {
+          "rxl": "-108",
+          "rsrq": "-11",
+          "snr": "",
+          "rssi": ""
+        },
+        "neighbors": {
+          "nb_lte": [],
+          "nb_gsm": [],
+          "nb_umts": []
+        }
+      },
+      {
+        "key": "LTE|3400|468",
+        "meta": {
+          "serving": "1",
+          "seen": "1169289",
+          "first_seen": "2026-07-29 16:56:43",
+          "last_seen": "2026-07-29 17:15:28"
+        },
+        "identity": {
+          "mcc": "250",
+          "mnc": "20",
+          "mcc_mnc": "250-20",
+          "tac": "19719",
+          "cid": "200468759",
+          "enb_id": "783081",
+          "ncell_id": "23"
+        },
+        "radio": {
+          "earfcn": "3400",
+          "ul_earfcn": "",
+          "pci": "468",
+          "dl_code": "468",
+          "ul_code": "468",
+          "band": "B7",
+          "duplex_type": "",
+          "dl_freq": "",
+          "ul_freq": "",
+          "bandwidth": "",
+          "ul_bw": ""
+        },
+        "signal": {
+          "rxl": "-79",
+          "rsrq": "-10",
+          "snr": "",
+          "rssi": ""
+        },
+        "neighbors": {
+          "nb_lte": [],
+          "nb_gsm": [],
+          "nb_umts": []
+        }
+      },
+      {
+        "key": "LTE|38948|268",
+        "meta": {
+          "serving": "0",
+          "seen": "1167454",
+          "first_seen": "2026-07-29 16:56:45",
+          "last_seen": "2026-07-29 17:15:28"
+        },
+        "identity": {
+          "mcc": "250",
+          "mnc": "20",
+          "mcc_mnc": "250-20",
+          "tac": "20029",
+          "cid": "200781859",
+          "enb_id": "784304",
+          "ncell_id": "35"
+        },
+        "radio": {
+          "earfcn": "38948",
+          "ul_earfcn": "",
+          "pci": "268",
+          "dl_code": "268",
+          "ul_code": "268",
+          "band": "B40",
+          "duplex_type": "",
+          "dl_freq": "",
+          "ul_freq": "",
+          "bandwidth": "",
+          "ul_bw": ""
+        },
+        "signal": {
+          "rxl": "-115",
+          "rsrq": "-14",
+          "snr": "",
+          "rssi": ""
+        },
+        "neighbors": {
+          "nb_lte": [],
+          "nb_gsm": [],
+          "nb_umts": []
+        }
+      },
+      {
+        "key": "LTE|38948|346",
+        "meta": {
+          "serving": "0",
+          "seen": "892964",
+          "first_seen": "2026-07-29 17:00:30",
+          "last_seen": "2026-07-29 17:15:28"
+        },
+        "identity": {
+          "mcc": "250",
+          "mnc": "20",
+          "mcc_mnc": "250-20",
+          "tac": "20029",
+          "cid": "200968227",
+          "enb_id": "785032",
+          "ncell_id": "35"
+        },
+        "radio": {
+          "earfcn": "38948",
+          "ul_earfcn": "",
+          "pci": "346",
+          "dl_code": "346",
+          "ul_code": "346",
+          "band": "B40",
+          "duplex_type": "",
+          "dl_freq": "",
+          "ul_freq": "",
+          "bandwidth": "",
+          "ul_bw": ""
+        },
+        "signal": {
+          "rxl": "-121",
+          "rsrq": "-19",
+          "snr": "",
+          "rssi": ""
+        },
+        "neighbors": {
+          "nb_lte": [],
+          "nb_gsm": [],
+          "nb_umts": []
+        }
+      },
+      {
+        "key": "LTE|6200|3",
+        "meta": {
+          "serving": "1",
+          "seen": "1179987",
+          "first_seen": "2026-07-29 16:56:39",
+          "last_seen": "2026-07-29 17:15:21"
+        },
+        "identity": {
+          "mcc": "250",
+          "mnc": "20",
+          "mcc_mnc": "250-20",
+          "tac": "19719",
+          "cid": "200468819",
+          "enb_id": "783081",
+          "ncell_id": "83"
+        },
+        "radio": {
+          "earfcn": "6200",
+          "ul_earfcn": "",
+          "pci": "3",
+          "dl_code": "3",
+          "ul_code": "3",
+          "band": "B20",
+          "duplex_type": "",
+          "dl_freq": "",
+          "ul_freq": "",
+          "bandwidth": "",
+          "ul_bw": ""
+        },
+        "signal": {
+          "rxl": "-72",
+          "rsrq": "-8",
+          "snr": "",
+          "rssi": ""
+        },
+        "neighbors": {
+          "nb_lte": [],
+          "nb_gsm": [],
+          "nb_umts": []
+        }
+      },
+      {
+        "key": "LTE|39146|113",
+        "meta": {
+          "serving": "0",
+          "seen": "1165615",
+          "first_seen": "2026-07-29 16:56:45",
+          "last_seen": "2026-07-29 17:15:21"
+        },
+        "identity": {
+          "mcc": "250",
+          "mnc": "20",
+          "mcc_mnc": "250-20",
+          "tac": "20029",
+          "cid": "200781862",
+          "enb_id": "784304",
+          "ncell_id": "38"
+        },
+        "radio": {
+          "earfcn": "39146",
+          "ul_earfcn": "",
+          "pci": "113",
+          "dl_code": "113",
+          "ul_code": "113",
+          "band": "B40",
+          "duplex_type": "",
+          "dl_freq": "",
+          "ul_freq": "",
+          "bandwidth": "",
+          "ul_bw": ""
+        },
+        "signal": {
+          "rxl": "-120",
+          "rsrq": "-20",
+          "snr": "",
+          "rssi": ""
+        },
+        "neighbors": {
+          "nb_lte": [],
+          "nb_gsm": [],
+          "nb_umts": []
+        }
+      },
+      {
+        "key": "LTE|39146|120",
+        "meta": {
+          "serving": "1",
+          "seen": "1164884",
+          "first_seen": "2026-07-29 16:56:45",
+          "last_seen": "2026-07-29 17:15:21"
+        },
+        "identity": {
+          "mcc": "250",
+          "mnc": "20",
+          "mcc_mnc": "250-20",
+          "tac": "20029",
+          "cid": "200781863",
+          "enb_id": "784304",
+          "ncell_id": "39"
+        },
+        "radio": {
+          "earfcn": "39146",
+          "ul_earfcn": "",
+          "pci": "120",
+          "dl_code": "120",
+          "ul_code": "120",
+          "band": "B40",
+          "duplex_type": "",
+          "dl_freq": "",
+          "ul_freq": "",
+          "bandwidth": "",
+          "ul_bw": ""
+        },
+        "signal": {
+          "rxl": "-113",
+          "rsrq": "-13",
+          "snr": "",
+          "rssi": ""
+        },
+        "neighbors": {
+          "nb_lte": [],
+          "nb_gsm": [],
+          "nb_umts": []
+        }
+      },
+      {
+        "key": "LTE|6200|331",
+        "meta": {
+          "serving": "0",
+          "seen": "908742",
+          "first_seen": "2026-07-29 17:00:23",
+          "last_seen": "2026-07-29 17:12:45"
+        },
+        "identity": {
+          "mcc": "250",
+          "mnc": "20",
+          "mcc_mnc": "250-20",
+          "tac": "20029",
+          "cid": "200013907",
+          "enb_id": "781304",
+          "ncell_id": "83"
+        },
+        "radio": {
+          "earfcn": "6200",
+          "ul_earfcn": "",
+          "pci": "331",
+          "dl_code": "331",
+          "ul_code": "331",
+          "band": "B20",
+          "duplex_type": "",
+          "dl_freq": "",
+          "ul_freq": "",
+          "bandwidth": "",
+          "ul_bw": ""
+        },
+        "signal": {
+          "rxl": "-87",
+          "rsrq": "-20",
+          "snr": "",
+          "rssi": ""
+        },
+        "neighbors": {
+          "nb_lte": [],
+          "nb_gsm": [],
+          "nb_umts": []
+        }
+      },
+      {
+        "key": "LTE|39146|17",
+        "meta": {
+          "serving": "0",
+          "seen": "369304",
+          "first_seen": "2026-07-29 17:07:44",
+          "last_seen": "2026-07-29 17:12:45"
+        },
+        "identity": {
+          "mcc": "250",
+          "mnc": "20",
+          "mcc_mnc": "250-20",
+          "tac": "20029",
+          "cid": "200968230",
+          "enb_id": "785032",
+          "ncell_id": "38"
+        },
+        "radio": {
+          "earfcn": "39146",
+          "ul_earfcn": "",
+          "pci": "17",
+          "dl_code": "17",
+          "ul_code": "17",
+          "band": "B40",
+          "duplex_type": "",
+          "dl_freq": "",
+          "ul_freq": "",
+          "bandwidth": "",
+          "ul_bw": ""
+        },
+        "signal": {
+          "rxl": "-120",
+          "rsrq": "-20",
+          "snr": "",
+          "rssi": ""
+        },
+        "neighbors": {
+          "nb_lte": [],
+          "nb_gsm": [],
+          "nb_umts": []
+        }
+      },
+      {
+        "key": "LTE|38750|17",
+        "meta": {
+          "serving": "0",
+          "seen": "346568",
+          "first_seen": "2026-07-29 17:08:13",
+          "last_seen": "2026-07-29 17:12:45"
+        },
+        "identity": {
+          "mcc": "250",
+          "mnc": "20",
+          "mcc_mnc": "250-20",
+          "tac": "20029",
+          "cid": "200968224",
+          "enb_id": "785032",
+          "ncell_id": "32"
+        },
+        "radio": {
+          "earfcn": "38750",
+          "ul_earfcn": "",
+          "pci": "17",
+          "dl_code": "17",
+          "ul_code": "17",
+          "band": "B40",
+          "duplex_type": "",
+          "dl_freq": "",
+          "ul_freq": "",
+          "bandwidth": "",
+          "ul_bw": ""
+        },
+        "signal": {
+          "rxl": "-115",
+          "rsrq": "-15",
+          "snr": "",
+          "rssi": ""
+        },
+        "neighbors": {
+          "nb_lte": [],
+          "nb_gsm": [],
+          "nb_umts": []
+        }
+      },
+      {
+        "key": "LTE|3300|77",
+        "meta": {
+          "serving": "0",
+          "seen": "336577",
+          "first_seen": "2026-07-29 17:08:14",
+          "last_seen": "2026-07-29 17:12:24"
+        },
+        "identity": {
+          "mcc": "250",
+          "mnc": "99",
+          "mcc_mnc": "250-99",
+          "tac": "678",
+          "cid": "199992838",
+          "enb_id": "781222",
+          "ncell_id": "6"
+        },
+        "radio": {
+          "earfcn": "3300",
+          "ul_earfcn": "",
+          "pci": "77",
+          "dl_code": "77",
+          "ul_code": "77",
+          "band": "B7",
+          "duplex_type": "",
+          "dl_freq": "",
+          "ul_freq": "",
+          "bandwidth": "",
+          "ul_bw": ""
+        },
+        "signal": {
+          "rxl": "",
+          "rsrq": "",
+          "snr": "",
+          "rssi": ""
+        },
+        "neighbors": {
+          "nb_lte": [],
+          "nb_gsm": [],
+          "nb_umts": []
+        }
+      },
+      {
+        "key": "LTE|1275|18",
+        "meta": {
+          "serving": "0",
+          "seen": "191563",
+          "first_seen": "2026-07-29 17:12:19",
+          "last_seen": "2026-07-29 17:12:18"
+        },
+        "identity": {
+          "mcc": "250",
+          "mnc": "20",
+          "mcc_mnc": "250-20",
+          "tac": "20029",
+          "cid": "200013836",
+          "enb_id": "781304",
+          "ncell_id": "12"
+        },
+        "radio": {
+          "earfcn": "1275",
+          "ul_earfcn": "",
+          "pci": "18",
+          "dl_code": "18",
+          "ul_code": "18",
+          "band": "B3",
+          "duplex_type": "",
+          "dl_freq": "",
+          "ul_freq": "",
+          "bandwidth": "",
+          "ul_bw": ""
+        },
+        "signal": {
+          "rxl": "",
+          "rsrq": "",
+          "snr": "",
+          "rssi": ""
+        },
+        "neighbors": {
+          "nb_lte": [],
+          "nb_gsm": [],
+          "nb_umts": []
+        }
+      },
+      {
+        "key": "LTE|6275|278",
+        "meta": {
+          "serving": "1",
+          "seen": "1172604",
+          "first_seen": "2026-07-29 16:56:41",
+          "last_seen": "2026-07-29 17:11:26"
+        },
+        "identity": {
+          "mcc": "250",
+          "mnc": "01",
+          "mcc_mnc": "250-01",
+          "tac": "17806",
+          "cid": "51830536",
+          "enb_id": "202463",
+          "ncell_id": "8"
+        },
+        "radio": {
+          "earfcn": "6275",
+          "ul_earfcn": "",
+          "pci": "278",
+          "dl_code": "278",
+          "ul_code": "278",
+          "band": "B20",
+          "duplex_type": "",
+          "dl_freq": "",
+          "ul_freq": "",
+          "bandwidth": "",
+          "ul_bw": ""
+        },
+        "signal": {
+          "rxl": "-73",
+          "rsrq": "-8",
+          "snr": "",
+          "rssi": ""
+        },
+        "neighbors": {
+          "nb_lte": [],
+          "nb_gsm": [],
+          "nb_umts": []
+        }
+      },
+      {
+        "key": "LTE|3200|130",
+        "meta": {
+          "serving": "1",
+          "seen": "1177777",
+          "first_seen": "2026-07-29 16:56:41",
+          "last_seen": "2026-07-29 17:11:26"
+        },
+        "identity": {
+          "mcc": "250",
+          "mnc": "01",
+          "mcc_mnc": "250-01",
+          "tac": "17806",
+          "cid": "51830530",
+          "enb_id": "202463",
+          "ncell_id": "2"
+        },
+        "radio": {
+          "earfcn": "3200",
+          "ul_earfcn": "",
+          "pci": "130",
+          "dl_code": "130",
+          "ul_code": "130",
+          "band": "B7",
+          "duplex_type": "",
+          "dl_freq": "",
+          "ul_freq": "",
+          "bandwidth": "",
+          "ul_bw": ""
+        },
+        "signal": {
+          "rxl": "-80",
+          "rsrq": "-12",
+          "snr": "",
+          "rssi": ""
+        },
+        "neighbors": {
+          "nb_lte": [],
+          "nb_gsm": [],
+          "nb_umts": []
+        }
+      },
+      {
+        "key": "LTE|6275|133",
+        "meta": {
+          "serving": "0",
+          "seen": "532612",
+          "first_seen": "2026-07-29 17:00:11",
+          "last_seen": "2026-07-29 17:11:26"
+        },
+        "identity": {
+          "mcc": "250",
+          "mnc": "01",
+          "mcc_mnc": "250-01",
+          "tac": "17806",
+          "cid": "51830535",
+          "enb_id": "202463",
+          "ncell_id": "7"
+        },
+        "radio": {
+          "earfcn": "6275",
+          "ul_earfcn": "",
+          "pci": "133",
+          "dl_code": "133",
+          "ul_code": "133",
+          "band": "B20",
+          "duplex_type": "",
+          "dl_freq": "",
+          "ul_freq": "",
+          "bandwidth": "",
+          "ul_bw": ""
+        },
+        "signal": {
+          "rxl": "-95",
+          "rsrq": "-16",
+          "snr": "",
+          "rssi": ""
+        },
+        "neighbors": {
+          "nb_lte": [],
+          "nb_gsm": [],
+          "nb_umts": []
+        }
+      },
+      {
+        "key": "LTE|1414|175",
+        "meta": {
+          "serving": "1",
+          "seen": "1104338",
+          "first_seen": "2026-07-29 16:57:13",
+          "last_seen": "2026-07-29 17:08:47"
+        },
+        "identity": {
+          "mcc": "250",
+          "mnc": "99",
+          "mcc_mnc": "250-99",
+          "tac": "678",
+          "cid": "199990536",
+          "enb_id": "781213",
+          "ncell_id": "8"
+        },
+        "radio": {
+          "earfcn": "1414",
+          "ul_earfcn": "",
+          "pci": "175",
+          "dl_code": "175",
+          "ul_code": "175",
+          "band": "B3",
+          "duplex_type": "",
+          "dl_freq": "",
+          "ul_freq": "",
+          "bandwidth": "",
+          "ul_bw": ""
+        },
+        "signal": {
+          "rxl": "",
+          "rsrq": "",
+          "snr": "",
+          "rssi": ""
+        },
+        "neighbors": {
+          "nb_lte": [],
+          "nb_gsm": [],
+          "nb_umts": []
+        }
+      },
+      {
+        "key": "LTE|3750|63",
+        "meta": {
+          "serving": "1",
+          "seen": "883754",
+          "first_seen": "2026-07-29 17:00:34",
+          "last_seen": "2026-07-29 17:08:41"
+        },
+        "identity": {
+          "mcc": "250",
+          "mnc": "02",
+          "mcc_mnc": "250-02",
+          "tac": "47885",
+          "cid": "202086650",
+          "enb_id": "789400",
+          "ncell_id": "250"
+        },
+        "radio": {
+          "earfcn": "3750",
+          "ul_earfcn": "",
+          "pci": "63",
+          "dl_code": "63",
+          "ul_code": "63",
+          "band": "B8",
+          "duplex_type": "",
+          "dl_freq": "",
+          "ul_freq": "",
+          "bandwidth": "",
+          "ul_bw": ""
+        },
+        "signal": {
+          "rxl": "-96",
+          "rsrq": "-17",
+          "snr": "",
+          "rssi": ""
+        },
+        "neighbors": {
+          "nb_lte": [],
+          "nb_gsm": [],
+          "nb_umts": []
+        }
+      },
+      {
+        "key": "LTE|100|174",
+        "meta": {
+          "serving": "0",
+          "seen": "1189621",
+          "first_seen": "2026-07-29 16:56:37",
+          "last_seen": "2026-07-29 17:08:13"
+        },
+        "identity": {
+          "mcc": "250",
+          "mnc": "20",
+          "mcc_mnc": "250-20",
+          "tac": "19719",
+          "cid": "200468789",
+          "enb_id": "783081",
+          "ncell_id": "53"
+        },
+        "radio": {
+          "earfcn": "100",
+          "ul_earfcn": "",
+          "pci": "174",
+          "dl_code": "174",
+          "ul_code": "174",
+          "band": "B1",
+          "duplex_type": "",
+          "dl_freq": "",
+          "ul_freq": "",
+          "bandwidth": "",
+          "ul_bw": ""
+        },
+        "signal": {
+          "rxl": "",
+          "rsrq": "",
+          "snr": "",
+          "rssi": ""
+        },
+        "neighbors": {
+          "nb_lte": [],
+          "nb_gsm": [],
+          "nb_umts": []
+        }
+      },
+      {
+        "key": "LTE|525|474",
+        "meta": {
+          "serving": "1",
+          "seen": "2443",
+          "first_seen": "2026-07-29 17:07:40",
+          "last_seen": "2026-07-29 17:07:40"
+        },
+        "identity": {
+          "mcc": "250",
+          "mnc": "99",
+          "mcc_mnc": "250-99",
+          "tac": "3478",
+          "cid": "200009829",
+          "enb_id": "781288",
+          "ncell_id": "101"
+        },
+        "radio": {
+          "earfcn": "525",
+          "ul_earfcn": "",
+          "pci": "474",
+          "dl_code": "474",
+          "ul_code": "474",
+          "band": "B1",
+          "duplex_type": "",
+          "dl_freq": "",
+          "ul_freq": "",
+          "bandwidth": "",
+          "ul_bw": ""
+        },
+        "signal": {
+          "rxl": "",
+          "rsrq": "",
+          "snr": "",
+          "rssi": ""
+        },
+        "neighbors": {
+          "nb_lte": [],
+          "nb_gsm": [],
+          "nb_umts": []
+        }
+      },
+      {
+        "key": "LTE|2850|367",
+        "meta": {
+          "serving": "0",
+          "seen": "1101851",
+          "first_seen": "2026-07-29 16:57:15",
+          "last_seen": "2026-07-29 17:05:04"
+        },
+        "identity": {
+          "mcc": "250",
+          "mnc": "02",
+          "mcc_mnc": "250-02",
+          "tac": "7828",
+          "cid": "199815054",
+          "enb_id": "780527",
+          "ncell_id": "142"
+        },
+        "radio": {
+          "earfcn": "2850",
+          "ul_earfcn": "",
+          "pci": "367",
+          "dl_code": "367",
+          "ul_code": "367",
+          "band": "B7",
+          "duplex_type": "",
+          "dl_freq": "",
+          "ul_freq": "",
+          "bandwidth": "",
+          "ul_bw": ""
+        },
+        "signal": {
+          "rxl": "-84",
+          "rsrq": "-14",
+          "snr": "",
+          "rssi": ""
+        },
+        "neighbors": {
+          "nb_lte": [],
+          "nb_gsm": [],
+          "nb_umts": []
+        }
+      },
+      {
+        "key": "LTE|2850|438",
+        "meta": {
+          "serving": "1",
+          "seen": "1102561",
+          "first_seen": "2026-07-29 16:57:15",
+          "last_seen": "2026-07-29 17:05:04"
+        },
+        "identity": {
+          "mcc": "250",
+          "mnc": "02",
+          "mcc_mnc": "250-02",
+          "tac": "7828",
+          "cid": "200704260",
+          "enb_id": "784001",
+          "ncell_id": "4"
+        },
+        "radio": {
+          "earfcn": "2850",
+          "ul_earfcn": "",
+          "pci": "438",
+          "dl_code": "438",
+          "ul_code": "438",
+          "band": "B7",
+          "duplex_type": "",
+          "dl_freq": "",
+          "ul_freq": "",
+          "bandwidth": "",
+          "ul_bw": ""
+        },
+        "signal": {
+          "rxl": "-79",
+          "rsrq": "-9",
+          "snr": "",
+          "rssi": ""
+        },
+        "neighbors": {
+          "nb_lte": [],
+          "nb_gsm": [],
+          "nb_umts": []
+        }
+      },
+      {
+        "key": "LTE|200|224",
+        "meta": {
+          "serving": "0",
+          "seen": "1190732",
+          "first_seen": "2026-07-29 16:56:37",
+          "last_seen": "2026-07-29 17:04:43"
+        },
+        "identity": {
+          "mcc": "250",
+          "mnc": "02",
+          "mcc_mnc": "250-02",
+          "tac": "7828",
+          "cid": "199815014",
+          "enb_id": "780527",
+          "ncell_id": "102"
+        },
+        "radio": {
+          "earfcn": "200",
+          "ul_earfcn": "",
+          "pci": "224",
+          "dl_code": "224",
+          "ul_code": "224",
+          "band": "B1",
+          "duplex_type": "",
+          "dl_freq": "",
+          "ul_freq": "",
+          "bandwidth": "",
+          "ul_bw": ""
+        },
+        "signal": {
+          "rxl": "",
+          "rsrq": "",
+          "snr": "",
+          "rssi": ""
+        },
+        "neighbors": {
+          "nb_lte": [],
+          "nb_gsm": [],
+          "nb_umts": []
+        }
+      },
+      {
+        "key": "LTE|1820|275",
+        "meta": {
+          "serving": "1",
+          "seen": "1156807",
+          "first_seen": "2026-07-29 16:56:45",
+          "last_seen": "2026-07-29 16:57:05"
+        },
+        "identity": {
+          "mcc": "250",
+          "mnc": "02",
+          "mcc_mnc": "250-02",
+          "tac": "7828",
+          "cid": "199815117",
+          "enb_id": "780527",
+          "ncell_id": "205"
+        },
+        "radio": {
+          "earfcn": "1820",
+          "ul_earfcn": "",
+          "pci": "275",
+          "dl_code": "275",
+          "ul_code": "275",
+          "band": "B3",
+          "duplex_type": "",
+          "dl_freq": "",
+          "ul_freq": "",
+          "bandwidth": "",
+          "ul_bw": ""
+        },
+        "signal": {
+          "rxl": "",
+          "rsrq": "",
+          "snr": "",
+          "rssi": ""
+        },
+        "neighbors": {
+          "nb_lte": [],
+          "nb_gsm": [],
+          "nb_umts": []
+        }
+      }
+    ],
+    "wcdma": [
+      {
+        "key": "WCDMA|10563|5",
+        "meta": {
+          "serving": "0",
+          "seen": "171853",
+          "first_seen": "2026-07-29 17:13:22",
+          "last_seen": "2026-07-29 17:23:31"
+        },
+        "identity": {
+          "mcc": "250",
+          "mnc": "20",
+          "mcc_mnc": "250-20",
+          "lac": "20029",
+          "cid": "4499490",
+          "rnc_id": "68",
+          "cid16": "43042"
+        },
+        "radio": {
+          "uarfcn": "10563",
+          "ul_uarfcn": "",
+          "psc": "5",
+          "dl_code": "5",
+          "ul_code": "5",
+          "band": "B1 (2100)",
+          "duplex_type": "",
+          "dl_freq": "",
+          "ul_freq": ""
+        },
+        "signal": {
+          "rxl": "-77",
+          "snr": "-12",
+          "ecio": "-12"
+        },
+        "neighbors": {
+          "nb_gsm": [],
+          "nb_umts": []
+        }
+      },
+      {
+        "key": "WCDMA|10563|38",
+        "meta": {
+          "serving": "1",
+          "seen": "881405",
+          "first_seen": "2026-07-29 16:57:52",
+          "last_seen": "2026-07-29 17:23:25"
+        },
+        "identity": {
+          "mcc": "250",
+          "mnc": "20",
+          "mcc_mnc": "250-20",
+          "lac": "19719",
+          "cid": "4487261",
+          "rnc_id": "68",
+          "cid16": "30813"
+        },
+        "radio": {
+          "uarfcn": "10563",
+          "ul_uarfcn": "",
+          "psc": "38",
+          "dl_code": "38",
+          "ul_code": "38",
+          "band": "B1 (2100)",
+          "duplex_type": "",
+          "dl_freq": "",
+          "ul_freq": ""
+        },
+        "signal": {
+          "rxl": "-69",
+          "snr": "-3",
+          "ecio": "-3"
+        },
+        "neighbors": {
+          "nb_gsm": [],
+          "nb_umts": []
+        }
+      },
+      {
+        "key": "WCDMA|10687|376",
+        "meta": {
+          "serving": "0",
+          "seen": "486122",
+          "first_seen": "2026-07-29 17:05:54",
+          "last_seen": "2026-07-29 17:09:35"
+        },
+        "identity": {
+          "mcc": "250",
+          "mnc": "02",
+          "mcc_mnc": "250-02",
+          "lac": "7840",
+          "cid": "8118351",
+          "rnc_id": "123",
+          "cid16": "57423"
+        },
+        "radio": {
+          "uarfcn": "10687",
+          "ul_uarfcn": "",
+          "psc": "376",
+          "dl_code": "376",
+          "ul_code": "376",
+          "band": "B1 (2100)",
+          "duplex_type": "",
+          "dl_freq": "",
+          "ul_freq": ""
+        },
+        "signal": {
+          "rxl": "-80",
+          "snr": "-12",
+          "ecio": "-12"
+        },
+        "neighbors": {
+          "nb_gsm": [],
+          "nb_umts": []
+        }
+      },
+      {
+        "key": "WCDMA|10687|398",
+        "meta": {
+          "serving": "1",
+          "seen": "196192",
+          "first_seen": "2026-07-29 17:05:38",
+          "last_seen": "2026-07-29 17:06:13"
+        },
+        "identity": {
+          "mcc": "250",
+          "mnc": "02",
+          "mcc_mnc": "250-02",
+          "lac": "7840",
+          "cid": "8097645",
+          "rnc_id": "123",
+          "cid16": "36717"
+        },
+        "radio": {
+          "uarfcn": "10687",
+          "ul_uarfcn": "",
+          "psc": "398",
+          "dl_code": "398",
+          "ul_code": "398",
+          "band": "B1 (2100)",
+          "duplex_type": "",
+          "dl_freq": "",
+          "ul_freq": ""
+        },
+        "signal": {
+          "rxl": "-77",
+          "snr": "-10",
+          "ecio": "-10"
+        },
+        "neighbors": {
+          "nb_gsm": [],
+          "nb_umts": []
+        }
+      }
+    ],
+    "nr": []
+  }
+}
