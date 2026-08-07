@@ -6,3 +6,10 @@ build/
 *.so
 *.d
 compile_commands.json
+
+# Rust GUI
+tower_gui/target/
+
+# Shallow clones under knowlage_base/refs/ (keep README only)
+knowlage_base/refs/*/
+!knowlage_base/refs/README.md
