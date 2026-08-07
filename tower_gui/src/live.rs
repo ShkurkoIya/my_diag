@@ -1,8 +1,9 @@
 //! Live Scan — poll live_scanner survey JSON and render Operator → eNB → cell tree.
 
 use crate::enrich::{self, DiffSide, Enrichment, ExtStatus};
+use crate::icons::{self, expand_toggle, nest_toggle};
 use crate::model::{Document, FlatTower, Rat, Tower};
-use crate::Theme;
+use crate::theme::{brand_color, SurfaceState, Theme};
 use eframe::egui::{
     self, Align, Color32, CornerRadius, Frame, Key, Layout, Margin, Pos2, Rect, RichText,
     ScrollArea, Sense, Stroke, Ui, Vec2,
@@ -11,11 +12,6 @@ use std::collections::{BTreeMap, BTreeSet, HashMap};
 use std::f32::consts::TAU;
 use std::path::PathBuf;
 use std::time::{Duration, Instant, SystemTime};
-
-const OCI_RED: Color32 = Color32::from_rgb(248, 113, 113);
-const OCI_AMBER: Color32 = Color32::from_rgb(251, 191, 36);
-const OCI_OK: Color32 = Color32::from_rgb(52, 211, 153);
-const OCI_BLUE: Color32 = Color32::from_rgb(56, 189, 248);
 
 #[derive(Clone, Copy, PartialEq, Eq, Default)]
 pub enum LiveView {
@@ -74,10 +70,6 @@ fn heard_key(plmn: &str) -> String {
     format!("heard:{plmn}")
 }
 
-/// Expand key for RADIO bucket under an eNB site.
-fn site_radio_key(site_key: &str) -> String {
-    format!("radio:{site_key}")
-}
 
 /// Expand key for SIB/meas neighbor hints under a cell row.
 fn cell_nb_key(tower_key: &str) -> String {
@@ -95,19 +87,20 @@ fn normalize_plmn(raw: &str) -> String {
     }
 }
 
-/// Russian PLMN brand + circle color (approx brand colors).
+/// Russian PLMN brand name (color via [`brand_color`]).
 fn operator_brand(plmn: &str) -> (&'static str, Color32) {
-    match plmn {
-        "250-01" => ("MTS", Color32::from_rgb(226, 0, 26)),
-        "250-02" => ("MegaFon", Color32::from_rgb(0, 166, 80)),
-        "250-20" => ("t2", Color32::from_rgb(220, 220, 220)),
-        "250-99" => ("Beeline", Color32::from_rgb(255, 184, 28)),
-        "250-11" => ("Yota", Color32::from_rgb(0, 163, 224)),
-        "250-32" => ("Win Mobile", Color32::from_rgb(0, 122, 204)),
-        "250-35" => ("Motiv", Color32::from_rgb(237, 28, 36)),
-        "250-50" => ("SberMobile", Color32::from_rgb(33, 160, 56)),
-        _ => ("", Color32::from_rgb(148, 163, 184)),
-    }
+    let name = match plmn {
+        "250-01" => "MTS",
+        "250-02" => "MegaFon",
+        "250-20" => "t2",
+        "250-99" => "Beeline",
+        "250-11" => "Yota",
+        "250-32" => "Win Mobile",
+        "250-35" => "Motiv",
+        "250-50" => "SberMobile",
+        _ => "",
+    };
+    (name, brand_color(plmn))
 }
 
 fn operator_label(plmn: &str) -> String {
@@ -150,31 +143,37 @@ fn cell_graph_sub(t: &Tower) -> String {
     )
 }
 
-fn cell_status_color(t: &Tower, fallback: Color32) -> Color32 {
+/// Graph cell fill — calm slate/brand; status is ring/badge, not neon fill.
+fn cell_graph_color(t: &Tower, brand: Color32) -> Color32 {
     if t.is_serving() {
-        Color32::from_rgb(52, 211, 153)
+        Color32::from_rgb(72, 120, 100)
     } else if t.was_identity_camped() {
-        Color32::from_rgb(251, 191, 36)
+        Color32::from_rgb(120, 110, 72)
     } else {
-        fallback
+        // Muted brand so hubs stay readable without rainbow leaves.
+        Color32::from_rgb(
+            ((brand.r() as u16 + 90) / 2) as u8,
+            ((brand.g() as u16 + 100) / 2) as u8,
+            ((brand.b() as u16 + 110) / 2) as u8,
+        )
     }
 }
 
-fn site_status_color(flat: &[FlatTower], site: &SiteNode) -> Color32 {
+fn site_graph_color(flat: &[FlatTower], site: &SiteNode) -> Color32 {
     let mut camped = false;
     for &ix in &site.cells {
         let Some(ft) = flat.get(ix) else { continue };
         if ft.tower.is_serving() {
-            return Color32::from_rgb(52, 211, 153);
+            return Color32::from_rgb(72, 120, 100);
         }
         if ft.tower.was_identity_camped() {
             camped = true;
         }
     }
     if camped {
-        Color32::from_rgb(251, 191, 36)
+        Color32::from_rgb(120, 110, 72)
     } else {
-        Color32::from_rgb(100, 116, 139)
+        Color32::from_rgb(90, 100, 118)
     }
 }
 
@@ -194,8 +193,6 @@ pub struct SiteNode {
     pub best_rsrp: f32,
     /// FULL cells only (have CID under this eNB).
     pub cells: Vec<usize>,
-    /// RADIO rows (PCI, no CID) on an EARFCN already owned by this eNB.
-    pub radio: Vec<usize>,
 }
 
 #[derive(Clone)]
@@ -204,7 +201,7 @@ pub struct OperatorNode {
     pub plmn: String,
     pub color: Color32,
     pub sites: Vec<SiteNode>,
-    /// Orphan RF (no eNB/CID, EARFCN not tied to a known site).
+    /// Heard RF: PCI seen, no CID yet. Not claimed under any eNB.
     pub incomplete: Vec<usize>,
     pub best_rsrp: f32,
 }
@@ -222,7 +219,6 @@ pub struct LiveState {
     pub other_rat: Vec<usize>,
     pub expanded: BTreeSet<String>,
     pub selected: Option<usize>,
-    pub pulse: f32,
     pub view: LiveView,
     /// Free-text search (CID, eNB, EARFCN, PCI, PLMN, brand, key…).
     pub search_query: String,
@@ -263,7 +259,6 @@ impl LiveState {
             other_rat: Vec::new(),
             expanded: BTreeSet::new(),
             selected: None,
-            pulse: 0.0,
             view: LiveView::Tree,
             search_query: String::new(),
             search_cursor: 0,
@@ -340,12 +335,8 @@ impl LiveState {
             match loc {
                 TreeLoc::Site { op_key, site_key } => {
                     self.expanded.insert(op_key);
-                    self.expanded.insert(site_key.clone());
-                    // Also open RADIO / neighbor buckets if the target lives there.
+                    self.expanded.insert(site_key);
                     if let Some(ft) = self.flat.get(ix) {
-                        if !ft.tower.has_cid() {
-                            self.expanded.insert(site_radio_key(&site_key));
-                        }
                         if ft.tower.neighbor_count() > 0 {
                             self.expanded.insert(cell_nb_key(&ft.tower.key));
                         }
@@ -384,7 +375,7 @@ impl LiveState {
     fn locate_in_tree(&self, ix: usize) -> Option<TreeLoc> {
         for op in &self.operators {
             for site in &op.sites {
-                if site.cells.contains(&ix) || site.radio.contains(&ix) {
+                if site.cells.contains(&ix) {
                     return Some(TreeLoc::Site {
                         op_key: op.key.clone(),
                         site_key: site.key.clone(),
@@ -414,10 +405,10 @@ impl LiveState {
         if let Some(i) = self.graph_nodes.iter().position(|n| n.id == cell_id) {
             return Some(i);
         }
-        // RADIO / missing leaf → parent eNB if any.
+        // FULL cell without graph leaf → parent eNB.
         for op in &self.operators {
             for site in &op.sites {
-                if site.cells.contains(&sel) || site.radio.contains(&sel) {
+                if site.cells.contains(&sel) {
                     return self.graph_nodes.iter().position(|n| n.id == site.key);
                 }
             }
@@ -513,18 +504,11 @@ impl LiveState {
         let graph_busy = self.view == LiveView::Graph
             && !self.graph_nodes.is_empty()
             && (!self.graph_settled || self.graph_drag.is_some());
-        // Keep UI live while OpenCelliD replies trickle in.
-        let oci_pending = self.enrich.has_key()
-            && self
-                .flat
-                .iter()
-                .take(80)
-                .any(|ft| matches!(self.enrich.status_for_flat(ft), ExtStatus::Pending));
-        graph_busy || oci_pending
+        // Only while real OCI jobs are in flight — not for every uncached row.
+        graph_busy || self.enrich.has_pending()
     }
 
     pub fn tick(&mut self, dt: f32) {
-        self.pulse = (self.pulse + dt * 1.8) % std::f32::consts::TAU;
         self.enrich.poll_results();
         if !self.flat.is_empty() {
             self.enrich.enqueue_flat(&self.flat);
@@ -538,7 +522,7 @@ impl LiveState {
         }
         let due = self
             .last_load
-            .map(|t| t.elapsed() >= Duration::from_millis(400))
+            .map(|t| t.elapsed() >= Duration::from_millis(500))
             .unwrap_or(true);
         if due {
             self.poll();
@@ -629,7 +613,6 @@ impl LiveState {
                     tac: ft.tower.lac_or_tac().to_string(),
                     best_rsrp: -999.0,
                     cells: Vec::new(),
-                    radio: Vec::new(),
                 });
                 if node.tac.is_empty() {
                     node.tac = ft.tower.lac_or_tac().to_string();
@@ -643,34 +626,12 @@ impl LiveState {
             }
         }
 
-        // Nest RADIO (no CID) under a site that already owns the same EARFCN.
+        // Heard RF stays under the operator — never claimed as child of an eNB.
         for (plmn, ix) in pending_radio {
-            let earfcn = self.flat[ix].tower.channel().to_string();
             let Some(acc) = ops.get_mut(&plmn) else {
                 unknown_lte.push(ix);
                 continue;
             };
-            let mut parent_enb: Option<String> = None;
-            if !earfcn.is_empty() {
-                for (enb, site) in &acc.sites {
-                    let owns = site.cells.iter().any(|&ci| {
-                        self.flat
-                            .get(ci)
-                            .map(|f| f.tower.channel() == earfcn)
-                            .unwrap_or(false)
-                    });
-                    if owns {
-                        parent_enb = Some(enb.clone());
-                        break;
-                    }
-                }
-            }
-            if let Some(enb) = parent_enb {
-                if let Some(site) = acc.sites.get_mut(&enb) {
-                    site.radio.push(ix);
-                    continue;
-                }
-            }
             acc.incomplete.push(ix);
         }
 
@@ -693,7 +654,6 @@ impl LiveState {
             .map(|(plmn, mut acc)| {
                 for s in acc.sites.values_mut() {
                     s.cells.sort_by(|&a, &b| sort_ix(&self.flat, a, b));
-                    s.radio.sort_by(|&a, &b| sort_ix(&self.flat, a, b));
                 }
                 acc.incomplete
                     .sort_by(|&a, &b| sort_ix(&self.flat, a, b));
@@ -811,7 +771,7 @@ impl LiveState {
                         (
                             format!("eNB {}", site.enb),
                             site_sub_label(site),
-                            site_status_color(&self.flat, site),
+                            site_graph_color(&self.flat, site),
                         ),
                     )
                 })
@@ -829,7 +789,7 @@ impl LiveState {
                     (
                         cell_graph_label(t),
                         cell_graph_sub(t),
-                        cell_status_color(t, brand),
+                        cell_graph_color(t, brand),
                     ),
                 )
             })
@@ -1022,7 +982,7 @@ impl LiveState {
                         kind: GraphKind::Enb,
                         label: format!("eNB {}", site.enb),
                         sub: site_sub_label(site),
-                        color: site_status_color(&self.flat, site),
+                        color: site_graph_color(&self.flat, site),
                         // eNB is not a cell — never bind flat_ix (stale index → wrong CID label).
                         flat_ix: None,
                         pos: site_home,
@@ -1044,7 +1004,7 @@ impl LiveState {
                             kind: GraphKind::Cell,
                             label: cell_graph_label(t),
                             sub: cell_graph_sub(t),
-                            color: cell_status_color(t, op.color),
+                            color: cell_graph_color(t, op.color),
                             flat_ix: Some(flat_i),
                             pos: cell_pos,
                             vel: Vec2::ZERO,
@@ -1175,19 +1135,19 @@ fn parse_f32(s: &str) -> f32 {
     s.parse().unwrap_or(-999.0)
 }
 
-fn fill_label(t: &Tower) -> (&'static str, Color32) {
+fn fill_label(th: &Theme, t: &Tower) -> (&'static str, Color32) {
     let has_cid = !t.get_id("cid").is_empty();
     let has_tac = !t.lac_or_tac().is_empty();
     let has_plmn = !t.plmn().is_empty();
     let has_rf = !t.channel().is_empty() && !t.cell_code().is_empty();
     if has_rf && has_plmn && has_cid && has_tac {
-        ("FULL", Color32::from_rgb(52, 211, 153))
+        ("FULL", th.ok)
     } else if has_rf && has_plmn {
-        ("PLMN", Color32::from_rgb(251, 191, 36))
+        ("PLMN", th.warning)
     } else if has_rf {
-        ("RADIO", Color32::from_rgb(148, 163, 184))
+        ("RADIO", th.muted)
     } else {
-        ("WEAK", Color32::from_rgb(100, 116, 139))
+        ("WEAK", th.wash(th.muted, 160))
     }
 }
 
@@ -1216,14 +1176,23 @@ fn signal_meter(ui: &mut Ui, th: &Theme, rsrp: f32, width: f32, height: f32) {
 }
 
 fn badge(ui: &mut Ui, label: &str, fg: Color32) {
-    let bg = Color32::from_rgba_unmultiplied(fg.r(), fg.g(), fg.b(), 36);
+    badge_icon(ui, "", label, fg);
+}
+
+fn badge_icon(ui: &mut Ui, icon: &str, label: &str, fg: Color32) {
+    let bg = Color32::from_rgba_unmultiplied(fg.r(), fg.g(), fg.b(), 28);
+    let text = if icon.is_empty() {
+        label.to_string()
+    } else {
+        format!("{icon}  {label}")
+    };
     Frame::new()
         .fill(bg)
-        .stroke(Stroke::new(1.0, Color32::from_rgba_unmultiplied(fg.r(), fg.g(), fg.b(), 90)))
+        .stroke(Stroke::new(1.0, Color32::from_rgba_unmultiplied(fg.r(), fg.g(), fg.b(), 80)))
         .corner_radius(CornerRadius::same(6))
-        .inner_margin(Margin::symmetric(10, 4))
+        .inner_margin(Margin::symmetric(8, 3))
         .show(ui, |ui| {
-            ui.label(RichText::new(label).strong().size(12.0).color(fg));
+            ui.label(RichText::new(text).strong().size(11.5).color(fg));
         });
 }
 
@@ -1312,7 +1281,15 @@ pub fn render_live(ui: &mut Ui, th: &Theme, live: &mut LiveState) {
     // ── Header ──
     ui.horizontal(|ui| {
         ui.vertical(|ui| {
-            ui.label(RichText::new("Live Scan").strong().size(28.0).color(th.text));
+            ui.horizontal(|ui| {
+                ui.label(
+                    RichText::new(icons::BROADCAST)
+                        .size(22.0)
+                        .color(th.accent),
+                );
+                ui.add_space(8.0);
+                ui.label(RichText::new("Live Scan").strong().size(28.0).color(th.text));
+            });
             ui.label(
                 RichText::new(match live.view {
                     LiveView::Tree => {
@@ -1334,22 +1311,22 @@ pub fn render_live(ui: &mut Ui, th: &Theme, live: &mut LiveState) {
             } else {
                 th.muted
             };
-            let live_txt = if !live.watching {
-                "Paused"
+            let (live_icon, live_txt) = if !live.watching {
+                (icons::PAUSE, "Paused")
             } else if live.last_err.is_empty() {
-                "Live"
+                (icons::PLAY, "Live")
             } else {
-                "Waiting"
+                (icons::CIRCLE, "Waiting")
             };
             if ui
                 .add(
                     egui::Button::new(
-                        RichText::new(format!("*  {live_txt}"))
+                        RichText::new(format!("{live_icon}  {live_txt}"))
                             .strong()
                             .size(14.0)
                             .color(live_col),
                     )
-                    .fill(Color32::from_rgba_unmultiplied(live_col.r(), live_col.g(), live_col.b(), 28))
+                    .fill(th.wash(live_col, 28))
                     .corner_radius(CornerRadius::same(20))
                     .min_size(Vec2::new(110.0, 36.0)),
                 )
@@ -1359,21 +1336,21 @@ pub fn render_live(ui: &mut Ui, th: &Theme, live: &mut LiveState) {
                 live.watching = !live.watching;
             }
             ui.add_space(8.0);
-            let view_label = match live.view {
-                LiveView::Tree => "Tree",
-                LiveView::Graph => "Graph",
+            let (view_icon, view_label) = match live.view {
+                LiveView::Tree => (icons::LIST_BULLETS, "Tree"),
+                LiveView::Graph => (icons::SHARE_NETWORK, "Graph"),
             };
             if ui
                 .add(
                     egui::Button::new(
-                        RichText::new(format!("{view_label}  ⇥"))
+                        RichText::new(format!("{view_icon}  {view_label}"))
                             .strong()
                             .size(14.0)
                             .color(th.accent),
                     )
-                    .fill(Color32::from_rgba_unmultiplied(th.accent.r(), th.accent.g(), th.accent.b(), 28))
+                    .fill(th.wash(th.accent, 28))
                     .corner_radius(CornerRadius::same(8))
-                    .min_size(Vec2::new(100.0, 36.0)),
+                    .min_size(Vec2::new(110.0, 36.0)),
                 )
                 .on_hover_text("Toggle Tree / Graph (Tab)")
                 .clicked()
@@ -1389,10 +1366,14 @@ pub fn render_live(ui: &mut Ui, th: &Theme, live: &mut LiveState) {
             ui.add_space(8.0);
             if ui
                 .add(
-                    egui::Button::new(RichText::new("Reload").size(14.0))
-                        .fill(th.panel2)
-                        .corner_radius(CornerRadius::same(8))
-                        .min_size(Vec2::new(88.0, 36.0)),
+                    egui::Button::new(
+                        RichText::new(format!("{}  Reload", icons::ARROW_RIGHT))
+                            .size(14.0)
+                            .color(th.text),
+                    )
+                    .fill(th.panel2)
+                    .corner_radius(CornerRadius::same(8))
+                    .min_size(Vec2::new(96.0, 36.0)),
                 )
                 .clicked()
             {
@@ -1401,10 +1382,14 @@ pub fn render_live(ui: &mut Ui, th: &Theme, live: &mut LiveState) {
             }
             if ui
                 .add(
-                    egui::Button::new(RichText::new("Pick file…").size(14.0))
-                        .fill(th.panel2)
-                        .corner_radius(CornerRadius::same(8))
-                        .min_size(Vec2::new(100.0, 36.0)),
+                    egui::Button::new(
+                        RichText::new(format!("{}  Pick file", icons::FOLDER_OPEN))
+                            .size(14.0)
+                            .color(th.text),
+                    )
+                    .fill(th.panel2)
+                    .corner_radius(CornerRadius::same(8))
+                    .min_size(Vec2::new(120.0, 36.0)),
                 )
                 .clicked()
             {
@@ -1422,6 +1407,11 @@ pub fn render_live(ui: &mut Ui, th: &Theme, live: &mut LiveState) {
 
     ui.add_space(6.0);
     ui.horizontal(|ui| {
+        ui.label(
+            RichText::new(icons::FILE_TEXT)
+                .size(14.0)
+                .color(th.muted),
+        );
         ui.label(RichText::new("Feed").size(13.0).color(th.muted));
         let mut path_str = live.path.to_string_lossy().to_string();
         let te = egui::TextEdit::singleline(&mut path_str)
@@ -1492,11 +1482,11 @@ pub fn render_live(ui: &mut Ui, th: &Theme, live: &mut LiveState) {
             ui.add_space(10.0);
             metric_card(ui, th, "FULL", &full, th.serving);
             ui.add_space(10.0);
-            metric_card(ui, th, "RADIO", &radio_n, th.muted);
+            metric_card(ui, th, "Heard RF", &radio_n, th.muted);
             ui.add_space(10.0);
             metric_card(ui, th, "Serving", &serving, th.serving);
             ui.add_space(10.0);
-            metric_card(ui, th, "Camped", &camped, Color32::from_rgb(251, 191, 36));
+            metric_card(ui, th, "Camped", &camped, th.warning);
             ui.add_space(10.0);
             metric_card(ui, th, "Hop FULLs", &hf, th.wcdma);
             ui.add_space(10.0);
@@ -1588,6 +1578,8 @@ pub fn render_live(ui: &mut Ui, th: &Theme, live: &mut LiveState) {
                     ScrollArea::vertical()
                         .id_salt("live_tree_scroll")
                         .auto_shrink([false, false])
+                        // Drag-to-scroll steals clicks from expand toggles / row select.
+                        .drag_to_scroll(false)
                         .show(ui, |ui| {
                             if live.operators.is_empty()
                                 && live.unknown_lte.is_empty()
@@ -1781,6 +1773,11 @@ fn render_search_bar(ui: &mut Ui, th: &Theme, live: &mut LiveState) {
         .inner_margin(Margin::symmetric(14, 10))
         .show(ui, |ui| {
             ui.horizontal(|ui| {
+                ui.label(
+                    RichText::new(icons::MAGNIFYING_GLASS)
+                        .size(16.0)
+                        .color(th.muted),
+                );
                 ui.label(RichText::new("Search").size(13.0).color(th.muted));
                 ui.add_space(8.0);
                 let search_id = egui::Id::new("live_tower_search");
@@ -1804,10 +1801,14 @@ fn render_search_bar(ui: &mut Ui, th: &Theme, live: &mut LiveState) {
                 ui.add_space(6.0);
                 if ui
                     .add(
-                        egui::Button::new(RichText::new("Clear").size(13.0))
-                            .fill(th.panel2)
-                            .corner_radius(CornerRadius::same(8))
-                            .min_size(Vec2::new(64.0, 32.0)),
+                        egui::Button::new(
+                            RichText::new(format!("{} Clear", icons::X_CIRCLE))
+                                .size(13.0)
+                                .color(th.text),
+                        )
+                        .fill(th.panel2)
+                        .corner_radius(CornerRadius::same(8))
+                        .min_size(Vec2::new(78.0, 32.0)),
                     )
                     .clicked()
                 {
@@ -1818,10 +1819,14 @@ fn render_search_bar(ui: &mut Ui, th: &Theme, live: &mut LiveState) {
                 let prev = ui
                     .add_enabled(
                         !matches.is_empty(),
-                        egui::Button::new(RichText::new("<").size(14.0))
-                            .fill(th.panel2)
-                            .corner_radius(CornerRadius::same(8))
-                            .min_size(Vec2::new(36.0, 32.0)),
+                        egui::Button::new(
+                            RichText::new(icons::ARROW_LEFT)
+                                .size(16.0)
+                                .color(th.text),
+                        )
+                        .fill(th.panel2)
+                        .corner_radius(CornerRadius::same(8))
+                        .min_size(Vec2::new(36.0, 32.0)),
                     )
                     .on_hover_text("Previous match (Shift+F3)");
                 if prev.clicked() {
@@ -1830,10 +1835,14 @@ fn render_search_bar(ui: &mut Ui, th: &Theme, live: &mut LiveState) {
                 let next = ui
                     .add_enabled(
                         !matches.is_empty(),
-                        egui::Button::new(RichText::new(">").size(14.0))
-                            .fill(th.panel2)
-                            .corner_radius(CornerRadius::same(8))
-                            .min_size(Vec2::new(36.0, 32.0)),
+                        egui::Button::new(
+                            RichText::new(icons::ARROW_RIGHT)
+                                .size(16.0)
+                                .color(th.text),
+                        )
+                        .fill(th.panel2)
+                        .corner_radius(CornerRadius::same(8))
+                        .min_size(Vec2::new(36.0, 32.0)),
                     )
                     .on_hover_text("Next match (F3 / Enter)");
                 if next.clicked() {
@@ -1930,10 +1939,31 @@ fn op_has_match(op: &OperatorNode, hits: &BTreeSet<usize>) -> bool {
 }
 
 fn site_has_match(site: &SiteNode, hits: &BTreeSet<usize>) -> bool {
-    site.cells
-        .iter()
-        .chain(site.radio.iter())
-        .any(|ix| hits.contains(ix))
+    site.cells.iter().any(|ix| hits.contains(ix))
+}
+
+/// Soft hint: which known eNBs already have FULL cells on this EARFCN (not ownership).
+fn earfcn_peer_enbs(live: &LiveState, op: &OperatorNode, ix: usize) -> Vec<String> {
+    let Some(ft) = live.flat.get(ix) else {
+        return Vec::new();
+    };
+    let earfcn = ft.tower.channel();
+    if earfcn.is_empty() {
+        return Vec::new();
+    }
+    let mut out = Vec::new();
+    for site in &op.sites {
+        let owns = site.cells.iter().any(|&ci| {
+            live.flat
+                .get(ci)
+                .map(|f| f.tower.channel() == earfcn)
+                .unwrap_or(false)
+        });
+        if owns {
+            out.push(site.enb.clone());
+        }
+    }
+    out
 }
 
 fn graph_node_matches(live: &LiveState, n: &GraphNode, hits: &BTreeSet<usize>) -> bool {
@@ -2070,7 +2100,7 @@ fn render_graph_view(ui: &mut Ui, th: &Theme, live: &mut LiveState) {
             let selected_enb = live.selected.and_then(|sel| {
                 for op in &live.operators {
                     for site in &op.sites {
-                        if site.cells.contains(&sel) || site.radio.contains(&sel) {
+                        if site.cells.contains(&sel) {
                             return live.graph_nodes.iter().position(|n| n.id == site.key);
                         }
                     }
@@ -2141,57 +2171,36 @@ fn render_graph_view(ui: &mut Ui, th: &Theme, live: &mut LiveState) {
                 let search_hit = node_is_hit.get(i).copied().unwrap_or(false);
                 let oci_miss = node_oci_miss.get(i).copied().unwrap_or(false);
                 let oci_warn = node_oci_warn.get(i).copied().unwrap_or(false);
-                let dim = filtering && !search_hit && !selected && !oci_miss;
-                let col = if oci_miss && !dim {
-                    Color32::from_rgb(220, 80, 80)
-                } else if dim {
-                    Color32::from_rgba_unmultiplied(n.color.r(), n.color.g(), n.color.b(), 40)
+                let dim = filtering && !search_hit && !selected;
+                // Keep node fill stable; status = ring only (no red/yellow repaint war).
+                let col = if dim {
+                    th.wash(n.color, 45)
                 } else {
                     n.color
                 };
                 let halo = if selected {
-                    Color32::from_rgba_unmultiplied(255, 255, 255, 55)
-                } else if oci_miss {
-                    Color32::from_rgba_unmultiplied(248, 113, 113, 70)
+                    th.wash(th.accent, 50)
                 } else if search_hit && filtering {
-                    Color32::from_rgba_unmultiplied(56, 189, 248, 50)
+                    th.wash(th.accent, 40)
                 } else {
-                    Color32::from_rgba_unmultiplied(n.color.r(), n.color.g(), n.color.b(), 36)
+                    th.wash(n.color, 28)
                 };
                 painter.circle_filled(c, r + 5.0, halo);
                 painter.circle_filled(c, r, col);
-                let stroke_col = if oci_miss {
-                    Color32::from_rgba_unmultiplied(254, 202, 202, if dim { 40 } else { 200 })
-                } else if oci_warn {
-                    Color32::from_rgba_unmultiplied(251, 191, 36, 160)
+                let (stroke_w, stroke_col) = if oci_miss && !dim {
+                    (2.2, th.wash(th.danger, 200))
+                } else if oci_warn && !dim {
+                    (2.0, th.wash(th.warning, 170))
+                } else if selected {
+                    (2.0, th.wash(Color32::WHITE, 160))
+                } else if search_hit {
+                    (1.6, th.wash(th.accent, 150))
+                } else if dim {
+                    (1.0, th.wash(Color32::WHITE, 20))
                 } else {
-                    Color32::from_rgba_unmultiplied(
-                        255,
-                        255,
-                        255,
-                        if selected {
-                            160
-                        } else if search_hit {
-                            110
-                        } else if dim {
-                            20
-                        } else {
-                            45
-                        },
-                    )
+                    (1.0, th.wash(Color32::WHITE, 50))
                 };
-                painter.circle_stroke(
-                    c,
-                    r,
-                    Stroke::new(
-                        if selected || search_hit || oci_miss {
-                            2.0
-                        } else {
-                            1.0
-                        },
-                        stroke_col,
-                    ),
-                );
+                painter.circle_stroke(c, r, Stroke::new(stroke_w, stroke_col));
 
                 // Label LOD — less overlap when zoomed out; search hits stay labeled.
                 let show_label = match n.kind {
@@ -2241,7 +2250,7 @@ fn render_graph_view(ui: &mut Ui, th: &Theme, live: &mut LiveState) {
             }
 
             // Legend
-            let legend = Rect::from_min_size(rect.min + Vec2::new(14.0, 12.0), Vec2::new(248.0, 92.0));
+            let legend = Rect::from_min_size(rect.min + Vec2::new(14.0, 12.0), Vec2::new(248.0, 100.0));
             painter.rect_filled(
                 legend,
                 CornerRadius::same(10),
@@ -2249,10 +2258,10 @@ fn render_graph_view(ui: &mut Ui, th: &Theme, live: &mut LiveState) {
             );
             let mut ly = legend.min.y + 12.0;
             for (lab, col) in [
-                ("Operator / eNB / FULL cells", Color32::from_rgb(226, 0, 26)),
-                ("[x] OpenCelliD miss (primary ID)", OCI_RED),
-                ("Serving / identity-camped", Color32::from_rgb(52, 211, 153)),
-                ("Neighbors (selected; session-accum)", Color32::from_rgb(56, 189, 248)),
+                ("Hub = operator brand", th.accent),
+                ("Ring red = OCI miss", th.danger),
+                ("Ring amber = OCI field diff", th.warning),
+                ("Ring blue = search / neighbors", th.accent),
             ] {
                 painter.circle_filled(Pos2::new(legend.min.x + 16.0, ly + 5.0), 5.0, col);
                 painter.text(
@@ -2260,7 +2269,7 @@ fn render_graph_view(ui: &mut Ui, th: &Theme, live: &mut LiveState) {
                     egui::Align2::LEFT_TOP,
                     lab,
                     egui::FontId::proportional(12.0),
-                    th.muted,
+                    th.text,
                 );
                 ly += 18.0;
             }
@@ -2326,7 +2335,7 @@ fn render_operator(
     let open = live.expanded.contains(&op.key) || filtering;
     let site_n = op.sites.len();
     let cell_n: usize = op.sites.iter().map(|s| s.cells.len()).sum();
-    let radio_n: usize = op.sites.iter().map(|s| s.radio.len()).sum::<usize>() + op.incomplete.len();
+    let heard_n = op.incomplete.len();
     let accent = op.color;
 
     Frame::new()
@@ -2350,28 +2359,34 @@ fn render_operator(
                 );
 
                 ui.vertical(|ui| {
-                    let header_resp = Frame::new()
+                    let mut do_toggle = false;
+                    Frame::new()
                         .inner_margin(Margin::symmetric(16, 14))
                         .show(ui, |ui| {
                             ui.horizontal(|ui| {
-                                let chev = if open { "v" } else { ">" };
-                                ui.label(RichText::new(chev).size(20.0).color(th.muted));
-                                ui.add_space(6.0);
+                                if expand_toggle(ui, open, th.accent).clicked() {
+                                    do_toggle = true;
+                                }
+                                ui.add_space(8.0);
                                 operator_dot(ui, op.color, 8.0);
                                 ui.add_space(10.0);
                                 ui.vertical(|ui| {
-                                    ui.horizontal(|ui| {
-                                        ui.label(
+                                    let title = ui.add(
+                                        egui::Label::new(
                                             RichText::new(operator_label(&op.plmn))
                                                 .strong()
                                                 .size(22.0)
                                                 .color(th.text),
-                                        );
-                                    });
+                                        )
+                                        .sense(Sense::click()),
+                                    );
+                                    if title.clicked() {
+                                        do_toggle = true;
+                                    }
                                     ui.add_space(6.0);
                                     ui.label(
                                         RichText::new(format!(
-                                            "{site_n} sites   ·   {cell_n} full   ·   {radio_n} radio"
+                                            "{site_n} sites   ·   {cell_n} full   ·   {heard_n} heard RF"
                                         ))
                                         .size(14.0)
                                         .color(th.muted),
@@ -2400,11 +2415,9 @@ fn render_operator(
                                     }
                                 });
                             });
-                        })
-                        .response
-                        .interact(Sense::click());
+                        });
 
-                    if header_resp.clicked() {
+                    if do_toggle {
                         toggle_expand(&mut live.expanded, &op.key);
                     }
 
@@ -2431,31 +2444,66 @@ fn render_operator(
                                 if !incomplete.is_empty() {
                                     let hk = heard_key(&op.plmn);
                                     let hop = live.expanded.contains(&hk) || filtering;
-                                    let heard_resp = ui
-                                        .horizontal(|ui| {
-                                            let chev = if hop { "v" } else { ">" };
-                                            ui.label(
-                                                RichText::new(chev).size(16.0).color(th.muted),
-                                            );
-                                            ui.label(
-                                                RichText::new(format!(
-                                                    "Orphan RADIO  ·  no site EARFCN match  ·  {}",
-                                                    incomplete.len()
-                                                ))
-                                                .strong()
-                                                .size(14.0)
-                                                .color(th.muted),
-                                            );
-                                        })
-                                        .response
-                                        .interact(Sense::click());
-                                    if heard_resp.clicked() {
+                                    let mut heard_toggle = false;
+                                    Frame::new()
+                                        .fill(th.panel2)
+                                        .stroke(Stroke::new(1.0, th.stroke))
+                                        .corner_radius(CornerRadius::same(10))
+                                        .inner_margin(Margin::symmetric(12, 10))
+                                        .show(ui, |ui| {
+                                            ui.horizontal(|ui| {
+                                                if nest_toggle(ui, hop, th.accent).clicked() {
+                                                    heard_toggle = true;
+                                                }
+                                                ui.add_space(6.0);
+                                                ui.vertical(|ui| {
+                                                    ui.label(
+                                                        RichText::new(format!(
+                                                            "Heard RF  ·  PCI, no CID  ·  {}",
+                                                            incomplete.len()
+                                                        ))
+                                                        .strong()
+                                                        .size(14.0)
+                                                        .color(th.text),
+                                                    );
+                                                    ui.label(
+                                                        RichText::new(
+                                                            "Not under an eNB — identity unknown. Peer EARFCN notes are hints only.",
+                                                        )
+                                                        .size(11.5)
+                                                        .color(th.muted),
+                                                    );
+                                                });
+                                            });
+                                        });
+                                    if heard_toggle {
                                         toggle_expand(&mut live.expanded, &hk);
                                     }
                                     if hop {
                                         ui.add_space(8.0);
                                         for ix in incomplete {
-                                            render_cell_row(ui, th, live, ix, 1, CellKind::Heard);
+                                            let peers = earfcn_peer_enbs(live, op, ix);
+                                            render_cell_row(
+                                                ui,
+                                                th,
+                                                live,
+                                                ix,
+                                                1,
+                                                CellKind::Heard,
+                                            );
+                                            if !peers.is_empty() {
+                                                ui.horizontal(|ui| {
+                                                    ui.add_space(40.0);
+                                                    ui.label(
+                                                        RichText::new(format!(
+                                                            "same EARFCN as eNB {} (unconfirmed)",
+                                                            peers.join(", ")
+                                                        ))
+                                                        .size(11.0)
+                                                        .color(th.muted),
+                                                    );
+                                                });
+                                            }
                                             ui.add_space(6.0);
                                         }
                                     }
@@ -2477,12 +2525,10 @@ fn render_site(
 ) {
     let open = live.expanded.contains(&site.key) || filtering;
     let full_n = site.cells.len();
-    let radio_n = site.radio.len();
     let accent = rsrp_color(th, site.best_rsrp);
     let has_serving = site
         .cells
         .iter()
-        .chain(site.radio.iter())
         .any(|&i| live.flat.get(i).map(|f| f.tower.is_serving()).unwrap_or(false));
     let has_camped = site
         .cells
@@ -2495,90 +2541,80 @@ fn render_site(
             .iter()
             .any(|&ix| live.ext_status_ref(ix).has_field_mismatch());
 
-    let frame_bg = if oci_bad {
-        Color32::from_rgba_unmultiplied(248, 113, 113, 28)
+    let surface = if oci_bad {
+        SurfaceState::Danger
     } else if has_serving {
-        Color32::from_rgba_unmultiplied(52, 211, 153, 22)
+        SurfaceState::Serving
     } else if has_camped {
-        Color32::from_rgba_unmultiplied(251, 191, 36, 18)
+        SurfaceState::Camped
     } else {
-        Color32::from_rgb(28, 34, 42)
+        SurfaceState::Idle
     };
 
     Frame::new()
-        .fill(frame_bg)
-        .stroke(Stroke::new(
-            if oci_bad { 1.6 } else { 1.0 },
-            if oci_bad {
-                Color32::from_rgba_unmultiplied(248, 113, 113, 140)
-            } else if has_serving {
-                Color32::from_rgba_unmultiplied(52, 211, 153, 80)
-            } else if has_camped {
-                Color32::from_rgba_unmultiplied(251, 191, 36, 70)
-            } else {
-                th.stroke
-            },
-        ))
+        .fill(th.surface_fill(surface))
+        .stroke(th.surface_stroke(surface))
         .corner_radius(CornerRadius::same(12))
         .inner_margin(Margin::symmetric(12, 10))
         .show(ui, |ui| {
-            let header_resp = ui
-                .horizontal(|ui| {
-                    let chev = if open { "v" } else { ">" };
-                    ui.label(RichText::new(chev).size(18.0).color(th.muted));
-                    ui.add_space(6.0);
-                    ui.vertical(|ui| {
-                        ui.horizontal(|ui| {
-                            ui.label(
-                                RichText::new(format!("eNB  {}", site.enb))
+            let mut do_toggle = false;
+            ui.horizontal(|ui| {
+                if expand_toggle(ui, open, th.accent).clicked() {
+                    do_toggle = true;
+                }
+                ui.add_space(8.0);
+                ui.vertical(|ui| {
+                    ui.horizontal(|ui| {
+                        let title = ui.add(
+                            egui::Label::new(
+                                RichText::new(format!("{}  eNB  {}", icons::CELL_TOWER, site.enb))
                                     .strong()
                                     .size(18.0)
                                     .color(th.text),
-                            );
-                            ui.add_space(8.0);
-                            if !site.tac.is_empty() {
-                                badge(ui, &format!("TAC {}", site.tac), th.muted);
-                            }
-                            if oci_bad {
-                                ui.add_space(4.0);
-                                badge(ui, "OCI MISS", OCI_RED);
-                            } else if oci_warn {
-                                ui.add_space(4.0);
-                                badge(ui, "OCI DIFF", OCI_AMBER);
-                            }
-                            if has_serving {
-                                ui.add_space(4.0);
-                                badge(ui, "SERVING", th.serving);
-                            } else if has_camped {
-                                ui.add_space(4.0);
-                                badge(ui, "CAMPED", Color32::from_rgb(251, 191, 36));
-                            }
-                        });
-                        ui.label(
-                            RichText::new(if radio_n == 0 {
-                                format!("{full_n} full carriers")
-                            } else {
-                                format!("{full_n} full  ·  {radio_n} radio (same EARFCN)")
-                            })
-                            .size(13.0)
-                            .color(th.muted),
+                            )
+                            .sense(Sense::click()),
                         );
-                    });
-                    ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
-                        if site.best_rsrp > -200.0 {
-                            ui.label(
-                                RichText::new(format!("{:.0} dBm", site.best_rsrp))
-                                    .strong()
-                                    .size(16.0)
-                                    .color(accent),
-                            );
+                        if title.clicked() {
+                            do_toggle = true;
+                        }
+                        ui.add_space(8.0);
+                        if !site.tac.is_empty() {
+                            badge(ui, &format!("TAC {}", site.tac), th.muted);
+                        }
+                        if oci_bad {
+                            ui.add_space(4.0);
+                            badge_icon(ui, icons::X_CIRCLE, "MISS", th.danger);
+                        } else if oci_warn {
+                            ui.add_space(4.0);
+                            badge_icon(ui, icons::WARNING, "DIFF", th.warning);
+                        }
+                        if has_serving {
+                            ui.add_space(4.0);
+                            badge_icon(ui, icons::BROADCAST, "SERVING", th.serving);
+                        } else if has_camped {
+                            ui.add_space(4.0);
+                            badge_icon(ui, icons::MAP_PIN, "CAMPED", th.warning);
                         }
                     });
-                })
-                .response
-                .interact(Sense::click());
+                    ui.label(
+                        RichText::new(format!("{full_n} full carriers"))
+                            .size(13.0)
+                            .color(th.muted),
+                    );
+                });
+                ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
+                    if site.best_rsrp > -200.0 {
+                        ui.label(
+                            RichText::new(format!("{:.0} dBm", site.best_rsrp))
+                                .strong()
+                                .size(16.0)
+                                .color(accent),
+                        );
+                    }
+                });
+            });
 
-            if header_resp.clicked() {
+            if do_toggle {
                 toggle_expand(&mut live.expanded, &site.key);
             }
 
@@ -2590,63 +2626,6 @@ fn render_site(
                     }
                     render_cell_row(ui, th, live, cix, 1, CellKind::Cell);
                     ui.add_space(6.0);
-                }
-                let radios: Vec<usize> = site
-                    .radio
-                    .iter()
-                    .copied()
-                    .filter(|ix| !filtering || hits.contains(ix))
-                    .collect();
-                if !radios.is_empty() {
-                    ui.add_space(6.0);
-                    let rk = site_radio_key(&site.key);
-                    let radio_open = live.expanded.contains(&rk) || filtering;
-                    let radio_hdr = Frame::new()
-                        .fill(Color32::from_rgb(24, 29, 36))
-                        .stroke(Stroke::new(1.0, th.stroke))
-                        .corner_radius(CornerRadius::same(8))
-                        .inner_margin(Margin {
-                            left: 34,
-                            right: 12,
-                            top: 8,
-                            bottom: 8,
-                        })
-                        .show(ui, |ui| {
-                            ui.horizontal(|ui| {
-                                let chev = if radio_open { "v" } else { ">" };
-                                ui.label(RichText::new(chev).size(14.0).color(th.muted));
-                                ui.add_space(6.0);
-                                ui.vertical(|ui| {
-                                    ui.label(
-                                        RichText::new(format!(
-                                            "RADIO under eNB {}  ({})",
-                                            site.enb,
-                                            radios.len()
-                                        ))
-                                        .strong()
-                                        .size(13.0)
-                                        .color(th.muted),
-                                    );
-                                    ui.label(
-                                        RichText::new("PCI seen, no CID yet - same EARFCN as site")
-                                            .size(11.5)
-                                            .color(Color32::from_rgb(100, 112, 128)),
-                                    );
-                                });
-                            });
-                        })
-                        .response
-                        .interact(Sense::click());
-                    if radio_hdr.clicked() {
-                        toggle_expand(&mut live.expanded, &rk);
-                    }
-                    if radio_open {
-                        ui.add_space(6.0);
-                        for rix in radios {
-                            render_cell_row(ui, th, live, rix, 2, CellKind::Heard);
-                            ui.add_space(6.0);
-                        }
-                    }
                 }
             }
         });
@@ -2661,51 +2640,40 @@ enum CellKind {
 fn render_cell_row(ui: &mut Ui, th: &Theme, live: &mut LiveState, ix: usize, depth: u8, kind: CellKind) {
     let ft = live.flat[ix].clone();
     let t = &ft.tower;
-    let (fill, fill_c) = fill_label(t);
+    let (fill, fill_c) = fill_label(th, t);
     let rsrp = parse_f32(t.rxl());
     let serving = t.is_serving();
     let camped = t.was_identity_camped() && !serving;
     let selected = live.selected == Some(ix);
     let indent = 12.0 + depth as f32 * 22.0;
-    let ext = live.ext_status(ix);
+    // Read-only — never enqueue OCI from every painted row (was a major lag source).
+    let ext = live.ext_status_ref(ix);
     let oci_miss = ext.is_unmatched();
     let oci_diff = ext.has_field_mismatch();
     let nb_n = t.neighbor_count();
     let nb_key = cell_nb_key(&t.key);
     let nb_open = nb_n > 0 && live.expanded.contains(&nb_key);
 
-    let pulse = if serving {
-        0.10 + 0.10 * live.pulse.sin().abs()
-    } else {
-        0.0
-    };
-
-    // Amber wash only for identity-camped; green pulse for current serving.
-    let bg = if oci_miss {
-        Color32::from_rgba_unmultiplied(248, 113, 113, if selected { 48 } else { 32 })
+    // Status via border + badges — keep fills calm so text stays readable.
+    let surface = if oci_miss {
+        SurfaceState::Danger
     } else if selected {
-        Color32::from_rgb(36, 48, 58)
+        SurfaceState::Selected
     } else if serving {
-        Color32::from_rgba_unmultiplied(52, 211, 153, (pulse * 255.0) as u8)
+        SurfaceState::Serving
     } else if camped {
-        Color32::from_rgba_unmultiplied(251, 191, 36, 28)
+        SurfaceState::Camped
     } else {
-        match kind {
-            CellKind::Cell => Color32::from_rgb(28, 34, 42),
-            CellKind::Heard => Color32::from_rgb(24, 29, 36),
-        }
+        SurfaceState::Idle
     };
-
-    let border = if oci_miss {
-        Stroke::new(1.6, OCI_RED)
-    } else if selected {
-        Stroke::new(1.5, th.accent)
-    } else if oci_diff {
-        Stroke::new(1.2, OCI_AMBER)
-    } else if camped {
-        Stroke::new(1.0, Color32::from_rgba_unmultiplied(251, 191, 36, 90))
+    let bg = match (surface, kind) {
+        (SurfaceState::Idle, CellKind::Heard) => Color32::from_rgb(24, 28, 36),
+        (s, _) => th.surface_fill(s),
+    };
+    let border = if oci_diff && !oci_miss {
+        Stroke::new(1.2, th.wash(th.warning, 140))
     } else {
-        Stroke::new(1.0, th.stroke)
+        th.surface_stroke(surface)
     };
 
     let mut toggle_nb = false;
@@ -2722,36 +2690,33 @@ fn render_cell_row(ui: &mut Ui, th: &Theme, live: &mut LiveState, ix: usize, dep
         .show(ui, |ui| {
             ui.horizontal(|ui| {
                 if nb_n > 0 {
-                    let chev = if nb_open { "v" } else { ">" };
-                    let chev_resp = ui
-                        .add(
-                            egui::Label::new(
-                                RichText::new(chev).size(16.0).strong().color(th.muted),
-                            )
-                            .sense(Sense::click()),
-                        )
-                        .on_hover_text("Expand / collapse neighbor hints");
-                    if chev_resp.clicked() {
+                    if nest_toggle(ui, nb_open, th.accent)
+                        .on_hover_text("Neighbor hints (SIB / meas)")
+                        .clicked()
+                    {
                         toggle_nb = true;
                     }
                     ui.add_space(4.0);
-                } else {
-                    ui.add_space(14.0);
                 }
 
                 ui.vertical(|ui| {
                     ui.set_min_width(78.0);
-                    let (role, role_c) = if serving {
-                        ("SERVING", th.serving)
+                    let (role_icon, role, role_c) = if serving {
+                        (icons::CELL_SIGNAL_FULL, "SERVING", th.serving)
                     } else if camped {
-                        ("CAMPED", Color32::from_rgb(251, 191, 36))
+                        (icons::MAP_PIN, "CAMPED", th.warning)
                     } else {
                         match kind {
-                            CellKind::Cell => ("CELL", th.accent),
-                            CellKind::Heard => ("RADIO", th.muted),
+                            CellKind::Cell => (icons::CELL_TOWER, "CELL", th.accent),
+                            CellKind::Heard => (icons::CIRCLE, "RADIO", th.muted),
                         }
                     };
-                    ui.label(RichText::new(role).strong().size(11.0).color(role_c));
+                    ui.label(
+                        RichText::new(format!("{role_icon}  {role}"))
+                            .strong()
+                            .size(11.0)
+                            .color(role_c),
+                    );
                     ui.label(
                         RichText::new(if t.band().is_empty() { "-" } else { t.band() })
                             .size(15.0)
@@ -2835,11 +2800,19 @@ fn render_cell_row(ui: &mut Ui, th: &Theme, live: &mut LiveState, ix: usize, dep
                     badge(ui, fill, fill_c);
                     ui.add_space(6.0);
                     match &ext {
-                        ExtStatus::NotInDb { .. } => badge(ui, "MISS", OCI_RED),
-                        ExtStatus::Found { .. } if oci_diff => badge(ui, "DIFF", OCI_AMBER),
-                        ExtStatus::Found { .. } => badge(ui, "OK", OCI_OK),
-                        ExtStatus::Pending => badge(ui, "...", th.muted),
-                        ExtStatus::Error(_) => badge(ui, "ERR", OCI_AMBER),
+                        ExtStatus::NotInDb { .. } => {
+                            badge_icon(ui, icons::X_CIRCLE, "MISS", th.danger)
+                        }
+                        ExtStatus::Found { .. } if oci_diff => {
+                            badge_icon(ui, icons::WARNING, "DIFF", th.warning)
+                        }
+                        ExtStatus::Found { .. } => {
+                            badge_icon(ui, icons::CHECK_CIRCLE, "OK", th.ok)
+                        }
+                        ExtStatus::Pending => badge(ui, "…", th.muted),
+                        ExtStatus::Error(_) => {
+                            badge_icon(ui, icons::WARNING_CIRCLE, "ERR", th.warning)
+                        }
                         ExtStatus::NoKey | ExtStatus::Skipped => {}
                     }
                     ui.add_space(10.0);
@@ -2971,7 +2944,7 @@ fn render_cell_row(ui: &mut Ui, th: &Theme, live: &mut LiveState, ix: usize, dep
 
 fn render_detail(ui: &mut Ui, th: &Theme, ft: &FlatTower, ext: &ExtStatus) {
     let t = &ft.tower;
-    let (fill, fill_c) = fill_label(t);
+    let (fill, fill_c) = fill_label(th, t);
 
     ui.horizontal_wrapped(|ui| {
         ui.label(
@@ -2983,19 +2956,21 @@ fn render_detail(ui: &mut Ui, th: &Theme, ft: &FlatTower, ext: &ExtStatus) {
         ui.add_space(6.0);
         badge(ui, fill, fill_c);
         if t.is_serving() {
-            badge(ui, "SERVING", th.serving);
+            badge_icon(ui, icons::CELL_SIGNAL_FULL, "SERVING", th.serving);
         } else if t.was_identity_camped() {
-            badge(ui, "CAMPED", Color32::from_rgb(251, 191, 36));
+            badge_icon(ui, icons::MAP_PIN, "CAMPED", th.warning);
         } else if t.was_camped() && !t.has_cid() {
             badge(ui, "RF LOCK", th.muted);
         }
         match ext {
-            ExtStatus::NotInDb { .. } => badge(ui, "OCI MISS", OCI_RED),
-            ExtStatus::Found { .. } if ext.has_field_mismatch() => badge(ui, "OCI DIFF", OCI_AMBER),
-            ExtStatus::Found { .. } => badge(ui, "OCI OK", OCI_OK),
-            ExtStatus::Pending => badge(ui, "OCI ...", th.muted),
-            ExtStatus::Error(_) => badge(ui, "OCI ERR", OCI_AMBER),
-            ExtStatus::NoKey => badge(ui, "OCI OFF", th.muted),
+            ExtStatus::NotInDb { .. } => badge_icon(ui, icons::X_CIRCLE, "MISS", th.danger),
+            ExtStatus::Found { .. } if ext.has_field_mismatch() => {
+                badge_icon(ui, icons::WARNING, "DIFF", th.warning)
+            }
+            ExtStatus::Found { .. } => badge_icon(ui, icons::CHECK_CIRCLE, "OK", th.ok),
+            ExtStatus::Pending => badge(ui, "…", th.muted),
+            ExtStatus::Error(_) => badge_icon(ui, icons::WARNING_CIRCLE, "ERR", th.warning),
+            ExtStatus::NoKey => badge(ui, "OFF", th.muted),
             ExtStatus::Skipped => {}
         }
     });
@@ -3162,7 +3137,7 @@ fn render_ext_compare(ui: &mut Ui, th: &Theme, ft: &FlatTower, ext: &ExtStatus) 
             ui.label(
                 RichText::new(format!("OCI error: {e}"))
                     .size(13.0)
-                    .color(OCI_AMBER),
+                    .color(th.warning),
             );
             return;
         }
@@ -3177,17 +3152,24 @@ fn render_ext_compare(ui: &mut Ui, th: &Theme, ft: &FlatTower, ext: &ExtStatus) 
     match ext {
         ExtStatus::NotInDb { .. } => {
             Frame::new()
-                .fill(Color32::from_rgba_unmultiplied(248, 113, 113, 28))
-                .stroke(Stroke::new(1.0, OCI_RED))
+                .fill(th.surface_fill(SurfaceState::Danger))
+                .stroke(th.surface_stroke(SurfaceState::Danger))
                 .corner_radius(CornerRadius::same(8))
                 .inner_margin(Margin::symmetric(10, 8))
                 .show(ui, |ui| {
-                    ui.label(
-                        RichText::new("[x] CGI not in OpenCelliD - merge = ours only")
-                            .strong()
-                            .size(13.0)
-                            .color(OCI_RED),
-                    );
+                    ui.horizontal(|ui| {
+                        ui.label(
+                            RichText::new(icons::X_CIRCLE)
+                                .size(15.0)
+                                .color(th.danger),
+                        );
+                        ui.label(
+                            RichText::new("CGI not in OpenCelliD — merge = ours only")
+                                .strong()
+                                .size(13.0)
+                                .color(th.text),
+                        );
+                    });
                     let t = &ft.tower;
                     ui.label(
                         RichText::new(format!(
@@ -3206,22 +3188,38 @@ fn render_ext_compare(ui: &mut Ui, th: &Theme, ft: &FlatTower, ext: &ExtStatus) 
         ExtStatus::Found { .. } => {
             let conflicts = diffs.iter().filter(|d| d.side == DiffSide::Mismatch).count();
             let from_oci = diffs.iter().filter(|d| d.side == DiffSide::ExtOnly).count();
+            let surface = if conflicts == 0 {
+                SurfaceState::Serving
+            } else {
+                SurfaceState::Camped
+            };
+            let icon = if conflicts == 0 {
+                icons::CHECK_CIRCLE
+            } else {
+                icons::WARNING
+            };
+            let icon_c = if conflicts == 0 { th.ok } else { th.warning };
             Frame::new()
-                .fill(Color32::from_rgba_unmultiplied(52, 211, 153, 18))
-                .stroke(Stroke::new(1.0, OCI_OK))
+                .fill(th.surface_fill(surface))
+                .stroke(th.surface_stroke(surface))
                 .corner_radius(CornerRadius::same(8))
                 .inner_margin(Margin::symmetric(10, 8))
                 .show(ui, |ui| {
-                    ui.label(
-                        RichText::new(if conflicts == 0 {
-                            format!("[ok] CGI found - merged (+{from_oci} from OCI)")
-                        } else {
-                            format!("[!] CGI found - {conflicts} conflict(s), +{from_oci} from OCI")
-                        })
-                        .strong()
-                        .size(13.0)
-                        .color(if conflicts == 0 { OCI_OK } else { OCI_AMBER }),
-                    );
+                    ui.horizontal(|ui| {
+                        ui.label(RichText::new(icon).size(15.0).color(icon_c));
+                        ui.label(
+                            RichText::new(if conflicts == 0 {
+                                format!("CGI found — merged (+{from_oci} from OCI)")
+                            } else {
+                                format!(
+                                    "CGI found — {conflicts} conflict(s), +{from_oci} from OCI"
+                                )
+                            })
+                            .strong()
+                            .size(13.0)
+                            .color(th.text),
+                        );
+                    });
                 });
         }
         _ => {}
@@ -3249,21 +3247,9 @@ fn render_ext_compare(ui: &mut Ui, th: &Theme, ft: &FlatTower, ext: &ExtStatus) 
                 continue;
             }
             let (bg, tag_c, tag) = match d.side {
-                DiffSide::Match => (
-                    Color32::from_rgba_unmultiplied(52, 211, 153, 20),
-                    OCI_OK,
-                    "both",
-                ),
-                DiffSide::Mismatch => (
-                    Color32::from_rgba_unmultiplied(248, 113, 113, 28),
-                    OCI_RED,
-                    "!=",
-                ),
-                DiffSide::ExtOnly => (
-                    Color32::from_rgba_unmultiplied(56, 189, 248, 22),
-                    OCI_BLUE,
-                    "oci",
-                ),
+                DiffSide::Match => (th.panel2, th.ok, "both"),
+                DiffSide::Mismatch => (th.wash(th.danger, 22), th.danger, "!="),
+                DiffSide::ExtOnly => (th.wash(th.accent, 18), th.accent, "oci"),
                 DiffSide::OursOnly => (th.panel2, th.muted, "ours"),
             };
             Frame::new()
@@ -3278,13 +3264,13 @@ fn render_ext_compare(ui: &mut Ui, th: &Theme, ft: &FlatTower, ext: &ExtStatus) 
                             if d.side == DiffSide::Mismatch {
                                 ui.label(
                                     RichText::new(format!(
-                                        "{} != {}",
+                                        "{} ≠ {}",
                                         dash(&d.ours),
                                         dash(&d.ext)
                                     ))
                                     .size(13.0)
                                     .strong()
-                                    .color(OCI_RED),
+                                    .color(th.text),
                                 );
                             } else {
                                 ui.label(
@@ -3308,10 +3294,10 @@ fn render_ext_compare(ui: &mut Ui, th: &Theme, ft: &FlatTower, ext: &ExtStatus) 
     .default_open(false)
     .show(ui, |ui| {
         ui.horizontal(|ui| {
-            legend_chip(ui, "match", OCI_OK);
-            legend_chip(ui, "mismatch", OCI_RED);
-            legend_chip(ui, "only oci", OCI_BLUE);
-            legend_chip(ui, "only ours", th.muted);
+            legend_chip(ui, th, "match", th.ok);
+            legend_chip(ui, th, "mismatch", th.danger);
+            legend_chip(ui, th, "only oci", th.accent);
+            legend_chip(ui, th, "only ours", th.muted);
         });
         ui.add_space(6.0);
 
@@ -3355,22 +3341,10 @@ fn render_ext_compare(ui: &mut Ui, th: &Theme, ft: &FlatTower, ext: &ExtStatus) 
 
         for d in diffs {
             let (bg, mark, mark_c) = match d.side {
-                DiffSide::Match => (
-                    Color32::from_rgba_unmultiplied(52, 211, 153, 14),
-                    "=",
-                    OCI_OK,
-                ),
-                DiffSide::Mismatch => (
-                    Color32::from_rgba_unmultiplied(248, 113, 113, 30),
-                    "!=",
-                    OCI_RED,
-                ),
-                DiffSide::ExtOnly => (
-                    Color32::from_rgba_unmultiplied(56, 189, 248, 18),
-                    "+",
-                    OCI_BLUE,
-                ),
-                DiffSide::OursOnly => (Color32::from_rgb(28, 34, 42), ".", th.muted),
+                DiffSide::Match => (th.panel2, "=", th.ok),
+                DiffSide::Mismatch => (th.wash(th.danger, 20), "≠", th.danger),
+                DiffSide::ExtOnly => (th.wash(th.accent, 16), "+", th.accent),
+                DiffSide::OursOnly => (th.panel2, "·", th.muted),
             };
             Frame::new()
                 .fill(bg)
@@ -3390,9 +3364,8 @@ fn render_ext_compare(ui: &mut Ui, th: &Theme, ft: &FlatTower, ext: &ExtStatus) 
                             Layout::left_to_right(Align::Center),
                             |ui| {
                                 let c = match d.side {
-                                    DiffSide::Mismatch => OCI_RED,
-                                    DiffSide::OursOnly | DiffSide::Match => th.text,
-                                    DiffSide::ExtOnly => Color32::from_rgb(80, 90, 100),
+                                    DiffSide::ExtOnly => th.muted,
+                                    _ => th.text,
                                 };
                                 ui.label(
                                     RichText::new(dash(&d.ours))
@@ -3416,10 +3389,9 @@ fn render_ext_compare(ui: &mut Ui, th: &Theme, ft: &FlatTower, ext: &ExtStatus) 
                             Layout::left_to_right(Align::Center),
                             |ui| {
                                 let c = match d.side {
-                                    DiffSide::Mismatch => OCI_RED,
-                                    DiffSide::ExtOnly => OCI_BLUE,
-                                    DiffSide::Match => th.text,
-                                    DiffSide::OursOnly => Color32::from_rgb(80, 90, 100),
+                                    DiffSide::OursOnly => th.muted,
+                                    DiffSide::ExtOnly => th.accent,
+                                    _ => th.text,
                                 };
                                 ui.label(
                                     RichText::new(dash(&d.ext))
@@ -3436,11 +3408,10 @@ fn render_ext_compare(ui: &mut Ui, th: &Theme, ft: &FlatTower, ext: &ExtStatus) 
     });
 }
 
-fn legend_chip(ui: &mut Ui, text: &str, color: Color32) {
+fn legend_chip(ui: &mut Ui, th: &Theme, text: &str, color: Color32) {
     ui.horizontal(|ui| {
-        let (rect, _) = ui.allocate_exact_size(Vec2::splat(9.0), Sense::hover());
-        ui.painter().circle_filled(rect.center(), 3.5, color);
-        ui.label(RichText::new(text).size(11.0).color(color));
+        icons::status_dot(ui, color);
+        ui.label(RichText::new(text).size(11.0).color(th.muted));
     });
     ui.add_space(6.0);
 }

@@ -1,6 +1,8 @@
 mod enrich;
+mod icons;
 mod live;
 mod model;
+mod theme;
 
 use eframe::egui::{self, Color32, CornerRadius, Frame, Margin, RichText, Sense, Ui, Vec2};
 use egui_extras::{Column, TableBuilder};
@@ -8,6 +10,7 @@ use live::LiveState;
 use model::{Document, FlatTower, Neighbor, Rat, Stats};
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
+use theme::Theme;
 
 #[derive(Clone, Copy, PartialEq, Eq)]
 enum AppSection {
@@ -44,52 +47,6 @@ enum SortKey {
 enum ViewMode {
     Towers,
     Stats,
-}
-
-#[derive(Clone, Copy)]
-pub struct Theme {
-    bg: Color32,
-    panel: Color32,
-    panel2: Color32,
-    stroke: Color32,
-    text: Color32,
-    muted: Color32,
-    accent: Color32,
-    accent2: Color32,
-    gsm: Color32,
-    lte: Color32,
-    wcdma: Color32,
-    nr: Color32,
-    serving: Color32,
-}
-
-impl Theme {
-    fn ops() -> Self {
-        Self {
-            bg: Color32::from_rgb(18, 22, 28),
-            panel: Color32::from_rgb(28, 34, 42),
-            panel2: Color32::from_rgb(36, 44, 54),
-            stroke: Color32::from_rgb(58, 70, 84),
-            text: Color32::from_rgb(232, 236, 240),
-            muted: Color32::from_rgb(140, 152, 168),
-            accent: Color32::from_rgb(46, 196, 182),
-            accent2: Color32::from_rgb(242, 169, 59),
-            gsm: Color32::from_rgb(242, 169, 59),
-            lte: Color32::from_rgb(46, 196, 182),
-            wcdma: Color32::from_rgb(110, 168, 255),
-            nr: Color32::from_rgb(190, 140, 255),
-            serving: Color32::from_rgb(90, 220, 120),
-        }
-    }
-
-    pub fn rat(self, r: Rat) -> Color32 {
-        match r {
-            Rat::Gsm => self.gsm,
-            Rat::Lte => self.lte,
-            Rat::Wcdma => self.wcdma,
-            Rat::Nr => self.nr,
-        }
-    }
 }
 
 struct Filters {
@@ -302,6 +259,10 @@ struct TowerApp {
 
 impl TowerApp {
     fn new(cc: &eframe::CreationContext<'_>) -> Self {
+        let mut fonts = egui::FontDefinitions::default();
+        egui_phosphor::add_to_fonts(&mut fonts, egui_phosphor::Variant::Regular);
+        cc.egui_ctx.set_fonts(fonts);
+
         let theme = Theme::ops();
         apply_style(&cc.egui_ctx, &theme);
 
@@ -455,8 +416,10 @@ impl eframe::App for TowerApp {
             self.live.tick(dt);
             if self.live.wants_continuous_repaint() {
                 ctx.request_repaint();
+            } else if self.live.watching {
+                ctx.request_repaint_after(std::time::Duration::from_millis(450));
             } else {
-                ctx.request_repaint_after(std::time::Duration::from_millis(200));
+                ctx.request_repaint_after(std::time::Duration::from_millis(1200));
             }
         }
 
@@ -484,24 +447,29 @@ impl eframe::App for TowerApp {
                 );
                 ui.add_space(22.0);
 
-                let nav_btn = |ui: &mut Ui, active: bool, label: &str, hint: &str| -> bool {
+                let nav_btn = |ui: &mut Ui, active: bool, icon: &str, label: &str, hint: &str| -> bool {
                     let fill = if active {
-                        Color32::from_rgba_unmultiplied(46, 196, 182, 28)
+                        th.wash(th.accent, 28)
                     } else {
                         Color32::TRANSPARENT
                     };
                     let col = if active { th.accent } else { th.muted };
                     let stroke = if active {
-                        egui::Stroke::new(1.0, Color32::from_rgba_unmultiplied(46, 196, 182, 80))
+                        egui::Stroke::new(1.0, th.wash(th.accent, 90))
                     } else {
                         egui::Stroke::NONE
                     };
                     ui.add(
-                        egui::Button::new(RichText::new(label).strong().color(col).size(15.0))
-                            .fill(fill)
-                            .stroke(stroke)
-                            .corner_radius(CornerRadius::same(10))
-                            .min_size(Vec2::new(160.0, 44.0)),
+                        egui::Button::new(
+                            RichText::new(format!("{icon}  {label}"))
+                                .strong()
+                                .color(col)
+                                .size(15.0),
+                        )
+                        .fill(fill)
+                        .stroke(stroke)
+                        .corner_radius(CornerRadius::same(10))
+                        .min_size(Vec2::new(160.0, 44.0)),
                     )
                     .on_hover_text(hint)
                     .clicked()
@@ -510,7 +478,8 @@ impl eframe::App for TowerApp {
                 if nav_btn(
                     ui,
                     self.section == AppSection::LiveScan,
-                    "  Live Scan",
+                    icons::BROADCAST,
+                    "Live Scan",
                     "Poll live_scanner survey JSON (eNB tree)",
                 ) {
                     self.section = AppSection::LiveScan;
@@ -520,7 +489,8 @@ impl eframe::App for TowerApp {
                 if nav_btn(
                     ui,
                     self.section == AppSection::Dumps,
-                    "  Dumps",
+                    icons::FOLDER_OPEN,
+                    "Dumps",
                     "Browse / compare qcom.towers.v4 JSON dumps",
                 ) {
                     self.section = AppSection::Dumps;
@@ -566,14 +536,18 @@ impl eframe::App for TowerApp {
             .show(ctx, |ui| {
                 ui.horizontal_centered(|ui| {
                     ui.label(
-                        RichText::new("DUMPS")
+                        RichText::new(format!("{}  DUMPS", icons::FOLDER_OPEN))
                             .strong()
                             .size(15.0)
                             .color(th.accent),
                     );
                     ui.separator();
                     if ui
-                        .selectable_label(self.split && !self.show_diff, RichText::new("Split view").size(13.0))
+                        .selectable_label(
+                            self.split && !self.show_diff,
+                            RichText::new(format!("{}  Split", icons::LIST))
+                                .size(13.0),
+                        )
                         .clicked()
                     {
                         self.show_diff = false;
@@ -583,8 +557,14 @@ impl eframe::App for TowerApp {
                         }
                     }
                     if ui
-                        .selectable_label(self.show_diff, RichText::new("Full matches").size(13.0))
-                        .on_hover_text("RAT|PLMN|LAC|CID|channel|code exact matches between left & right dumps")
+                        .selectable_label(
+                            self.show_diff,
+                            RichText::new(format!("{}  Matches", icons::CHECK))
+                                .size(13.0),
+                        )
+                        .on_hover_text(
+                            "RAT|PLMN|LAC|CID|channel|code exact matches between left & right dumps",
+                        )
                         .clicked()
                     {
                         if self.show_diff {
@@ -593,7 +573,12 @@ impl eframe::App for TowerApp {
                             self.rebuild_diff();
                         }
                     }
-                    if ui.button("+ Open").clicked() {
+                    if ui
+                        .button(
+                            RichText::new(format!("{}  Open", icons::FOLDER_OPEN)).size(13.0),
+                        )
+                        .clicked()
+                    {
                         if let Some(p) = rfd::FileDialog::new()
                             .add_filter("json", &["json"])
                             .pick_file()
@@ -655,9 +640,11 @@ impl eframe::App for TowerApp {
                         // close button next to tab
                         if ui
                             .add(
-                                egui::Button::new(RichText::new("×").color(th.muted))
-                                    .fill(Color32::TRANSPARENT)
-                                    .min_size(Vec2::new(16.0, 16.0)),
+                                egui::Button::new(
+                                    RichText::new(icons::X_CIRCLE).size(14.0).color(th.muted),
+                                )
+                                .fill(Color32::TRANSPARENT)
+                                .min_size(Vec2::new(18.0, 18.0)),
                             )
                             .clicked()
                         {
@@ -1490,9 +1477,13 @@ fn apply_style(ctx: &egui::Context, th: &Theme) {
     style.visuals.extreme_bg_color = th.bg;
     style.visuals.faint_bg_color = th.panel2;
     style.visuals.widgets.inactive.bg_fill = th.panel2;
-    style.visuals.widgets.hovered.bg_fill = Color32::from_rgb(48, 58, 70);
-    style.visuals.widgets.active.bg_fill = Color32::from_rgb(56, 68, 82);
-    style.visuals.selection.bg_fill = Color32::from_rgba_unmultiplied(46, 196, 182, 50);
+    style.visuals.widgets.inactive.fg_stroke = egui::Stroke::new(1.0, th.muted);
+    style.visuals.widgets.hovered.bg_fill = Color32::from_rgb(40, 48, 62);
+    style.visuals.widgets.hovered.fg_stroke = egui::Stroke::new(1.0, th.text);
+    style.visuals.widgets.active.bg_fill = Color32::from_rgb(48, 58, 74);
+    style.visuals.widgets.active.fg_stroke = egui::Stroke::new(1.0, th.text);
+    style.visuals.selection.bg_fill = th.wash(th.accent, 45);
+    style.visuals.widgets.noninteractive.fg_stroke = egui::Stroke::new(1.0, th.muted);
     style.visuals.override_text_color = Some(th.text);
     style.spacing.item_spacing = Vec2::new(10.0, 8.0);
     style.spacing.button_padding = Vec2::new(12.0, 8.0);

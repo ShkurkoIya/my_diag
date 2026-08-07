@@ -308,6 +308,11 @@ impl Enrichment {
         self.api_key.is_some()
     }
 
+    /// True while background lookups are in flight (not merely "not cached yet").
+    pub fn has_pending(&self) -> bool {
+        !self.in_flight.is_empty()
+    }
+
     pub fn poll_results(&mut self) {
         while let Ok(r) = self.result_rx.try_recv() {
             self.in_flight.remove(&r.key);
@@ -391,10 +396,15 @@ impl Enrichment {
         if self.api_key.is_none() {
             return ExtStatus::NoKey;
         }
-        self.cache
-            .get(&id.cache_key())
-            .cloned()
-            .unwrap_or(ExtStatus::Pending)
+        let key = id.cache_key();
+        if let Some(s) = self.cache.get(&key) {
+            return s.clone();
+        }
+        if self.in_flight.contains(&key) {
+            return ExtStatus::Pending;
+        }
+        // Not queued yet — don't paint Pending badges / force continuous repaint.
+        ExtStatus::Skipped
     }
 }
 
