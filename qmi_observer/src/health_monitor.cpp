@@ -1,6 +1,6 @@
-#include "qmi_observer/health_monitor.hpp"
+#include <qcom/qmi/health_monitor.hpp>
 
-#include "qmi_observer/session.hpp"
+#include <qcom/qmi/session.hpp>
 
 #include "detail/plmn.hpp"
 #include "detail/runtime.hpp"
@@ -10,7 +10,7 @@
 
 #include <filesystem>
 
-namespace qmi_observer {
+namespace QCom::Qmi {
 namespace {
 
 OperatingModeKind map_op_mode(QmiDmsOperatingMode m) {
@@ -222,4 +222,4 @@ Result<ModemHealth> HealthMonitor::refresh() {
   return health;
 }
 
-}  // namespace qmi_observer
+}  // namespace QCom::Qmi

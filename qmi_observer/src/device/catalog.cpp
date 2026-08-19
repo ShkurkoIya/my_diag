@@ -1,11 +1,11 @@
-#include "qmi_observer/device/catalog.hpp"
+#include <qcom/qmi/device/catalog.hpp>
 
-#include "qmi_observer/device/dossier_store.hpp"
-#include "qmi_observer/device/probe.hpp"
+#include <qcom/qmi/device/dossier_store.hpp>
+#include <qcom/qmi/device/probe.hpp>
 
 #include <unordered_set>
 
-namespace qmi_observer::device {
+namespace QCom::Qmi::device {
 
 DeviceCatalog::DeviceCatalog(ProfileRegistry profiles) : profiles_(std::move(profiles)) {}
 
@@ -151,4 +151,4 @@ Settings DeviceCatalog::to_qmi_settings(std::string_view id) const {
   return ep->to_qmi_settings(profile);
 }
 
-}  // namespace qmi_observer::device
+}  // namespace QCom::Qmi::device

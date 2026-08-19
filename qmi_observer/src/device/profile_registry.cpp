@@ -1,9 +1,9 @@
-#include "qmi_observer/device/profile.hpp"
+#include <qcom/qmi/device/profile.hpp>
 
 #include <algorithm>
 #include <cctype>
 
-namespace qmi_observer::device {
+namespace QCom::Qmi::device {
 namespace {
 
 bool contains_ci(std::string_view hay, std::string_view needle) {
@@ -101,10 +101,11 @@ const ModemProfile* ProfileRegistry::match(uint16_t vid, uint16_t pid,
       score += 20;
     }
     if (!p.match.product_substr.empty()) {
-      if (!contains_ci(product, p.match.product_substr)) {
+      if (contains_ci(product, p.match.product_substr)) {
+        score += 5;
+      } else if (!(p.match.vid && p.match.pid)) {
         continue;
       }
-      score += 5;
     }
     if (!p.match.manufacturer_substr.empty()) {
       if (!contains_ci(manufacturer, p.match.manufacturer_substr)) {
@@ -120,4 +121,4 @@ const ModemProfile* ProfileRegistry::match(uint16_t vid, uint16_t pid,
   return best;
 }
 
-}  // namespace qmi_observer::device
+}  // namespace QCom::Qmi::device

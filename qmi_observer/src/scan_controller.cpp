@@ -1,15 +1,15 @@
-#include "qmi_observer/scan_controller.hpp"
+#include <qcom/qmi/scan_controller.hpp>
 
-#include "qmi_observer/modem_control.hpp"
-#include "qmi_observer/nas_reader.hpp"
-#include "qmi_observer/session.hpp"
+#include <qcom/qmi/modem_control.hpp>
+#include <qcom/qmi/nas_reader.hpp>
+#include <qcom/qmi/session.hpp>
 
 #include "detail/session_impl.hpp"
 
 #include <chrono>
 #include <thread>
 
-namespace qmi_observer {
+namespace QCom::Qmi {
 
 ScanController::ScanController(Session& session, ScanPolicy policy)
     : session_(session), policy_(std::move(policy)) {}
@@ -114,4 +114,4 @@ Result<AggregatedCells> ScanController::collect_once() {
   return out;
 }
 
-}  // namespace qmi_observer
+}  // namespace QCom::Qmi

@@ -1,4 +1,4 @@
-#include <qmi_observer/qmi_observer.hpp>
+#include <qcom/qmi/Qmi.hpp>
 
 #include <chrono>
 #include <iostream>
@@ -15,8 +15,8 @@ void print_usage(const char* argv0) {
             << "  - with --collect: ScanController::collect_once()\n";
 }
 
-void print_cell(const qmi_observer::CellObservation& c) {
-  std::cout << "  " << qmi_observer::to_string(c.rat) << (c.serving ? " SERVING" : "") << " rf="
+void print_cell(const QCom::Qmi::CellObservation& c) {
+  std::cout << "  " << QCom::Qmi::to_string(c.rat) << (c.serving ? " SERVING" : "") << " rf="
             << (c.rf_channel ? std::to_string(*c.rf_channel) : "-")
             << " phy=" << (c.phy_id ? std::to_string(*c.phy_id) : "-")
             << " cid=" << (c.cell_id ? std::to_string(*c.cell_id) : "-");
@@ -32,7 +32,7 @@ void print_cell(const qmi_observer::CellObservation& c) {
 }  // namespace
 
 int main(int argc, char** argv) {
-  using namespace qmi_observer;
+  using namespace QCom::Qmi;
 
   std::string device;
   bool use_proxy = true;

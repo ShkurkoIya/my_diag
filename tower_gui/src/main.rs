@@ -1,11 +1,16 @@
+mod at_bus;
+mod diag_codes;
 mod enrich;
 mod icons;
+mod lab;
 mod live;
 mod model;
+mod scanner;
 mod theme;
 
 use eframe::egui::{self, Color32, CornerRadius, Frame, Margin, RichText, Sense, Ui, Vec2};
 use egui_extras::{Column, TableBuilder};
+use lab::LabState;
 use live::LiveState;
 use model::{format_scan_time_rel, Document, FlatTower, Neighbor, Rat, Stats};
 use std::collections::BTreeMap;
@@ -14,8 +19,9 @@ use theme::Theme;
 
 #[derive(Clone, Copy, PartialEq, Eq)]
 enum AppSection {
-    Dumps,
     LiveScan,
+    Lab,
+    Dumps,
 }
 
 fn main() -> eframe::Result<()> {
@@ -241,6 +247,7 @@ struct TowerApp {
     theme: Theme,
     section: AppSection,
     live: LiveState,
+    lab: LabState,
     docs: Vec<Doc>,
     /// Document shown in the primary (left / only) pane.
     left_doc: usize,
@@ -270,6 +277,7 @@ impl TowerApp {
             theme,
             section: AppSection::LiveScan,
             live: LiveState::new(),
+            lab: LabState::new(),
             docs: Vec::new(),
             left_doc: 0,
             right_doc: 0,
@@ -412,15 +420,22 @@ impl eframe::App for TowerApp {
     fn update(&mut self, ctx: &egui::Context, _frame: &mut eframe::Frame) {
         let th = self.theme;
         let dt = ctx.input(|i| i.stable_dt).min(0.05);
-        if self.section == AppSection::LiveScan {
+        self.lab.tick();
+        let on_live = self.section == AppSection::LiveScan;
+        let on_lab = self.section == AppSection::Lab;
+        if on_live || on_lab {
             self.live.tick(dt);
             if self.live.wants_continuous_repaint() {
                 ctx.request_repaint();
+            } else if self.lab.wants_repaint() || self.live.wants_log_repaint() {
+                ctx.request_repaint_after(std::time::Duration::from_millis(180));
             } else if self.live.watching {
                 ctx.request_repaint_after(std::time::Duration::from_millis(450));
             } else {
                 ctx.request_repaint_after(std::time::Duration::from_millis(1200));
             }
+        } else if self.lab.wants_repaint() {
+            ctx.request_repaint_after(std::time::Duration::from_millis(180));
         }
 
         // ── left nav ──
@@ -488,6 +503,17 @@ impl eframe::App for TowerApp {
                 ui.add_space(8.0);
                 if nav_btn(
                     ui,
+                    self.section == AppSection::Lab,
+                    icons::FLASK,
+                    "Lab",
+                    "Hand AT, camp caught towers, watch DIAG codes",
+                ) {
+                    self.section = AppSection::Lab;
+                    self.show_diff = false;
+                }
+                ui.add_space(8.0);
+                if nav_btn(
+                    ui,
                     self.section == AppSection::Dumps,
                     icons::FOLDER_OPEN,
                     "Dumps",
@@ -502,6 +528,7 @@ impl eframe::App for TowerApp {
                     ui.label(
                         RichText::new(match self.section {
                             AppSection::LiveScan => "LIVE",
+                            AppSection::Lab => "LAB",
                             AppSection::Dumps => "DUMPS",
                         })
                         .strong()
@@ -520,6 +547,19 @@ impl eframe::App for TowerApp {
                 )
                 .show(ctx, |ui| {
                     live::render_live(ui, &th, &mut self.live);
+                });
+            return;
+        }
+
+        if self.section == AppSection::Lab {
+            egui::CentralPanel::default()
+                .frame(
+                    Frame::new()
+                        .fill(th.bg)
+                        .inner_margin(Margin::symmetric(22, 18)),
+                )
+                .show(ctx, |ui| {
+                    lab::render_lab(ui, &th, &mut self.lab, &mut self.live);
                 });
             return;
         }

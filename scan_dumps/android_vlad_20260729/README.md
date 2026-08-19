@@ -15,7 +15,7 @@ android_vlad_20260729/
 - No NR packets in this capture (GSM/WCDMA/LTE sweep only).
 - GSM on this device is mostly **DSDS** codes: `0x5A6C/5A71/5A7A/5A7B/5B34` (not `0x506C/5071/...`).
 - `0x512F` SI uses compact body after `chan|PD|msg_type` (CID starts at offset 3).
-- LTE RSRP: trust `0xB197` for PCI; `0xB17F` PCI is unreliable (correct from serving).
+- LTE RSRP: 0xB17F / 0xB197 PCI is packed; unpack via `lte_unpack_pci_slp` (LSB vs scat `>>7` by refutation). Old note «B17F PCI unreliable» was the MSB misread (stuck ~31).
 - Cells CSV columns: `rat,arfcn,band,pci,bsic,ncc,bcc,mcc,mnc,lac,cid,signal_dbm,rsrq,c1,c2,serving,...`
 
 ## Tower JSON (qcom.towers.v4)

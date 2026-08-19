@@ -1,11 +1,11 @@
-#include "qmi_observer/device/catalog.hpp"
+#include <qcom/qmi/device/catalog.hpp>
 
 #include <cctype>
 #include <fstream>
 #include <unordered_map>
 #include <unordered_set>
 
-namespace qmi_observer::device {
+namespace QCom::Qmi::device {
 namespace {
 
 std::string read_trim(const std::filesystem::path& p) {
@@ -224,7 +224,7 @@ Result<std::vector<ModemEndpoint>> enumerate_sysfs(const EnumerateOptions& opts,
         }
       }
 
-      if (drv == "option" || drv == "usb_wwan" || drv == "cdc_acm") {
+      if (drv == "option" || drv == "usb_wwan" || drv == "cdc_acm" || drv == "qcserial") {
         if (role == PortRole::Unknown && profile && profile->preferred_at_interface &&
             *profile->preferred_at_interface == *iface_num) {
           role = PortRole::At;
@@ -233,8 +233,16 @@ Result<std::vector<ModemEndpoint>> enumerate_sysfs(const EnumerateOptions& opts,
       }
     }
 
+    if (profile) {
+      ep.matched_profile_id = profile->id;
+    }
+
     if (ep.ports.empty()) {
-      continue;  // не модем / нет полезных портов
+      // Known VID/PID with no tty/QMI yet (option.ko not loaded). Still report so
+      // the GUI can say "modem present, drivers missing" instead of "no modem".
+      if (!profile) {
+        continue;
+      }
     }
 
     const bool has_qmi = ep.qmi_path().has_value();
@@ -242,9 +250,7 @@ Result<std::vector<ModemEndpoint>> enumerate_sysfs(const EnumerateOptions& opts,
       continue;
     }
 
-    if (profile) {
-      ep.matched_profile_id = profile->id;
-    } else if (has_qmi) {
+    if (ep.matched_profile_id.empty() && has_qmi) {
       ep.matched_profile_id = ProfileRegistry::generic_qmi_profile().id;
     }
 
@@ -263,4 +269,4 @@ Result<std::vector<ModemEndpoint>> enumerate_sysfs(const EnumerateOptions& opts,
   return out;
 }
 
-}  // namespace qmi_observer::device
+}  // namespace QCom::Qmi::device

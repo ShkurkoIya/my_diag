@@ -13,7 +13,7 @@
 #include "CellCsv.h"
 #include "JournalTxtReader.h"
 #include "TowerExport.h"
-#include "core/QualcomParser.h"
+#include <qcom/parser/QualcomParser.h>
 
 using namespace QCom;
 using namespace QCom::Tools;

@@ -1,13 +1,13 @@
-#include "qmi_observer/device/dossier_store.hpp"
+#include <qcom/qmi/device/dossier_store.hpp>
 
-#include "qmi_observer/health.hpp"
+#include <qcom/qmi/health.hpp>
 
 #include <cctype>
 #include <fstream>
 #include <sstream>
 #include <unordered_map>
 
-namespace qmi_observer::device {
+namespace QCom::Qmi::device {
 namespace {
 
 std::string json_escape(std::string_view s) {
@@ -288,4 +288,4 @@ Result<std::unordered_map<std::string, ModemDossier>> read_dossiers_file(
   return parse_dossiers(ss.str());
 }
 
-}  // namespace qmi_observer::device
+}  // namespace QCom::Qmi::device

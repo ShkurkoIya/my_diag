@@ -3,8 +3,8 @@
 #include <span>
 #include <vector>
 
-#include "core/Events.h"
-#include "core/ParserInterface.h"
+#include <observer/model/Events.h>
+#include <observer/model/ParserInterface.h>
 #include "lte/LteParser.h"
 
 using namespace QCom;

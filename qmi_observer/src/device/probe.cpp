@@ -1,7 +1,7 @@
-#include "qmi_observer/device/probe.hpp"
+#include <qcom/qmi/device/probe.hpp>
 
-#include "qmi_observer/nas_reader.hpp"
-#include "qmi_observer/session.hpp"
+#include <qcom/qmi/nas_reader.hpp>
+#include <qcom/qmi/session.hpp>
 
 #include <fcntl.h>
 #include <poll.h>
@@ -13,7 +13,7 @@
 #include <cstring>
 #include <ctime>
 
-namespace qmi_observer::device {
+namespace QCom::Qmi::device {
 
 Result<std::string> probe_at_port(const std::string& path, std::chrono::milliseconds timeout) {
   const int fd = ::open(path.c_str(), O_RDWR | O_NOCTTY | O_NONBLOCK);
@@ -164,4 +164,4 @@ Result<ModemDossier> probe_endpoint(const ModemEndpoint& ep, const ModemProfile*
   return d;
 }
 
-}  // namespace qmi_observer::device
+}  // namespace QCom::Qmi::device

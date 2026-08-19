@@ -12,10 +12,10 @@
 #include <string_view>
 #include <vector>
 
-#include "core/Events.h"
-#include "core/ParserInterface.h"
-#include "core/Types.h"
-#include "core/Utils.h"
+#include <observer/model/Events.h>
+#include <observer/model/ParserInterface.h>
+#include <observer/model/Types.h>
+#include <observer/model/Utils.h>
 
 namespace QCom::Wcdma {
 
@@ -80,6 +80,8 @@ public:
   }
 
 private:
+  std::expected<std::vector<Events::RrcEvent>, ParserError> parse_identity_common(
+      std::span<const uint8_t> payload, bool psc_shift4);
   std::expected<std::vector<Events::RrcEvent>, ParserError> parse_cell_id(
       std::span<const uint8_t> payload);
   std::expected<std::vector<Events::RrcEvent>, ParserError> parse_resel_rank(
@@ -87,6 +89,8 @@ private:
   std::expected<std::vector<Events::RrcEvent>, ParserError> parse_active_set(
       std::span<const uint8_t> payload);
   std::expected<std::vector<Events::RrcEvent>, ParserError> parse_serv_cell(
+      std::span<const uint8_t> payload);
+  std::expected<std::vector<Events::RrcEvent>, ParserError> parse_rrc_ota(
       std::span<const uint8_t> payload);
   std::expected<std::vector<Events::RrcEvent>, ParserError> parse_umts_nas(
       std::span<const uint8_t> payload);

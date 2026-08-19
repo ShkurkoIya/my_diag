@@ -1,14 +1,14 @@
-#include <qmi_observer/device/catalog.hpp>
-#include <qmi_observer/device/dossier_store.hpp>
-#include <qmi_observer/device/endpoint.hpp>
-#include <qmi_observer/device/profile.hpp>
+#include <qcom/qmi/device/catalog.hpp>
+#include <qcom/qmi/device/dossier_store.hpp>
+#include <qcom/qmi/device/endpoint.hpp>
+#include <qcom/qmi/device/profile.hpp>
 
 #include <catch2/catch_test_macros.hpp>
 
 #include <filesystem>
 #include <fstream>
 
-using namespace qmi_observer::device;
+using namespace QCom::Qmi::device;
 namespace fs = std::filesystem;
 
 TEST_CASE("make_endpoint_id uses serial when real", "[device][id]") {
@@ -35,6 +35,13 @@ TEST_CASE("profile match simcom 83xx", "[device][profile]") {
   REQUIRE_FALSE(p->quirks.allow_dms_offline);
 }
 
+TEST_CASE("profile match simcom 83xx by vid/pid without product tag", "[device][profile]") {
+  ProfileRegistry reg;
+  const auto* p = reg.match(0x1e0e, 0x9001, "SimTech", "SIM8300-M2");
+  REQUIRE(p != nullptr);
+  REQUIRE(p->id == "simcom_83xx_qmi");
+}
+
 TEST_CASE("dossier serialize parse roundtrip", "[device][dossier]") {
   std::unordered_map<std::string, ModemDossier> map;
   ModemDossier d;
@@ -48,7 +55,7 @@ TEST_CASE("dossier serialize parse roundtrip", "[device][dossier]") {
   d.dms_manufacturer = "QUALCOMM INCORPORATED";
   d.deepest_probe = ProbeLevel::Identity;
   d.probed_at_unix = 1700000000;
-  d.last_phase = qmi_observer::ModemPhase::Camped;
+  d.last_phase = QCom::Qmi::ModemPhase::Camped;
   map[d.endpoint_id] = d;
 
   const auto json = serialize_dossiers(map);
@@ -63,7 +70,7 @@ TEST_CASE("dossier serialize parse roundtrip", "[device][dossier]") {
   REQUIRE(got.at_paths.size() == 1);
   REQUIRE(got.at_paths[0] == "/dev/ttyUSB2");
   REQUIRE(got.last_phase.has_value());
-  REQUIRE(*got.last_phase == qmi_observer::ModemPhase::Camped);
+  REQUIRE(*got.last_phase == QCom::Qmi::ModemPhase::Camped);
 }
 
 TEST_CASE("enumerate synthetic sysfs fixture", "[device][sysfs]") {
@@ -124,6 +131,49 @@ TEST_CASE("enumerate synthetic sysfs fixture", "[device][sysfs]") {
   REQUIRE(*ep.preferred_diag_path() == (dev / "ttyUSB0").string());
 
   fs::remove_all(root);
+}
+
+TEST_CASE("enumerate reports known modem even with no tty nodes", "[device][sysfs]") {
+  const auto root = fs::temp_directory_path() / "qmi_obs_sysfs_unbound";
+  fs::remove_all(root);
+  const auto sys = root / "sys";
+  const auto dev = root / "dev";
+  const auto usb_dev = sys / "bus" / "usb" / "devices" / "3-2.4.4";
+  fs::create_directories(usb_dev / "3-2.4.4:1.0");
+  fs::create_directories(sys / "class" / "usbmisc");
+  fs::create_directories(dev);
+
+  auto write = [](const fs::path& p, std::string_view v) {
+    fs::create_directories(p.parent_path());
+    std::ofstream(p) << v;
+  };
+  write(usb_dev / "idVendor", "1e0e");
+  write(usb_dev / "idProduct", "9001");
+  write(usb_dev / "serial", "0123456789ABCDEF");
+  write(usb_dev / "manufacturer", "QCOM");
+  write(usb_dev / "product", "SDXPRAIRIE-MTP");
+  write(usb_dev / "3-2.4.4:1.0" / "bInterfaceNumber", "00");
+
+  ProfileRegistry reg;
+  EnumerateOptions opts;
+  opts.sysfs_root = sys;
+  opts.dev_root = dev;
+  auto got = enumerate_sysfs(opts, reg);
+  REQUIRE(got);
+  REQUIRE(got.value().size() == 1);
+  const auto& ep = got.value()[0];
+  REQUIRE(ep.matched_profile_id == "simcom_83xx_qmi");
+  REQUIRE(ep.ports.empty());
+  REQUIRE_FALSE(ep.preferred_diag_path().has_value());
+
+  fs::remove_all(root);
+}
+
+TEST_CASE("preferred_diag_path falls back to USB iface 0 tty", "[device][endpoint]") {
+  ModemEndpoint ep;
+  ep.ports.push_back(PortDesc{.path = "/dev/ttyUSB2", .role = PortRole::Unknown, .usb_interface = 2});
+  ep.ports.push_back(PortDesc{.path = "/dev/ttyUSB0", .role = PortRole::Unknown, .usb_interface = 0});
+  REQUIRE(ep.preferred_diag_path() == "/dev/ttyUSB0");
 }
 
 TEST_CASE("to_qmi_settings from endpoint+profile", "[device][settings]") {

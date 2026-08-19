@@ -2,6 +2,9 @@ CompileFlags:
   CompilationDatabase: build/
   Add:
     - "-std=c++23"
+    - "-Iinclude"
+    - "-Isrc"
+    - "-Iapp"
     - "-Wno-deprecated-declarations"
     - "-Wno-deprecated"
     - "-Wno-unused-parameter"

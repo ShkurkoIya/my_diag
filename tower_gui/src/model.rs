@@ -49,13 +49,23 @@ pub struct Meta {
     #[serde(default)]
     pub hop_fulls: String,
     #[serde(default)]
+    pub wcdma_walk_kicks: String,
+    #[serde(default)]
+    pub wcdma_walk_fulls: String,
+    #[serde(default)]
     pub hop_cops: String,
+    #[serde(default)]
+    pub hop_ghosts: String,
+    #[serde(default)]
+    pub ghost_plmn: String,
     #[serde(default)]
     pub cpsi_ok: String,
     #[serde(default)]
     pub qmi_hop_snaps: String,
     #[serde(default)]
     pub qmi_reg: String,
+    #[serde(default)]
+    pub qmi_cs: String,
     #[serde(default)]
     pub qmi_ps: String,
     #[serde(default)]
@@ -65,11 +75,53 @@ pub struct Meta {
     #[serde(default)]
     pub qmi_plmn_name: String,
     #[serde(default)]
+    pub qmi_roam: String,
+    #[serde(default)]
     pub qmi_rsrp: String,
     #[serde(default)]
     pub qmi_rsrq: String,
     #[serde(default)]
+    pub qmi_rssi: String,
+    #[serde(default)]
     pub qmi_snr: String,
+    #[serde(default)]
+    pub qmi_wcdma_rssi: String,
+    #[serde(default)]
+    pub qmi_wcdma_ecio: String,
+    #[serde(default)]
+    pub observed_rat: String,
+    #[serde(default)]
+    pub scan_rat_ok: String,
+    #[serde(default)]
+    pub fplmn_wipes: String,
+    #[serde(default)]
+    pub rat_guard_trips: String,
+    /// Newline-joined live_scanner `dash.note` tail (recover / ghost / hop).
+    #[serde(default)]
+    pub scanner_log: String,
+    /// Survey: init | discover | complete | rediscover | wcdma.
+    #[serde(default)]
+    pub survey_phase: String,
+    /// lte | wcdma | irat
+    #[serde(default)]
+    pub survey_mode: String,
+    /// listen | search | survey
+    #[serde(default)]
+    pub job: String,
+    #[serde(default)]
+    pub rf_unique: String,
+    #[serde(default)]
+    pub full_passport: String,
+    #[serde(default)]
+    pub wcdma_rf: String,
+    #[serde(default)]
+    pub wcdma_full: String,
+    /// Top DIAG codes: "B194:seen/ev,B0C2:seen/ev,…" from live_scanner.
+    #[serde(default)]
+    pub diag_top: String,
+    /// CCELLCFG grind success rate ("12%").
+    #[serde(default)]
+    pub hop_hit_rate: String,
 }
 
 #[derive(Debug, Clone, Deserialize, Default)]
@@ -161,6 +213,38 @@ pub struct Neighbor {
     pub signal: BTreeMap<String, String>,
 }
 
+impl Neighbor {
+    pub fn channel(&self) -> &str {
+        for k in ["earfcn", "uarfcn", "arfcn", "nrarfcn"] {
+            if let Some(v) = self.radio.get(k) {
+                if !v.is_empty() {
+                    return v;
+                }
+            }
+        }
+        ""
+    }
+
+    pub fn phy_id(&self) -> &str {
+        for k in ["pci", "psc", "bsic"] {
+            if let Some(v) = self.radio.get(k) {
+                if !v.is_empty() {
+                    return v;
+                }
+            }
+        }
+        ""
+    }
+
+    pub fn has_phy_id(&self) -> bool {
+        !self.phy_id().is_empty()
+    }
+
+    pub fn is_freq_stub(&self) -> bool {
+        !self.has_phy_id() && !self.channel().is_empty()
+    }
+}
+
 #[derive(Debug, Clone)]
 pub struct FlatTower {
     pub rat: Rat,
@@ -203,6 +287,32 @@ impl Document {
     }
 }
 
+/// How complete a tower row is — used by Live Scan filters.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
+pub enum Completeness {
+    #[default]
+    All,
+    /// EARFCN|PCI heard, no CID yet.
+    Radio,
+    /// Has CID (+ usually TAC/PLMN).
+    Full,
+    /// Sticky camp with identity.
+    Camped,
+    Serving,
+}
+
+impl Completeness {
+    pub fn label(self) -> &'static str {
+        match self {
+            Self::All => "All",
+            Self::Radio => "RADIO",
+            Self::Full => "FULL",
+            Self::Camped => "Camped",
+            Self::Serving => "Serving",
+        }
+    }
+}
+
 impl Tower {
     pub fn get_id(&self, k: &str) -> &str {
         self.identity.get(k).map(|s| s.as_str()).unwrap_or("")
@@ -212,6 +322,21 @@ impl Tower {
     }
     pub fn get_sig(&self, k: &str) -> &str {
         self.signal.get(k).map(|s| s.as_str()).unwrap_or("")
+    }
+
+    /// CID + TAC + PLMN — survey "full passport".
+    pub fn has_full_passport(&self) -> bool {
+        self.has_cid() && !self.lac_or_tac().is_empty() && !self.plmn().is_empty()
+    }
+
+    pub fn matches_completeness(&self, f: Completeness) -> bool {
+        match f {
+            Completeness::All => true,
+            Completeness::Radio => !self.has_cid(),
+            Completeness::Full => self.has_full_passport() || self.has_cid(),
+            Completeness::Camped => self.was_identity_camped(),
+            Completeness::Serving => self.is_serving(),
+        }
     }
 
     pub fn channel(&self) -> &str {
@@ -250,11 +375,40 @@ impl Tower {
         ""
     }
 
+    /// Same-EARFCN fan-out PLMN — not a hard SIB1/B0C2/CPSI bind.
+    pub fn plmn_is_soft(&self) -> bool {
+        matches!(self.get_id("plmn_soft"), "1" | "true")
+    }
+
+    /// Trusted operator PLMN for nesting (soft-only RADIO stays ungrouped).
+    pub fn plmn_trusted(&self) -> &str {
+        if self.plmn_is_soft() && !self.has_cid() {
+            return "";
+        }
+        self.plmn()
+    }
+
     pub fn neighbor_count(&self) -> usize {
         self.neighbors.nb_lte.len()
             + self.neighbors.nb_gsm.len()
             + self.neighbors.nb_umts.len()
             + self.neighbors.nb_nr.len()
+    }
+
+    /// PCI/PSC/BSIC neighbors (not SIB5 EARFCN-only stubs).
+    pub fn pci_neighbor_count(&self) -> usize {
+        self.neighbors
+            .nb_lte
+            .iter()
+            .chain(self.neighbors.nb_nr.iter())
+            .chain(self.neighbors.nb_umts.iter())
+            .chain(self.neighbors.nb_gsm.iter())
+            .filter(|n| n.has_phy_id())
+            .count()
+    }
+
+    pub fn freq_stub_neighbor_count(&self) -> usize {
+        self.neighbor_count().saturating_sub(self.pci_neighbor_count())
     }
 
     pub fn is_serving(&self) -> bool {
@@ -281,6 +435,23 @@ impl Tower {
 
     pub fn rxl(&self) -> &str {
         self.get_sig("rxl")
+    }
+
+    /// Prefer filtered RSRP (B193) for ranking/meters; fall back to inst `rxl`.
+    pub fn rsrp_display(&self) -> &str {
+        let filt = self.get_sig("rsrp_filt");
+        if !filt.is_empty() {
+            return filt;
+        }
+        self.rxl()
+    }
+
+    pub fn rsrp_inst(&self) -> &str {
+        self.rxl()
+    }
+
+    pub fn rsrp_filt(&self) -> &str {
+        self.get_sig("rsrp_filt")
     }
 
     /// Full identity for cross-dump match: RAT|PLMN|LAC/TAC|CID|channel|code.
@@ -470,5 +641,19 @@ mod tests {
         let flat = doc.flatten();
         assert!(!flat.is_empty());
         assert!(!flat[0].tower.key.is_empty());
+    }
+
+    #[test]
+    fn loads_live_survey_dump() {
+        let p = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+            .join("../scan_dumps/live_20260807/qcom_live_towers.json");
+        let doc = Document::load(&p).expect("load live dump");
+        let flat = doc.flatten();
+        assert!(flat.len() > 10);
+        let with_stubs = flat.iter().any(|ft| ft.tower.freq_stub_neighbor_count() > 0);
+        assert!(with_stubs, "live dump should have SIB5 freq stubs");
+        let pci_n: usize = flat.iter().map(|ft| ft.tower.pci_neighbor_count()).sum();
+        let stub_n: usize = flat.iter().map(|ft| ft.tower.freq_stub_neighbor_count()).sum();
+        assert!(stub_n > pci_n, "SIB5 stubs should dominate nested lists in this dump");
     }
 }

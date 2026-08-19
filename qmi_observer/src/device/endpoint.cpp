@@ -1,10 +1,10 @@
-#include "qmi_observer/device/endpoint.hpp"
+#include <qcom/qmi/device/endpoint.hpp>
 
-#include "qmi_observer/device/profile.hpp"
+#include <qcom/qmi/device/profile.hpp>
 
 #include <sstream>
 
-namespace qmi_observer::device {
+namespace QCom::Qmi::device {
 
 std::string make_endpoint_id(uint16_t vid, uint16_t pid, std::string_view serial,
                              std::string_view usb_path, bool& serial_stable) {
@@ -46,7 +46,16 @@ std::optional<std::string> ModemEndpoint::preferred_diag_path() const {
       return p.path;
     }
   }
-  return std::nullopt;
+  // Profile miss / unbound roles: Qualcomm DIAG is USB interface 0.
+  std::optional<std::string> iface0;
+  std::optional<std::string> first_tty;
+  for (const auto& p : ports) {
+    if (p.role == PortRole::Qmi || p.role == PortRole::Mbim) continue;
+    if (p.path.find("tty") == std::string::npos) continue;
+    if (!first_tty) first_tty = p.path;
+    if (p.usb_interface && *p.usb_interface == 0) iface0 = p.path;
+  }
+  return iface0 ? iface0 : first_tty;
 }
 
 std::vector<std::string> ModemEndpoint::paths_with_role(PortRole role) const {
@@ -76,4 +85,4 @@ Settings ModemEndpoint::to_qmi_settings(const ModemProfile* profile) const {
   return s;
 }
 
-}  // namespace qmi_observer::device
+}  // namespace QCom::Qmi::device

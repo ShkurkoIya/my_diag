@@ -3,7 +3,7 @@
 #include <catch2/matchers/catch_matchers_floating_point.hpp>
 #include <vector>
 
-#include "core/QualcomParser.h"
+#include <qcom/parser/QualcomParser.h>
 #include "gsm/GsmParser.h"
 #include "lte/LteParser.h"
 
@@ -51,10 +51,10 @@ TEST_CASE("dump 0xB197 v2 — EARFCN/PCI key", "[dump][lte]") {
   auto* lte = std::get_if<Events::RadioParamsEvent<LteRadioParams>>(radio);
   REQUIRE(lte);
   CHECK(lte->data.earfcn == 2850);
-  CHECK(lte->data.pci == 2);
+  CHECK(lte->data.pci == 367);  // 0x016F LSB; MSB-scat was 2
 }
 
-TEST_CASE("dump 0xB17F v5 — RSRP after B197 PCI correction", "[dump][lte]") {
+TEST_CASE("dump 0xB17F v5 — packed PCI agrees with B197 (no stuck-31)", "[dump][lte]") {
   QualcomParser qp;
 
   auto b197 = hex("0232F401C8000000D2030000000000004A3100007534CD28000000000000F46100000000");
@@ -74,7 +74,17 @@ TEST_CASE("dump 0xB17F v5 — RSRP after B197 PCI correction", "[dump][lte]") {
   auto* radio = serving->radio_as_if<LteRadioParams>();
   REQUIRE(radio);
   CHECK(radio->earfcn == 200);
-  CHECK(radio->pci == 7);  // corrected from unreliable B17F PCI
+  CHECK(radio->pci == 466);  // both words LSB 466; MSB was 7 vs 31
+
+  for (const auto& c : snap) {
+    if (c.rat != RatType::LTE) continue;
+    auto* r = c.radio_as_if<LteRadioParams>();
+    if (r && r->earfcn == 200) {
+      CHECK(r->pci == 466);
+      CHECK(r->pci != 31);
+      CHECK(r->pci != 7);
+    }
+  }
 
   auto* sig = serving->signal_as_if<LteSignalParams>();
   REQUIRE(sig);

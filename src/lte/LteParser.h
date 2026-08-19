@@ -12,7 +12,7 @@
 #include <vector>
 
 #include "core/BaseRatParser.h"
-#include "core/Events.h"
+#include <observer/model/Events.h>
 #include "srsran/asn1/rrc.h"
 #include "srsran/asn1/rrc/bcch_msg.h"
 #include "srsran/asn1/rrc/dl_ccch_msg.h"
@@ -101,12 +101,14 @@ public:
   static constexpr LogCode LTE_ML1_SEARCH_RR = 0xB194;
   static constexpr LogCode LTE_ML1_SERV_INFO = 0xB197;
   static constexpr LogCode LTE_LL1_PSS = 0xB113;
+  static constexpr LogCode LTE_LL1_FRAME_TIMING = 0xB114;
   static constexpr LogCode LTE_LL1_SSS = 0xB115;
   static constexpr LogCode LTE_LL1_NCELL_CER = 0xB123;
   static constexpr LogCode LTE_NAS_EMM_DL = 0xB0EC;
   static constexpr LogCode LTE_NAS_EMM_SEC_IN = 0xB0EA;
   static constexpr LogCode LTE_NAS_EMM_SEC_OUT = 0xB0EB;
   static constexpr LogCode LTE_NAS_EMM_PLAIN_OUT = 0xB0ED;
+  static constexpr LogCode LTE_NAS_EMM_STATE = 0xB0EE;
   static constexpr LogCode LTE_NAS_ESM_PLAIN_IN = 0xB0E2;
   /// @}
 
@@ -159,6 +161,8 @@ public:
       std::span<const uint8_t> payload);
   std::expected<std::vector<Events::RrcEvent>, ParserError> parse_ll1_pss(
       std::span<const uint8_t> payload);
+  std::expected<std::vector<Events::RrcEvent>, ParserError> parse_ll1_frame_timing(
+      std::span<const uint8_t> payload);
   std::expected<std::vector<Events::RrcEvent>, ParserError> parse_ll1_sss(
       std::span<const uint8_t> payload);
   std::expected<std::vector<Events::RrcEvent>, ParserError> parse_ll1_ncell_cer(
@@ -168,6 +172,8 @@ public:
   std::expected<std::vector<Events::RrcEvent>, ParserError> parse_rrc_ca_combos(
       std::span<const uint8_t> payload);
   std::expected<std::vector<Events::RrcEvent>, ParserError> parse_lte_nas(
+      std::span<const uint8_t> payload);
+  std::expected<std::vector<Events::RrcEvent>, ParserError> parse_emm_state(
       std::span<const uint8_t> payload);
 
   [[nodiscard]] std::vector<Events::RrcEvent> on_message_unpacked(BcchMsg& msg);
@@ -211,6 +217,8 @@ public:
       LogEntry<LteParser>{LTE_ML1_SERV_INFO, &LteParser::parse_ml1_serv_info,
                           "LTE ML1 Serving Info (0xB197)"},
       LogEntry<LteParser>{LTE_LL1_PSS, &LteParser::parse_ll1_pss, "LTE LL1 PSS Results (0xB113)"},
+      LogEntry<LteParser>{LTE_LL1_FRAME_TIMING, &LteParser::parse_ll1_frame_timing,
+                          "LTE LL1 Serving Cell Frame Timing (0xB114)"},
       LogEntry<LteParser>{LTE_LL1_SSS, &LteParser::parse_ll1_sss, "LTE LL1 SSS Results (0xB115)"},
       LogEntry<LteParser>{LTE_LL1_NCELL_CER, &LteParser::parse_ll1_ncell_cer,
                           "LTE LL1 Neighbor CER (0xB123)"},
@@ -223,6 +231,8 @@ public:
                           "LTE NAS EMM Plain Out (0xB0ED)"},
       LogEntry<LteParser>{LTE_NAS_ESM_PLAIN_IN, &LteParser::parse_lte_nas,
                           "LTE NAS ESM Plain In (0xB0E2)"},
+      LogEntry<LteParser>{LTE_NAS_EMM_STATE, &LteParser::parse_emm_state,
+                          "LTE NAS EMM State (0xB0EE)"},
   };
 
 private:

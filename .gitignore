@@ -1,4 +1,5 @@
 build/
+knowlage_base/
 .cache/
 .zed/
 *.o

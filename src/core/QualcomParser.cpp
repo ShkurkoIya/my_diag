@@ -1,15 +1,15 @@
-#include "core/QualcomParser.h"
-
 #include <memory>
+#include <observer/model/Utils.h>
+#include <qcom/lte/LteRrcOta.h>
+#include <qcom/parser/QualcomParser.h>
+#include <qcom/protocol/LogFrameAdapter.h>
 #include <utility>
 #include <variant>
 
-#include "core/Utils.h"
 #include "gsm/GsmParser.h"
 #include "lte/LteParser.h"
-#include "lte/LteRrcOta.h"
+#include "lte/LteQcomLayouts.h"
 #include "nr/NrParser.h"
-#include "transport/LogFrameAdapter.h"
 #include "wcdma/WcdmaParser.h"
 
 namespace QCom {
@@ -82,15 +82,8 @@ std::expected<void, ParserError> QualcomParser::on_packet(QualcommPacketView pkt
 
   RatType rat = classify_rat(pkt.log_code);
   LocalCellKey packet_key = extract_cell_key(pkt, rat);
+  const LocalCellKey serving = m_tracker.serving_key(rat);
 
-  // 0xB17F PCI is unreliable on many Qualcomm chips (stuck ~28-31). Prefer the
-  // authoritative serving PCI from 0xB197 when EARFCN matches (same as dia_vldos).
-  if (pkt.log_code == 0xB17F && packet_key.freq != 0) {
-    LocalCellKey sk = m_tracker.serving_key(rat);
-    if (sk.freq == packet_key.freq && sk.pci_bsic != 0) packet_key.pci_bsic = sk.pci_bsic;
-  }
-
-  LocalCellKey serving = m_tracker.serving_key(rat);
   LocalCellKey sticky_key = packet_key;
 
   for (auto& event : result.value()) {
@@ -101,6 +94,10 @@ std::expected<void, ParserError> QualcomParser::on_packet(QualcommPacketView pkt
     if (auto* gen = std::get_if<Events::GenericRadioParamsEvent>(&event)) {
       if (auto* lte = std::get_if<Events::RadioParamsEvent<LteRadioParams>>(gen)) {
         if (lte->data.earfcn != 0) {
+          // 0xB17F/0xB197: restamp PCI from the pack-order SSOT (parser may have
+          // run without the session lock; B197 inherits 0xB17F votes).
+          if ((pkt.log_code == 0xB17F || pkt.log_code == 0xB197) && packet_key.pci_bsic != 0)
+            lte->data.pci = packet_key.pci_bsic;
           key = {.freq = lte->data.earfcn, .pci_bsic = lte->data.pci};
           sticky_key = key;
         }
@@ -159,6 +156,23 @@ void QualcomParser::handle_diag_event(std::span<const uint8_t> buf) {
   if (event_id == 500 && paylen >= 2) {
     uint16_t arfcn = static_cast<uint16_t>((pay[0] | (pay[1] << 8)) & 0x3FF);
     if (arfcn) m_tracker.set_gsm_surround_arfcn_hint(arfcn);
+    return;
+  }
+
+  // Event 1606 = EVENT_LTE_RRC_STATE_CHANGE — 1-byte RRC state → serving LTE.
+  if (event_id == Lte::Wire::Evt1606::kEventId && paylen >= 1) {
+    const uint8_t st = pay[0];
+    if (!Lte::Wire::Evt1606::known(st)) return;
+
+    Events::RadioParamsEvent<LteRadioParams> rev;
+    rev.data.rrc_state = static_cast<int16_t>(st);
+    m_tracker.handle_rrc_event(Events::RrcEventEnvelope{
+        .key = {},
+        .rat = RatType::LTE,
+        .timestamp = 0,
+        .event_data = Events::RrcEvent{std::move(rev)},
+    });
+    if (m_cell_cb) m_cell_cb(m_tracker.get_snapshot());
   }
 }
 
@@ -287,9 +301,8 @@ LocalCellKey QualcomParser::extract_cell_key(const QualcommPacketView& pkt, RatT
             const bool wide = (sver != 3);
             const size_t earfcn_w = wide ? 4u : 2u;
             if (off + earfcn_w + 2 + (wide ? 2u : 0u) + 4 <= start + ssize) {
-              uint32_t earfcn =
-                  wide ? Utils::Converter::read_le<uint32_t>(pkt.payload, off)
-                       : Utils::Converter::read_le<uint16_t>(pkt.payload, off);
+              uint32_t earfcn = wide ? Utils::Converter::read_le<uint32_t>(pkt.payload, off)
+                                     : Utils::Converter::read_le<uint16_t>(pkt.payload, off);
               off += earfcn_w + 2;
               if (wide) off += 2;
               uint16_t pci = static_cast<uint16_t>(
@@ -303,24 +316,27 @@ LocalCellKey QualcomParser::extract_cell_key(const QualcommPacketView& pkt, RatT
       }
       if (pkt.log_code == 0xB197) {
         uint32_t earfcn = 0;
-        uint16_t pci = 0;
+        uint16_t packed = 0;
         if (version == 1 && pkt.payload.size() >= 8) {
           earfcn = Utils::Converter::read_le<uint16_t>(pkt.payload, 4);
-          pci = (Utils::Converter::read_le<uint16_t>(pkt.payload, 6) >> 7) & 0x1FF;
+          packed = Utils::Converter::read_le<uint16_t>(pkt.payload, 6);
         } else if (version == 2 && pkt.payload.size() >= 12) {
           earfcn = Utils::Converter::read_le<uint32_t>(pkt.payload, 4);
-          pci = (Utils::Converter::read_le<uint32_t>(pkt.payload, 8) & 0xFFFF) >> 7;
-          pci &= 0x1FF;
+          packed = static_cast<uint16_t>(Utils::Converter::read_le<uint32_t>(pkt.payload, 8) &
+                                         0xFFFF);
         }
-        if (earfcn > 0) return {.freq = earfcn, .pci_bsic = pci};
+        if (earfcn > 0) {
+          m_pci_pack.observe(packed);
+          return {.freq = earfcn, .pci_bsic = m_pci_pack.unpack(packed).pci};
+        }
       }
       if (pkt.log_code == 0xB17F) {
         uint32_t earfcn = (version >= 5) ? Utils::Converter::read_le<uint32_t>(pkt.payload, 4)
                                          : Utils::Converter::read_le<uint16_t>(pkt.payload, 4);
         size_t pci_off = (version >= 5) ? 8 : 6;
-        uint16_t pci = Utils::lte_pci_from_meas_word(
-            Utils::Converter::read_le<uint16_t>(pkt.payload, pci_off));
-        return {.freq = earfcn, .pci_bsic = pci};
+        const uint16_t packed = Utils::Converter::read_le<uint16_t>(pkt.payload, pci_off);
+        m_pci_pack.observe(packed);
+        return {.freq = earfcn, .pci_bsic = m_pci_pack.unpack(packed).pci};
       }
       if (pkt.log_code == 0xB193 && version == 1 && pkt.payload.size() >= 8) {
         // Container: pkt_ver, num_subpkts, reserved; then subpkt id/ver/size.
@@ -341,9 +357,8 @@ LocalCellKey QualcomParser::extract_cell_key(const QualcommPacketView& pkt, RatT
               uint32_t earfcn = Utils::Converter::read_le<uint32_t>(body, 0);
               uint16_t pci = 0;
               auto take_pci = [&](uint16_t raw) {
-                uint16_t v = static_cast<uint16_t>(raw & 0x1FF);
-                if (v > 503) v = static_cast<uint16_t>((raw >> 7) & 0x1FF);
-                return (v <= 503) ? v : uint16_t{0};
+                uint16_t v = Utils::lte_pci_from_meas_word(raw);
+                return (v >= 1 && v <= 503) ? v : uint16_t{0};
               };
               if (sp_ver == 59 && body_len >= 8 + 10) {
                 pci = take_pci(Utils::Converter::read_le<uint16_t>(body, 8 + 8));
@@ -375,10 +390,36 @@ LocalCellKey QualcomParser::extract_cell_key(const QualcommPacketView& pkt, RatT
       }
     }
 
-    if (rat == RatType::NR && pkt.payload.size() >= 16) {
-      uint32_t nrarfcn = Utils::Converter::read_le<uint32_t>(pkt.payload, 8) & 0x00FFFFFF;
-      uint16_t pci = Utils::Converter::read_le<uint16_t>(pkt.payload, 12) & 0x03FF;
-      if (nrarfcn > 0 && pci <= 1007) return {.freq = nrarfcn, .pci_bsic = pci};
+    if (rat == RatType::NR) {
+      if (pkt.log_code == 0xB822 && pkt.payload.size() >= 10) {
+        const uint16_t pci = Utils::Converter::read_le<uint16_t>(pkt.payload, 4);
+        const uint32_t nrarfcn = Utils::Converter::read_le<uint32_t>(pkt.payload, 6);
+        if (Utils::valid_nr_arfcn(nrarfcn) && nrarfcn && Utils::valid_nr_pci(pci))
+          return {.freq = nrarfcn, .pci_bsic = pci};
+      }
+      if (pkt.log_code == 0xB823 && pkt.payload.size() >= 14) {
+        const uint16_t rel_min = Utils::Converter::read_le<uint16_t>(pkt.payload, 0);
+        const uint16_t rel_maj = Utils::Converter::read_le<uint16_t>(pkt.payload, 2);
+        uint16_t pci = 0;
+        uint32_t nrarfcn = 0;
+        if (rel_maj == 0 && rel_min == 4 && pkt.payload.size() >= 10) {
+          pci = Utils::Converter::read_le<uint16_t>(pkt.payload, 4);
+          nrarfcn = Utils::Converter::read_le<uint32_t>(pkt.payload, 6);
+        } else if (rel_maj == 3 && rel_min == 0 && pkt.payload.size() >= 18) {
+          pci = Utils::Converter::read_le<uint16_t>(pkt.payload, 4);
+          nrarfcn = Utils::Converter::read_le<uint32_t>(pkt.payload, 14);
+        } else if (rel_maj == 3 && (rel_min == 2 || rel_min == 3) && pkt.payload.size() >= 21) {
+          pci = Utils::Converter::read_le<uint16_t>(pkt.payload, 7);
+          nrarfcn = Utils::Converter::read_le<uint32_t>(pkt.payload, 17);
+        }
+        if (Utils::valid_nr_arfcn(nrarfcn) && nrarfcn && Utils::valid_nr_pci(pci))
+          return {.freq = nrarfcn, .pci_bsic = pci};
+      }
+      if (pkt.payload.size() >= 16) {
+        uint32_t nrarfcn = Utils::Converter::read_le<uint32_t>(pkt.payload, 8) & 0x00FFFFFF;
+        uint16_t pci = Utils::Converter::read_le<uint16_t>(pkt.payload, 12) & 0x03FF;
+        if (nrarfcn > 0 && pci <= 1007) return {.freq = nrarfcn, .pci_bsic = pci};
+      }
     }
 
     if (rat == RatType::WCDMA) {
@@ -387,6 +428,22 @@ LocalCellKey QualcomParser::extract_cell_key(const QualcommPacketView& pkt, RatT
         uint16_t psc_raw = Utils::Converter::read_le<uint16_t>(pkt.payload, 16);
         uint16_t psc = (pkt.log_code == 0x4027) ? (psc_raw >> 4) : psc_raw;
         return {.freq = uarfcn, .pci_bsic = psc};
+      }
+      // 0x4005 reselection: first 3G cell is serving (UARFCN|PSC).
+      if (pkt.log_code == 0x4005 && pkt.payload.size() >= 12) {
+        const uint8_t ver = (pkt.payload[0] >> 6) & 0x03;
+        size_t off = (ver == 2) ? 7u : 2u;
+        if (off + 4 <= pkt.payload.size()) {
+          uint16_t uarfcn = Utils::Converter::read_le<uint16_t>(pkt.payload, off);
+          uint16_t psc = Utils::Converter::read_le<uint16_t>(pkt.payload, off + 2);
+          if (uarfcn > 0 && uarfcn <= 16383 && psc <= 511) return {.freq = uarfcn, .pci_bsic = psc};
+        }
+      }
+      // 0x4111 active set: UARFCN at byte 1, first PSC at offset 4.
+      if (pkt.log_code == 0x4111 && pkt.payload.size() >= 6) {
+        uint16_t uarfcn = Utils::Converter::read_le<uint16_t>(pkt.payload, 1);
+        uint16_t psc = Utils::Converter::read_le<uint16_t>(pkt.payload, 4);
+        if (uarfcn > 0 && uarfcn <= 16383 && psc <= 511) return {.freq = uarfcn, .pci_bsic = psc};
       }
     }
   }

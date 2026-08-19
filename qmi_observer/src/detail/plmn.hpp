@@ -1,7 +1,7 @@
 #pragma once
 
-#include "qmi_observer/error.hpp"
-#include "qmi_observer/types.hpp"
+#include <qcom/qmi/error.hpp>
+#include <qcom/qmi/types.hpp>
 
 #include "detail/runtime.hpp"
 
@@ -12,7 +12,7 @@
 #include <optional>
 #include <span>
 
-namespace qmi_observer::detail {
+namespace QCom::Qmi::detail {
 
 /**
  * @brief Decode 3GPP 24.008-style PLMN from 3 octets (QMI NAS arrays).
@@ -59,4 +59,4 @@ namespace qmi_observer::detail {
   return Error::from(code, err ? err->message : fallback);
 }
 
-}  // namespace qmi_observer::detail
+}  // namespace QCom::Qmi::detail

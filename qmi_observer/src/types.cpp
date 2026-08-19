@@ -1,8 +1,8 @@
-#include "qmi_observer/types.hpp"
+#include <qcom/qmi/types.hpp>
 
 #include <unordered_set>
 
-namespace qmi_observer {
+namespace QCom::Qmi {
 namespace {
 
 std::string opt_u(const std::optional<uint32_t>& v) {
@@ -35,4 +35,4 @@ void merge_snapshot(AggregatedCells& dst, const CellSnapshot& src) {
   }
 }
 
-}  // namespace qmi_observer
+}  // namespace QCom::Qmi

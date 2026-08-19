@@ -1,6 +1,6 @@
-#include "qmi_observer/nas_reader.hpp"
+#include <qcom/qmi/nas_reader.hpp>
 
-#include "qmi_observer/session.hpp"
+#include <qcom/qmi/session.hpp>
 
 #include "detail/plmn.hpp"
 #include "detail/runtime.hpp"
@@ -10,7 +10,7 @@
 
 #include <span>
 
-namespace qmi_observer {
+namespace QCom::Qmi {
 namespace {
 
 std::optional<Plmn> plmn_from_garray(GArray* arr) {
@@ -23,6 +23,16 @@ std::optional<Plmn> plmn_from_garray(GArray* arr) {
 
 /// LTE RSRP/RSRQ/RSSI in QMI cell-location are typically 0.1 dB units.
 float lte_q_to_db(gint16 v) { return static_cast<float>(v) / 10.0f; }
+
+std::optional<uint32_t> tac_from_garray(GArray* arr) {
+  if (!arr || arr->len == 0) return std::nullopt;
+  const auto* bytes = reinterpret_cast<const uint8_t*>(arr->data);
+  uint32_t tac = 0;
+  for (guint i = 0; i < arr->len && i < 4; ++i) {
+    tac = (tac << 8) | bytes[i];
+  }
+  return tac;
+}
 
 void decode_umts_v2(QmiMessageNasGetCellLocationInfoOutput* out, CellSnapshot& snap) {
   guint16 cell16 = 0;
@@ -72,7 +82,20 @@ void decode_umts_v2(QmiMessageNasGetCellLocationInfoOutput* out, CellSnapshot& s
       snap.cells.push_back(o);
     }
   }
-  (void)geran;
+  if (geran) {
+    for (guint i = 0; i < geran->len; ++i) {
+      const auto& n = g_array_index(
+          geran, QmiMessageNasGetCellLocationInfoOutputUmtsInfoV2NeighboringGeranElement, i);
+      CellObservation o;
+      o.rat = Rat::Gsm;
+      o.rf_channel = n.geran_absolute_rf_channel_number;
+      o.phy_id = static_cast<uint16_t>(((n.network_color_code & 0x7) << 3) |
+                                       (n.base_station_color_code & 0x7));
+      o.rssi_dbm = static_cast<float>(n.rssi);
+      o.serving = false;
+      snap.cells.push_back(o);
+    }
+  }
 }
 
 void decode_lte_intra_v2(QmiMessageNasGetCellLocationInfoOutput* out, CellSnapshot& snap) {
@@ -103,13 +126,18 @@ void decode_lte_intra_v2(QmiMessageNasGetCellLocationInfoOutput* out, CellSnapsh
       o.rsrq_db = lte_q_to_db(n.rsrq);
       o.rssi_dbm = lte_q_to_db(n.rssi);
       o.serving = (n.physical_cell_id == serving_pci);
-      // PLMN/TAC/CID are serving-only fields in this TLV.
+      // PLMN/TAC/CID + reselection scalars are serving-only in this TLV.
       if (o.serving) {
         o.plmn = plmn_opt;
         o.lac_or_tac = tac;
         if (gci != 0) {
           o.cell_id = gci;
         }
+        o.idle = idle != FALSE;
+        o.cell_resel_prio = prio;
+        o.s_non_intra_search = s_non;
+        o.thresh_serving_low = s_low;
+        o.s_intra_search = s_intra;
       }
       snap.cells.push_back(o);
     }
@@ -124,13 +152,13 @@ void decode_lte_intra_v2(QmiMessageNasGetCellLocationInfoOutput* out, CellSnapsh
       o.cell_id = gci;
     }
     o.serving = true;
+    o.idle = idle != FALSE;
+    o.cell_resel_prio = prio;
+    o.s_non_intra_search = s_non;
+    o.thresh_serving_low = s_low;
+    o.s_intra_search = s_intra;
     snap.cells.push_back(o);
   }
-  (void)idle;
-  (void)prio;
-  (void)s_non;
-  (void)s_low;
-  (void)s_intra;
 }
 
 void decode_lte_interfreq(QmiMessageNasGetCellLocationInfoOutput* out, CellSnapshot& snap) {
@@ -160,10 +188,102 @@ void decode_lte_interfreq(QmiMessageNasGetCellLocationInfoOutput* out, CellSnaps
       o.rsrq_db = lte_q_to_db(n.rsrq);
       o.rssi_dbm = lte_q_to_db(n.rssi);
       o.serving = false;
+      o.idle = idle != FALSE;
+      o.cell_resel_prio = freq.cell_reselection_priority;
+      o.thresh_x_low = freq.cell_selection_rx_level_low_threshold;
+      o.thresh_x_high = freq.cell_selection_rx_level_high_threshold;
       snap.cells.push_back(o);
     }
   }
-  (void)idle;
+}
+
+void decode_geran_v2(QmiMessageNasGetCellLocationInfoOutput* out, CellSnapshot& snap) {
+  guint32 cell_id = 0;
+  GArray* plmn = nullptr;
+  guint16 lac = 0;
+  guint16 arfcn = 0;
+  guint8 bsic = 0;
+  guint32 ta = 0;
+  guint16 rx_level = 0;
+  GArray* cells = nullptr;
+  if (!qmi_message_nas_get_cell_location_info_output_get_geran_info_v2(
+          out, &cell_id, &plmn, &lac, &arfcn, &bsic, &ta, &rx_level, &cells, nullptr)) {
+    return;
+  }
+
+  CellObservation serving;
+  serving.rat = Rat::Gsm;
+  serving.serving = true;
+  serving.plmn = plmn_from_garray(plmn);
+  serving.lac_or_tac = lac;
+  serving.rf_channel = arfcn;
+  serving.phy_id = bsic;
+  if (cell_id != 0) serving.cell_id = cell_id;
+  serving.rssi_dbm = static_cast<float>(rx_level);
+  if (ta != 0) serving.timing_advance = ta;
+  snap.cells.push_back(serving);
+
+  if (!cells) return;
+  for (guint i = 0; i < cells->len; ++i) {
+    const auto& n =
+        g_array_index(cells, QmiMessageNasGetCellLocationInfoOutputGeranInfoV2CellElement, i);
+    CellObservation o;
+    o.rat = Rat::Gsm;
+    o.plmn = plmn_from_garray(n.plmn);
+    o.lac_or_tac = n.lac;
+    o.rf_channel = n.geran_absolute_rf_channel_number;
+    o.phy_id = n.base_station_identity_code;
+    if (n.cell_id != 0) o.cell_id = n.cell_id;
+    o.rssi_dbm = static_cast<float>(n.rx_level);
+    o.serving = false;
+    snap.cells.push_back(o);
+  }
+}
+
+void decode_nr5g(QmiMessageNasGetCellLocationInfoOutput* out, CellSnapshot& snap) {
+  GArray* plmn = nullptr;
+  GArray* tac_arr = nullptr;
+  guint64 gci = 0;
+  guint16 pci = 0;
+  gint16 rsrq = 0, rsrp = 0, snr = 0;
+  if (!qmi_message_nas_get_cell_location_info_output_get_nr5g_cell_information(
+          out, &plmn, &tac_arr, &gci, &pci, &rsrq, &rsrp, &snr, nullptr)) {
+    return;
+  }
+
+  CellObservation o;
+  o.rat = Rat::Nr;
+  o.serving = true;
+  o.plmn = plmn_from_garray(plmn);
+  o.lac_or_tac = tac_from_garray(tac_arr);
+  if (gci != 0) o.cell_id = gci;
+  o.phy_id = pci;
+  o.rsrp_dbm = lte_q_to_db(rsrp);
+  o.rsrq_db = lte_q_to_db(rsrq);
+  o.snr_db = lte_q_to_db(snr);
+
+  guint32 arfcn = 0;
+  if (qmi_message_nas_get_cell_location_info_output_get_nr5g_arfcn(out, &arfcn, nullptr) &&
+      arfcn != 0) {
+    o.rf_channel = arfcn;
+  }
+  // Need RF key for bridge — skip if ARFCN unknown (PCI alone is not enough for LocalCellKey).
+  if (!o.rf_channel) return;
+  snap.cells.push_back(o);
+}
+
+void attach_lte_timing_advance(QmiMessageNasGetCellLocationInfoOutput* out, CellSnapshot& snap) {
+  guint32 ta = 0;
+  if (!qmi_message_nas_get_cell_location_info_output_get_lte_info_timing_advance(out, &ta, nullptr) ||
+      ta == 0) {
+    return;
+  }
+  for (auto& c : snap.cells) {
+    if (c.rat == Rat::Lte && c.serving) {
+      c.timing_advance = ta;
+      break;
+    }
+  }
 }
 
 }  // namespace
@@ -218,6 +338,9 @@ Result<CellSnapshot> NasReader::snapshot_cells() {
   decode_umts_v2(wait.out, snap);
   decode_lte_intra_v2(wait.out, snap);
   decode_lte_interfreq(wait.out, snap);
+  decode_geran_v2(wait.out, snap);
+  decode_nr5g(wait.out, snap);
+  attach_lte_timing_advance(wait.out, snap);
   qmi_message_nas_get_cell_location_info_output_unref(wait.out);
 
   if (session_.callbacks().on_snapshot) {
@@ -333,4 +456,4 @@ Result<NasRadioStatus> NasReader::snapshot_status() {
   return st;
 }
 
-}  // namespace qmi_observer
+}  // namespace QCom::Qmi

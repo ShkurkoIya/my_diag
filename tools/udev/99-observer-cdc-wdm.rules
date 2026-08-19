@@ -1,0 +1,8 @@
+# Observer: qmi_wwan defaults to root:root 0600, so live_scanner cannot open QMI as dialout.
+# DIAG ttyUSB stays on the usual usb-serial rules; this only widens cdc-wdm.
+#
+#   sudo cp tools/udev/99-observer-cdc-wdm.rules /etc/udev/rules.d/
+#   sudo udevadm control --reload-rules
+#   sudo udevadm trigger -s usbmisc
+#
+KERNEL=="cdc-wdm*", GROUP="dialout", MODE="0660", TAG+="uaccess"

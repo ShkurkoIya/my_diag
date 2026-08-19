@@ -1,8 +1,8 @@
-#include "qmi_observer/health.hpp"
+#include <qcom/qmi/health.hpp>
 
 #include <sstream>
 
-namespace qmi_observer {
+namespace QCom::Qmi {
 
 std::string_view to_string(ModemPhase p) noexcept {
   switch (p) {
@@ -127,4 +127,4 @@ ModemHealth evaluate_health(HealthProbe probe) {
   return h;
 }
 
-}  // namespace qmi_observer
+}  // namespace QCom::Qmi

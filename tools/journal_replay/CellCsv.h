@@ -11,8 +11,8 @@
 #include <string_view>
 #include <vector>
 
-#include "core/BandInfo.h"
-#include "core/CellIdentity.h"
+#include <observer/model/BandInfo.h>
+#include <observer/model/CellIdentity.h>
 
 namespace QCom::Tools {
 

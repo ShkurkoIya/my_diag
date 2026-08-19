@@ -7,64 +7,23 @@
 #include <optional>
 #include <set>
 
+#include "core/BinaryCursor.h"
+#include "core/RevWordBits.h"
 #include "lte/LteParser.h"
+#include "lte/LteQcomLayouts.h"
 
 namespace QCom::Lte {
 
+using Utils::BinaryCursor;
 using Utils::bits;
 using Utils::Converter;
 using Utils::ml1_rsrp;
 using Utils::ml1_rsrq;
 using Utils::ml1_rssi;
+using Utils::RevWordBits;
 using Utils::valid_lte_earfcn;
 using Utils::valid_lte_pci;
 using Utils::valid_lte_rsrp;
-
-namespace {
-
-[[nodiscard]] uint8_t rb_or_mhz_to_mhz(uint8_t v) noexcept {
-  // B0C2 may carry RB count (6..100) or already-MHz (1..20).
-  switch (v) {
-    case 6: return 1;
-    case 15: return 3;
-    case 25: return 5;
-    case 50: return 10;
-    case 75: return 15;
-    case 100: return 20;
-    default: return v;
-  }
-}
-
-/// scat/dia_vldos RevWordBits: reverse LE word order, lay BE, index MSB-first.
-struct RevWordBits {
-  uint8_t be[48]{};
-  int nbytes{0};
-
-  RevWordBits(const uint8_t* le_words, int nwords) {
-    if (nwords > 12) nwords = 12;
-    nbytes = nwords * 4;
-    for (int i = 0; i < nwords; ++i) {
-      uint32_t w = Converter::read_le<uint32_t>(le_words, static_cast<size_t>(nwords - 1 - i) * 4);
-      be[i * 4 + 0] = static_cast<uint8_t>((w >> 24) & 0xFF);
-      be[i * 4 + 1] = static_cast<uint8_t>((w >> 16) & 0xFF);
-      be[i * 4 + 2] = static_cast<uint8_t>((w >> 8) & 0xFF);
-      be[i * 4 + 3] = static_cast<uint8_t>(w & 0xFF);
-    }
-  }
-
-  [[nodiscard]] uint32_t slice(int a, int b) const {
-    uint32_t v = 0;
-    for (int i = a; i < b; ++i) {
-      const int by = i >> 3;
-      const int bit = 7 - (i & 7);
-      if (by >= nbytes) break;
-      v = (v << 1) | static_cast<uint32_t>((be[by] >> bit) & 1u);
-    }
-    return v;
-  }
-};
-
-}  // namespace
 
 // ============================================================================
 // 0xB0C2 — Serving Cell Info (proprietary Qualcomm identity packet)
@@ -76,58 +35,46 @@ std::expected<std::vector<Events::RrcEvent>, ParserError> LteParser::parse_serv_
     std::span<const uint8_t> payload) {
   if (payload.size() < 2) return std::unexpected(ParserError::PacketTooShort);
 
-  auto p = payload.data();
-  uint8_t version = p[0];
-  const uint8_t* body = p + 1;
-  size_t body_len = payload.size() - 1;
+  // Wire offsets/SSOT: lte/LteQcomLayouts.h (B0c2::V2 / V3).
+  const auto decoded = Wire::B0c2::decode(BinaryCursor{payload});
+  if (!decoded) return std::vector<Events::RrcEvent>{};
 
   CellPassport passport;
   LteRadioParams radio;
-
-  if (version == 2 && body_len >= 24) {
-    radio.pci = Converter::read_le<uint16_t>(body, 0);
-    radio.earfcn = Converter::read_le<uint16_t>(body, 2);
-    radio.dl_bw = rb_or_mhz_to_mhz(body[6]);
-    radio.ul_bw = rb_or_mhz_to_mhz(body[7]);
-    passport.cell_id = Converter::read_le<uint32_t>(body, 8);
-    passport.tac = Converter::read_le<uint16_t>(body, 12);
-    radio.freq_band_ind = static_cast<uint8_t>(Converter::read_le<uint32_t>(body, 14));
-    passport.mcc = Converter::read_le<uint16_t>(body, 18);
-    passport.mnc = Converter::read_le<uint16_t>(body, 21);
-    radio.ul_earfcn = Converter::read_le<uint16_t>(body, 4);
-  } else if (version == 3 && body_len >= 28) {
-    radio.pci = Converter::read_le<uint16_t>(body, 0);
-    radio.earfcn = Converter::read_le<uint32_t>(body, 2);
-    radio.dl_bw = rb_or_mhz_to_mhz(body[10]);
-    radio.ul_bw = rb_or_mhz_to_mhz(body[11]);
-    passport.cell_id = Converter::read_le<uint32_t>(body, 12);
-    passport.tac = Converter::read_le<uint16_t>(body, 16);
-    radio.freq_band_ind = static_cast<uint8_t>(Converter::read_le<uint32_t>(body, 18));
-    passport.mcc = Converter::read_le<uint16_t>(body, 22);
-    passport.mnc = Converter::read_le<uint16_t>(body, 25);
-    radio.ul_earfcn = Converter::read_le<uint32_t>(body, 6);
-  } else {
-    return std::vector<Events::RrcEvent>{};
+  radio.pci = decoded->pci;
+  radio.earfcn = decoded->earfcn;
+  radio.ul_earfcn = decoded->ul_earfcn;
+  radio.dl_bw = Wire::B0c2::bw_raw_to_mhz(decoded->dl_bw_raw);
+  radio.ul_bw = Wire::B0c2::bw_raw_to_mhz(decoded->ul_bw_raw);
+  passport.cell_id = decoded->cell_id;
+  passport.tac = decoded->tac;
+  radio.freq_band_ind = static_cast<uint8_t>(decoded->band);
+  passport.mcc = decoded->mcc;
+  passport.mnc = decoded->mnc;
+  if (decoded->mnc_digit == 2 || decoded->mnc_digit == 3) {
+    passport.mnc_digits = decoded->mnc_digit;
   }
+  radio.allowed_access = Wire::B0c2::allowed_access_bool(decoded->allowed_raw);
 
   if (!valid_lte_pci(radio.pci) || radio.pci == 0 || !valid_lte_earfcn(radio.earfcn)) {
     return std::vector<Events::RrcEvent>{};
   }
-  // Reject empty / all-ones identity (modem padding during reselection).
-  if (!Utils::valid_lte_eci(passport.cell_id) || !Utils::valid_lte_tac(passport.tac)) {
-    return std::vector<Events::RrcEvent>{};
-  }
-  if (passport.mcc < 100 || passport.mcc > 999) return std::vector<Events::RrcEvent>{};
 
   std::vector<Events::RrcEvent> events;
-  events.push_back(Events::PassportEvent{.passport = std::move(passport)});
 
+  // Always mint RADIO for a valid EARFCN|PCI. COPS/? PLMN search often emits
+  // B0C2 with RF key but incomplete/padding ECI/TAC/MCC — dropping the whole
+  // packet was why a fat COPS firehose left the registry nearly empty.
   Events::RadioParamsEvent<LteRadioParams> rev;
   rev.data = radio;
   events.push_back(Events::RrcEvent{std::move(rev)});
+
+  const bool have_id = Utils::valid_lte_eci(passport.cell_id) &&
+                       Utils::valid_lte_tac(passport.tac) && passport.mcc >= 100 &&
+                       passport.mcc <= 999;
+  if (have_id) { events.push_back(Events::PassportEvent{.passport = std::move(passport)}); }
   // Do NOT emit ServingChanged here: during PLMN/COPS sweep B0C2 fires for
   // every briefly-camped cell; thrashing is_serving hides the real QMI camp.
-  // Passports still accumulate on EARFCN+PCI rows (dia_vldos serv_cells_ model).
 
   return events;
 }
@@ -274,44 +221,82 @@ std::expected<std::vector<Events::RrcEvent>, ParserError> LteParser::parse_initi
 // 0xB194 — LTE ML1 Search Request / Response (subpacket container)
 // ============================================================================
 // WirelessMetrix: subpkt 0x1C = request, 0x1D = response.
-// SIM8300: 0x1D header may not sit at payload[4] — scan for id/ver/size,
-// then try verified body layouts (EARFCN+PCI), fail-closed.
+// SIM8300: 0x1D header may not sit at payload[4] — scan for id/ver/size.
+// Two verified response body shapes (fail-closed):
+//   A) COPS multi-hit: EARFCN u32 @16, then N×16B records @24 with PCI u32 @+8
+//   B) Single-hit: EARFCN+PCI at fixed offsets ({16,28}|{16,32}|{20,36})
+// Emit every distinct EARFCN|PCI — one frame may list several PCIs.
 
 std::expected<std::vector<Events::RrcEvent>, ParserError> LteParser::parse_ml1_search_rr(
     std::span<const uint8_t> payload) {
   if (payload.size() < 12) return std::unexpected(ParserError::PacketTooShort);
   if (payload[0] != 1) return std::vector<Events::RrcEvent>{};
 
-  auto try_body = [](const uint8_t* body, size_t body_len) -> std::optional<LocalCellKey> {
+  auto push_key = [](std::vector<LocalCellKey>& out, uint32_t earfcn, uint16_t pci) {
+    if (!valid_lte_earfcn(earfcn) || !valid_lte_pci(pci) || pci == 0) return;
+    for (const auto& e : out) {
+      if (e.freq == earfcn && e.pci_bsic == pci) return;
+    }
+    out.push_back(LocalCellKey{.freq = earfcn, .pci_bsic = pci});
+  };
+
+  auto try_body = [&](const uint8_t* body, size_t body_len, std::vector<LocalCellKey>& out) {
+    // A) Multi-PCI list (live COPS / PLMN search on SIM8300).
+    if (body_len >= 40) {
+      const uint32_t earfcn = Converter::read_le<uint32_t>(body, 16);
+      if (valid_lte_earfcn(earfcn)) {
+        size_t minted = 0;
+        for (size_t off = 24; off + 16 <= body_len; off += 16) {
+          const uint32_t pci_u = Converter::read_le<uint32_t>(body, off + 8);
+          if (pci_u < 1 || pci_u > 503) break;
+          push_key(out, earfcn, static_cast<uint16_t>(pci_u));
+          ++minted;
+        }
+        if (minted > 0) return;
+      }
+    }
+    // B) Single-cell layouts from earlier SIM8300 dumps.
     const std::pair<size_t, size_t> layouts[] = {{16, 28}, {16, 32}, {20, 36}};
     for (auto [eo, po] : layouts) {
       if (body_len < po + 4) continue;
-      uint32_t earfcn = Converter::read_le<uint32_t>(body, eo);
-      uint32_t pci_u = Converter::read_le<uint32_t>(body, po);
+      const uint32_t earfcn = Converter::read_le<uint32_t>(body, eo);
+      const uint32_t pci_u = Converter::read_le<uint32_t>(body, po);
       if (!valid_lte_earfcn(earfcn) || pci_u < 1 || pci_u > 503) continue;
-      return LocalCellKey{.freq = earfcn, .pci_bsic = static_cast<uint16_t>(pci_u)};
+      push_key(out, earfcn, static_cast<uint16_t>(pci_u));
+      return;
     }
-    return std::nullopt;
   };
 
   std::vector<Events::RrcEvent> events;
-  for (size_t i = 2; i + 8 < payload.size(); ++i) {
-    if (payload[i] != 0x1D) continue;
+  std::vector<LocalCellKey> keys;
+  for (size_t i = 2; i + 8 < payload.size();) {
+    if (payload[i] != 0x1D) {
+      ++i;
+      continue;
+    }
     const uint8_t sp_ver = payload[i + 1];
-    if (sp_ver < 0x20 || sp_ver > 0x40) continue;
+    if (sp_ver < 0x20 || sp_ver > 0x40) {
+      ++i;
+      continue;
+    }
     const uint16_t sp_size = Converter::read_le<uint16_t>(payload.data(), i + 2);
     const size_t rem = payload.size() - i;
     // Qualcomm size field is often short by a few bytes vs USB pad — use min.
     size_t use = rem;
     if (sp_size >= 8 && sp_size <= rem) use = sp_size;
-    if (use < 8) continue;
-    if (auto key = try_body(payload.data() + i + 4, use - 4)) {
-      Events::RadioParamsEvent<LteRadioParams> rev;
-      rev.data.earfcn = key->freq;
-      rev.data.pci = key->pci_bsic;
-      events.push_back(Events::RrcEvent{std::move(rev)});
-      break;
+    if (use < 8) {
+      ++i;
+      continue;
     }
+    try_body(payload.data() + i + 4, use - 4, keys);
+    // Advance past this subpacket so we don't re-match the same 0x1D.
+    i += (sp_size >= 8 && sp_size <= rem) ? sp_size : 1;
+  }
+  for (const auto& key : keys) {
+    Events::RadioParamsEvent<LteRadioParams> rev;
+    rev.data.earfcn = key.freq;
+    rev.data.pci = key.pci_bsic;
+    events.push_back(Events::RrcEvent{std::move(rev)});
   }
   return events;
 }
@@ -331,19 +316,44 @@ std::expected<std::vector<Events::RrcEvent>, ParserError> LteParser::parse_ml1_s
 
   uint32_t earfcn = 0;
   uint16_t pci = 0;
+  uint8_t cell_resel_prio = 0;
   uint32_t rsrp_raw = 0, rsrq_raw = 0, rssi_raw = 0;
+  uint32_t rxlev_w = 0, s_search_w = 0;
 
-  if (version == 4 && payload.size() >= 24) {
+  if (version == 4 && payload.size() >= 32) {
     earfcn = Converter::read_le<uint16_t>(p, 4);
-    uint16_t pci_slp = Converter::read_le<uint16_t>(p, 6);
-    pci = (pci_slp >> 7) & 0x1FF;
+    const auto slp = Utils::lte_unpack_pci_slp(Converter::read_le<uint16_t>(p, 6));
+    pci = slp.pci;
+    cell_resel_prio = slp.prio;
+    rsrp_raw = Converter::read_le<uint32_t>(p, 8) & 0xFFF;
+    rsrq_raw = Converter::read_le<uint32_t>(p, 16) >> 22;
+    rssi_raw = (Converter::read_le<uint32_t>(p, 20) >> 11) & 0x7FF;
+    rxlev_w = Converter::read_le<uint32_t>(p, 24);
+    s_search_w = Converter::read_le<uint32_t>(p, 28);
+  } else if (version == 5 && payload.size() >= 36) {
+    earfcn = Converter::read_le<uint32_t>(p, 4);
+    const auto slp = Utils::lte_unpack_pci_slp(Converter::read_le<uint16_t>(p, 8));
+    pci = slp.pci;
+    cell_resel_prio = slp.prio;
+    rsrp_raw = Converter::read_le<uint32_t>(p, 12) & 0xFFF;
+    rsrq_raw = Converter::read_le<uint32_t>(p, 20) >> 22;
+    rssi_raw = (Converter::read_le<uint32_t>(p, 24) >> 11) & 0x7FF;
+    rxlev_w = Converter::read_le<uint32_t>(p, 28);
+    s_search_w = Converter::read_le<uint32_t>(p, 32);
+  } else if (version == 4 && payload.size() >= 24) {
+    // Short legacy frames (tests): signal only.
+    earfcn = Converter::read_le<uint16_t>(p, 4);
+    const auto slp = Utils::lte_unpack_pci_slp(Converter::read_le<uint16_t>(p, 6));
+    pci = slp.pci;
+    cell_resel_prio = slp.prio;
     rsrp_raw = Converter::read_le<uint32_t>(p, 8) & 0xFFF;
     rsrq_raw = Converter::read_le<uint32_t>(p, 16) >> 22;
     rssi_raw = (Converter::read_le<uint32_t>(p, 20) >> 11) & 0x7FF;
   } else if (version == 5 && payload.size() >= 28) {
     earfcn = Converter::read_le<uint32_t>(p, 4);
-    uint16_t pci_slp = Converter::read_le<uint16_t>(p, 8);
-    pci = (pci_slp >> 7) & 0x1FF;
+    const auto slp = Utils::lte_unpack_pci_slp(Converter::read_le<uint16_t>(p, 8));
+    pci = slp.pci;
+    cell_resel_prio = slp.prio;
     rsrp_raw = Converter::read_le<uint32_t>(p, 12) & 0xFFF;
     rsrq_raw = Converter::read_le<uint32_t>(p, 20) >> 22;
     rssi_raw = (Converter::read_le<uint32_t>(p, 24) >> 11) & 0x7FF;
@@ -357,10 +367,34 @@ std::expected<std::vector<Events::RrcEvent>, ParserError> LteParser::parse_ml1_s
 
   if (!valid_lte_rsrp(rsrp)) return std::vector<Events::RrcEvent>{};
 
-  CellSignal sig;
-  sig.signal_data = LteSignalParams{.rsrp = rsrp, .rsrq = rsrq, .rssi = rssi, .has_rssi = true};
+  // scat MSB bitfields on rxlev / s_search words.
+  const uint8_t q_rxlevmin = static_cast<uint8_t>((rxlev_w >> 26) & 0x3F);
+  const uint8_t p_max_raw = static_cast<uint8_t>((rxlev_w >> 19) & 0x7F);
+  const uint8_t s_intra = static_cast<uint8_t>((s_search_w >> 26) & 0x3F);
+  const uint8_t s_non = static_cast<uint8_t>((s_search_w >> 20) & 0x3F);
 
   std::vector<Events::RrcEvent> events;
+  if (valid_lte_earfcn(earfcn) && valid_lte_pci(pci) && pci != 0) {
+    Events::RadioParamsEvent<LteRadioParams> rev;
+    rev.data.earfcn = earfcn;
+    rev.data.pci = pci;
+    if (cell_resel_prio) rev.data.cell_resel_prio = cell_resel_prio;
+    if (s_intra) rev.data.s_intra_search = static_cast<int8_t>(s_intra);
+    if (s_non) rev.data.s_non_intra_search = static_cast<int8_t>(s_non);
+    if (p_max_raw) {
+      rev.data.p_max_present = true;
+      rev.data.p_max = static_cast<int8_t>(p_max_raw);
+    }
+    events.push_back(Events::RrcEvent{std::move(rev)});
+  }
+  if (q_rxlevmin) {
+    CellPassport pass;
+    pass.q_rx_lev_min = static_cast<int8_t>(q_rxlevmin * 2);
+    events.push_back(Events::PassportEvent{.passport = std::move(pass)});
+  }
+
+  CellSignal sig;
+  sig.signal_data = LteSignalParams{.rsrp = rsrp, .rsrq = rsrq, .rssi = rssi, .has_rssi = true};
   events.push_back(Events::SignalUpdateEvent{.signal = std::move(sig)});
   events.push_back(Events::ServingChangedEvent{.is_serving = true});
   return events;
@@ -439,54 +473,37 @@ std::expected<std::vector<Events::RrcEvent>, ParserError> LteParser::parse_ml1_m
     std::span<const uint8_t> payload) {
   if (payload.size() < 8) return std::unexpected(ParserError::PacketTooShort);
 
-  auto p = payload.data();
-  uint8_t pkt_ver = p[0];
-  if (pkt_ver != 1) return std::vector<Events::RrcEvent>{};
+  const BinaryCursor pkt{payload};
+  if (pkt.u8(0) != 1) return std::vector<Events::RrcEvent>{};
 
-  uint8_t num_subpkts = p[1];
+  const uint8_t num_subpkts = pkt.u8(1);
   size_t pos = 4;
 
   std::vector<Events::RrcEvent> events;
 
-  for (uint8_t sp = 0; sp < num_subpkts && pos + 4 <= payload.size(); ++sp) {
-    uint8_t sp_id = p[pos];
-    uint8_t sp_ver = p[pos + 1];
-    uint16_t sp_size = Converter::read_le<uint16_t>(p, pos + 2);
+  for (uint8_t sp = 0; sp < num_subpkts && pkt.has(pos, 4); ++sp) {
+    const uint8_t sp_id = pkt.u8(pos);
+    const uint8_t sp_ver = pkt.u8(pos + 1);
+    const uint16_t sp_size = pkt.le16(pos + 2);
 
-    if (sp_size < 4 || pos + sp_size > payload.size()) break;
+    if (sp_size < 4 || !pkt.has(pos, sp_size)) break;
 
-    if (sp_id == 0x19) {
-      const uint8_t* body = p + pos + 4;
-      size_t body_len = sp_size - 4;
-
-      if (body_len < 8) {
+    if (sp_id == Wire::B193::kSubpacketId) {
+      const BinaryCursor body = pkt.slice(pos + 4, sp_size - 4);
+      if (body.size() < 8) {
         pos += sp_size;
         continue;
       }
 
-      uint32_t earfcn = Converter::read_le<uint32_t>(body, 0);
-      uint16_t num_cells = Converter::read_le<uint16_t>(body, 4);
-
-      size_t cell_start = 0;
-      size_t cell_stride = 0;
-
-      if (sp_ver == 36) {
-        cell_start = 8;
-        cell_stride = 128;
-      } else if (sp_ver == 48 || sp_ver == 50) {
-        cell_start = 12;
-        cell_stride = 140;
-      } else if (sp_ver == 59) {
-        // SM8550 v59 (data-driven from journal+B17F correlation):
-        //   header 8B: earfcn:u32 LE, num_cells:u32 LE (not v48's 12B header)
-        //   cell stride 148B; PCI = rd16(cell+8)&0x1FF; RSRP u12 at cell+44>>12
-        // RSRQ offset not yet confident — omit. Fail-closed on pci/rsrp.
-        if (body_len < 8) {
+      // v59: separate header/cell shape (see Wire::B193::Sp19V59).
+      if (sp_ver == Wire::B193::Sp19V59::kVersion) {
+        using V59 = Wire::B193::Sp19V59;
+        if (!body.has(0, V59::kMinBody)) {
           pos += sp_size;
           continue;
         }
-        uint32_t earfcn59 = Converter::read_le<uint32_t>(body, 0);
-        uint32_t num_cells59 = Converter::read_le<uint32_t>(body, 4);
+        const uint32_t earfcn59 = body.le32(V59::earfcn);
+        uint32_t num_cells59 = body.le32(V59::num_cells);
         if (num_cells59 > 8) num_cells59 = 8;
 
         if (valid_lte_earfcn(earfcn59)) {
@@ -496,20 +513,14 @@ std::expected<std::vector<Events::RrcEvent>, ParserError> LteParser::parse_ml1_m
         }
 
         Events::NeighborMeasEvent nev;
-        constexpr size_t kCellStart = 8;
-        constexpr size_t kCellStride = 148;
         for (uint32_t c = 0; c < num_cells59; ++c) {
-          const size_t cell_off = kCellStart + kCellStride * c;
-          // Need through rd32 at cell+44.
-          if (cell_off + 48 > body_len) break;
+          const BinaryCursor cell = body.at(V59::cell_start + V59::cell_stride * c);
+          if (!cell.has(0, V59::rsrp_word + 4)) break;
 
-          uint16_t pci_word = Converter::read_le<uint16_t>(body, cell_off + 8);
-          uint16_t pci = Utils::lte_pci_from_meas_word(pci_word);
+          const uint16_t pci = Utils::lte_pci_from_meas_word(cell.le16(V59::pci));
           if (!valid_lte_pci(pci) || pci == 0) continue;
 
-          uint32_t rsrp_raw =
-              (Converter::read_le<uint32_t>(body, cell_off + 44) >> 12) & 0xFFF;
-          float rsrp = ml1_rsrp(rsrp_raw);
+          const float rsrp = ml1_rsrp(cell.le32_bits(V59::rsrp_word, 12, 12));
           if (!valid_lte_rsrp(rsrp)) continue;
 
           NeighborMeasResult nr;
@@ -518,59 +529,150 @@ std::expected<std::vector<Events::RrcEvent>, ParserError> LteParser::parse_ml1_m
           nr.has_rsrp = true;
           nev.neighbors.push_back(nr);
         }
-        if (!nev.neighbors.empty()) {
-          events.push_back(Events::RrcEvent{std::move(nev)});
-        }
-        pos += sp_size;
-        continue;
-      } else {
+        if (!nev.neighbors.empty()) { events.push_back(Events::RrcEvent{std::move(nev)}); }
         pos += sp_size;
         continue;
       }
 
+      const auto layout = Wire::B193::sp19_rev_layout(sp_ver);
+      if (!layout) {
+        pos += sp_size;
+        continue;
+      }
+
+      const uint32_t earfcn = body.le32(Wire::B193::kBodyEarfcn);
+      uint16_t num_cells = body.le16(Wire::B193::kBodyNumCells);
       if (num_cells > 8) num_cells = 8;
+      const uint16_t valid_rx = body.le16(Wire::B193::kBodyValidRx);
 
       if (valid_lte_earfcn(earfcn)) {
         Events::RadioParamsEvent<LteRadioParams> rev;
         rev.data.earfcn = earfcn;
+        if (valid_rx) rev.data.valid_rx = static_cast<uint8_t>(valid_rx & 0xFF);
         events.push_back(Events::RrcEvent{std::move(rev)});
       }
 
+      // Wire SSOT: Wire::B193. v48/50 = LE meas; v36 = legacy RevWordBits.
       Events::NeighborMeasEvent nev;
       for (uint16_t c = 0; c < num_cells; ++c) {
-        size_t cell_off = cell_start + cell_stride * c;
-        if (cell_off + 16 + 48 > body_len) break;
-
-        uint16_t val0 = Converter::read_le<uint16_t>(body, cell_off);
-        // MI: PCI = low 9 bits, is_serving = bit12. Live SIM8300 v48 confirms.
-        // scat MSB bitstring >>7 mis-read PCI 468 as 35 on the same dumps.
-        uint16_t pci = Utils::lte_pci_from_meas_word(val0);
-        bool is_serving = ((val0 >> 12) & 1) != 0;
-        if (!valid_lte_pci(pci) || pci == 0) continue;
-
-        // scat RevWordBits @ cell+16: RSRP[108:120], RSRQ[224:234].
-        RevWordBits rb(body + cell_off + 16, 12);
-        float rsrp = ml1_rsrp(rb.slice(108, 120));
-        if (!valid_lte_rsrp(rsrp)) continue;
+        const size_t cell_off = layout->cell_start + layout->cell_stride * c;
+        const BinaryCursor cell = body.at(cell_off);
 
         NeighborMeasResult nr;
-        nr.pci = pci;
-        nr.rsrp_dbm = rsrp;
-        nr.has_rsrp = true;
-        nr.rsrq_db = ml1_rsrq(rb.slice(224, 234));
-        nr.has_rsrq = (nr.rsrq_db > -30.0f && nr.rsrq_db <= -1.0f);
+        LteSignalParams lp;
+        LteRadioParams radio{};
+        radio.earfcn = earfcn;
+        if (valid_rx) radio.valid_rx = static_cast<uint8_t>(valid_rx & 0xFF);
+        bool is_serving = false;
+
+        if (layout->le_meas) {
+          const auto meas = Wire::B193::decode_sp19_le_cell(cell);
+          if (!meas) continue;
+
+          nr.pci = meas->pci;
+          nr.rsrp_dbm = meas->rsrp_inst;
+          nr.has_rsrp = true;
+          if (meas->has_rsrp_filt) {
+            nr.rsrp_filt = meas->rsrp_filt;
+            nr.has_rsrp_filt = true;
+          }
+          if (meas->has_rsrq) {
+            nr.rsrq_db = meas->rsrq_inst;
+            nr.has_rsrq = true;
+          }
+          if (meas->has_rsrq_filt) {
+            nr.rsrq_filt = meas->rsrq_filt;
+            nr.has_rsrq_filt = true;
+          }
+          if (meas->has_rssi) {
+            nr.rssi_dbm = meas->rssi_inst;
+            nr.has_rssi = true;
+          }
+          if (meas->has_snr) {
+            nr.sinr_db = meas->snr_best;
+            nr.has_sinr = true;
+            nr.sinr_rx0 = meas->snr_rx0;
+            nr.sinr_rx1 = meas->snr_rx1;
+            nr.has_sinr_per_rx = true;
+          }
+
+          lp.rsrp = meas->rsrp_inst;
+          lp.rsrq = meas->rsrq_inst;
+          if (meas->has_rsrp_filt) {
+            lp.rsrp_filt = meas->rsrp_filt;
+            lp.has_rsrp_filt = true;
+          }
+          if (meas->has_rsrq_filt) {
+            lp.rsrq_filt = meas->rsrq_filt;
+            lp.has_rsrq_filt = true;
+          }
+          if (meas->has_rssi) {
+            lp.rssi = meas->rssi_inst;
+            lp.has_rssi = true;
+          }
+          if (meas->has_snr) {
+            lp.sinr = meas->snr_best;
+            lp.has_sinr = true;
+            lp.sinr_rx0 = meas->snr_rx0;
+            lp.sinr_rx1 = meas->snr_rx1;
+            lp.has_sinr_per_rx = true;
+          }
+
+          radio.pci = meas->pci;
+          radio.sfn = meas->sfn;
+          radio.subframe = meas->subframe;
+          radio.has_sfn_sf = true;
+          radio.serving_cell_index = meas->serving_cell_index;
+          radio.is_restricted = meas->is_restricted;
+          is_serving = meas->is_serving;
+        } else {
+          if (!cell.has(0, Wire::B193::kMeasWordsOff + 48)) break;
+
+          const uint16_t val0 = cell.le16(0);
+          const uint16_t pci = Utils::lte_pci_from_meas_word(val0);
+          is_serving = cell.le16_bits(0, 12, 1) != 0;
+          if (!valid_lte_pci(pci) || pci == 0) continue;
+
+          const RevWordBits rb = Wire::B193::cell_meas_bits(cell);
+          const float rsrp = ml1_rsrp(rb.slice(Wire::B193::kRsrp.begin, Wire::B193::kRsrp.end));
+          if (!valid_lte_rsrp(rsrp)) continue;
+
+          nr.pci = pci;
+          nr.rsrp_dbm = rsrp;
+          nr.has_rsrp = true;
+          nr.rsrq_db = ml1_rsrq(rb.slice(Wire::B193::kRsrq.begin, Wire::B193::kRsrq.end));
+          nr.has_rsrq = (nr.rsrq_db > -30.0f && nr.rsrq_db <= -1.0f);
+          lp.rsrp = rsrp;
+          lp.rsrq = nr.rsrq_db;
+
+          const float rssi = ml1_rssi(rb.slice(Wire::B193::kRssi.begin, Wire::B193::kRssi.end));
+          if (rssi > -120.0f && rssi < -20.0f) {
+            lp.rssi = rssi;
+            lp.has_rssi = true;
+            nr.rssi_dbm = rssi;
+            nr.has_rssi = true;
+          }
+          if (cell.has(layout->snr_off, 8)) {
+            const RevWordBits snr_rb(cell.data() + layout->snr_off, 2);
+            const float best = Wire::B193::snr_best_of(snr_rb);
+            if (best > -20.0f && best < 40.0f) {
+              lp.sinr = best;
+              lp.has_sinr = true;
+              nr.sinr_db = best;
+              nr.has_sinr = true;
+            }
+          }
+          radio.pci = pci;
+        }
+
         nev.neighbors.push_back(nr);
 
-        if (is_serving) {
-          Events::RadioParamsEvent<LteRadioParams> srev;
-          srev.data.earfcn = earfcn;
-          srev.data.pci = pci;
-          events.push_back(Events::RrcEvent{std::move(srev)});
-          events.push_back(Events::ServingChangedEvent{.is_serving = true});
-          CellSignal sig;
-          sig.signal_data = LteSignalParams{.rsrp = rsrp, .rsrq = nr.rsrq_db};
-          events.push_back(Events::SignalUpdateEvent{.signal = std::move(sig)});
-        }
+        // Per-cell Radio+Signal so QualcomParser sticky_key binds each PCI.
+        events.push_back(Events::RrcEvent{Events::RadioParamsEvent<LteRadioParams>{.data = radio}});
+        CellSignal sig;
+        sig.signal_data = lp;
+        events.push_back(Events::SignalUpdateEvent{.signal = std::move(sig)});
+        if (is_serving) { events.push_back(Events::ServingChangedEvent{.is_serving = true}); }
       }
       if (!nev.neighbors.empty()) events.push_back(Events::RrcEvent{std::move(nev)});
     }
@@ -598,23 +700,23 @@ std::expected<std::vector<Events::RrcEvent>, ParserError> LteParser::parse_ml1_s
   uint8_t dl_bw = 0;
   uint16_t sfn = 0;
 
-  // scat parse_lte_ml1_cell_info: PCI via >>7 (MSB bitstring). Keep that for B197.
+  // scat parse_lte_ml1_cell_info used >>7 (MSB). Unpack by value — same word as 0xB17F.
   if (version == 1 && payload.size() >= 8) {
     if (payload.size() >= 3) {
-      dl_bw = rb_or_mhz_to_mhz(p[1]);
+      dl_bw = Wire::B0c2::bw_raw_to_mhz(p[1]);
       sfn = Converter::read_le<uint16_t>(p, 2);
     }
     earfcn = Converter::read_le<uint16_t>(p, 4);
-    uint16_t pci_word = Converter::read_le<uint16_t>(p, 6);
-    pci = ((pci_word & 0xFFFF) >> 7) & 0x1FF;
+    pci = Utils::lte_unpack_pci_slp(Converter::read_le<uint16_t>(p, 6)).pci;
   } else if (version == 2 && payload.size() >= 12) {
     if (payload.size() >= 4) {
-      dl_bw = rb_or_mhz_to_mhz(p[1]);
+      dl_bw = Wire::B0c2::bw_raw_to_mhz(p[1]);
       sfn = Converter::read_le<uint16_t>(p, 2);
     }
     earfcn = Converter::read_le<uint32_t>(p, 4);
-    uint32_t pci_word = Converter::read_le<uint32_t>(p, 8);
-    pci = ((pci_word & 0xFFFF) >> 7) & 0x1FF;
+    const uint16_t packed =
+        static_cast<uint16_t>(Converter::read_le<uint32_t>(p, 8) & 0xFFFF);
+    pci = Utils::lte_unpack_pci_slp(packed).pci;
   } else {
     return std::vector<Events::RrcEvent>{};
   }
@@ -632,6 +734,33 @@ std::expected<std::vector<Events::RrcEvent>, ParserError> LteParser::parse_ml1_s
   events.push_back(Events::RrcEvent{std::move(rev)});
   events.push_back(Events::ServingChangedEvent{.is_serving = true});
   return events;
+}
+
+// ============================================================================
+// 0xB0EE — LTE NAS EMM State (registration / GUTI meta)
+// ============================================================================
+// No EARFCN|PCI — QualcomParser binds empty key to current serving (like B114).
+// Does NOT emit PassportEvent (NAS PLMN ≠ cell SIB identity). M-TMSI not exported.
+
+std::expected<std::vector<Events::RrcEvent>, ParserError> LteParser::parse_emm_state(
+    std::span<const uint8_t> payload) {
+  if (payload.size() < 2) return std::unexpected(ParserError::PacketTooShort);
+
+  const auto decoded = Wire::B0ee::decode(BinaryCursor{payload});
+  if (!decoded) return std::vector<Events::RrcEvent>{};
+
+  Events::RadioParamsEvent<LteRadioParams> rev;
+  rev.data.emm_state = static_cast<int16_t>(decoded->emm_state);
+  rev.data.emm_substate = static_cast<int16_t>(decoded->emm_substate);
+  rev.data.emm_mcc = decoded->plmn.mcc;
+  rev.data.emm_mnc = decoded->plmn.mnc;
+  rev.data.emm_mnc_digits = decoded->plmn.mnc_digits;
+  if (decoded->guti_valid) {
+    rev.data.mme_group_id = decoded->mme_group_id;
+    rev.data.mme_code = decoded->mme_code;
+    rev.data.mme_present = true;
+  }
+  return std::vector<Events::RrcEvent>{Events::RrcEvent{std::move(rev)}};
 }
 
 // ============================================================================
@@ -761,14 +890,80 @@ std::vector<Events::RrcEvent> LteParser::decode_tai_list(const uint8_t* tai, siz
 }
 
 // ============================================================================
-// 0xB179 — Connected-mode intra-freq meas (SIM8300 v4)
+// 0xB179 — Connected-mode intra-freq meas (MobileInsight CMLIFMR + SIM8300)
 // ============================================================================
-// Live dump: ver=4, EARFCN u32 @8, PCI u16 @12 (low 9 bits = PCI).
+// MI v4: hdr 8B, then EARFCN u32, PCI u16, SFN u16, RSRP u16, skip2, RSRQ u16, skip2,
+//        n_neigh u8, n_det u8, skip2; then neigh {pci u16, rsrp u16, skip2, rsrq u16, skip4}.
 
 std::expected<std::vector<Events::RrcEvent>, ParserError> LteParser::parse_ml1_conn_intra(
     std::span<const uint8_t> payload) {
   if (payload.size() < 16) return std::unexpected(ParserError::PacketTooShort);
 
+  const uint8_t version = payload[0];
+  std::vector<Events::RrcEvent> events;
+
+  if (version == 4 && payload.size() >= 28) {
+    // MI: initial Fmt consumes 8 bytes, then v4 header.
+    const uint32_t earfcn = Converter::read_le<uint32_t>(payload.data(), 8);
+    const uint16_t pci =
+        static_cast<uint16_t>(Converter::read_le<uint16_t>(payload.data(), 12) & 0x1FF);
+    if (!valid_lte_earfcn(earfcn) || !valid_lte_pci(pci) || pci == 0) {
+      return std::vector<Events::RrcEvent>{};
+    }
+
+    Events::RadioParamsEvent<LteRadioParams> rev;
+    rev.data.earfcn = earfcn;
+    rev.data.pci = pci;
+    events.push_back(Events::RrcEvent{std::move(rev)});
+
+    const uint16_t rsrp_raw = Converter::read_le<uint16_t>(payload.data(), 16);
+    const uint16_t rsrq_raw = Converter::read_le<uint16_t>(payload.data(), 20);
+    const float rsrp = static_cast<float>(rsrp_raw) * 0.0625f - 180.0f;
+    const float rsrq = static_cast<float>(rsrq_raw) * 0.0625f - 30.0f;
+    if (valid_lte_rsrp(rsrp)) {
+      LteSignalParams lp{.rsrp = rsrp};
+      if (rsrq > -30.0f && rsrq <= -1.0f) lp.rsrq = rsrq;
+      CellSignal sig;
+      sig.signal_data = lp;
+      events.push_back(Events::SignalUpdateEvent{.signal = std::move(sig)});
+      events.push_back(Events::ServingChangedEvent{.is_serving = true});
+    }
+
+    if (payload.size() >= 26) {
+      const uint8_t n_neigh = payload[24];
+      Events::NeighborMeasEvent nev;
+      size_t off = 28;
+      const uint8_t n = n_neigh > 16 ? 16 : n_neigh;
+      for (uint8_t i = 0; i < n && off + 12 <= payload.size(); ++i, off += 12) {
+        const uint16_t npci =
+            static_cast<uint16_t>(Converter::read_le<uint16_t>(payload.data(), off) & 0x1FF);
+        const float nrsrp =
+            static_cast<float>(Converter::read_le<uint16_t>(payload.data(), off + 2)) * 0.0625f -
+            180.0f;
+        const float nrsrq =
+            static_cast<float>(Converter::read_le<uint16_t>(payload.data(), off + 6)) * 0.0625f -
+            30.0f;
+        if (!valid_lte_pci(npci) || npci == 0 || !valid_lte_rsrp(nrsrp)) continue;
+        NeighborMeasResult nr;
+        nr.pci = npci;
+        nr.rsrp_dbm = nrsrp;
+        nr.has_rsrp = true;
+        if (nrsrq > -30.0f && nrsrq <= -1.0f) {
+          nr.rsrq_db = nrsrq;
+          nr.has_rsrq = true;
+        }
+        nev.neighbors.push_back(nr);
+        Events::RadioParamsEvent<LteRadioParams> nrev;
+        nrev.data.earfcn = earfcn;
+        nrev.data.pci = npci;
+        events.push_back(Events::RrcEvent{std::move(nrev)});
+      }
+      if (!nev.neighbors.empty()) events.push_back(std::move(nev));
+    }
+    return events;
+  }
+
+  // Fallback: SIM8300 short frames with EARFCN|PCI only.
   auto try_layout = [&](size_t eo, size_t po) -> std::optional<LocalCellKey> {
     if (payload.size() < po + 2) return std::nullopt;
     const uint32_t earfcn = Converter::read_le<uint32_t>(payload.data(), eo);
@@ -779,11 +974,7 @@ std::expected<std::vector<Events::RrcEvent>, ParserError> LteParser::parse_ml1_c
   };
 
   std::optional<LocalCellKey> key;
-  if (payload[0] == 4) {
-    // Live SIM8300 v4: EARFCN u32 @8, PCI u16 @12 (low 9).
-    key = try_layout(8, 12);
-  } else if (payload[0] == 1) {
-    // Live dump: ver=1 is v4 shifted by +1 byte (earfcn@9, pci@13).
+  if (version == 1) {
     key = try_layout(9, 13);
     if (!key) key = try_layout(8, 12);
   }
@@ -880,13 +1071,12 @@ std::expected<std::vector<Events::RrcEvent>, ParserError> LteParser::parse_ml1_n
         off = start + ssize;
         continue;
       }
-      const uint32_t earfcn = (sver == 1)
-                                  ? Converter::read_le<uint16_t>(payload.data(), off)
-                                  : Converter::read_le<uint32_t>(payload.data(), off);
+      const uint32_t earfcn = (sver == 1) ? Converter::read_le<uint16_t>(payload.data(), off)
+                                          : Converter::read_le<uint32_t>(payload.data(), off);
       off += earfcn_w;
       const uint8_t nc_raw = payload[off++];
       const int num_cells = nc_raw & 0x0F;
-      off += 1;  // skip pad after Num Cells byte
+      off += 1;                 // skip pad after Num Cells byte
       if (sver == 2) off += 2;  // MI 26v2 extra skip
       if (num_cells < 0 || num_cells > 16) {
         off = start + ssize;
@@ -906,9 +1096,8 @@ std::expected<std::vector<Events::RrcEvent>, ParserError> LteParser::parse_ml1_n
         off = start + ssize;
         continue;
       }
-      const uint32_t earfcn = (sver == 2)
-                                  ? Converter::read_le<uint16_t>(payload.data(), off)
-                                  : Converter::read_le<uint32_t>(payload.data(), off);
+      const uint32_t earfcn = (sver == 2) ? Converter::read_le<uint16_t>(payload.data(), off)
+                                          : Converter::read_le<uint32_t>(payload.data(), off);
       off += earfcn_w;
       const uint16_t nc_raw = Converter::read_le<uint16_t>(payload.data(), off);
       off += 2;
@@ -993,9 +1182,8 @@ std::expected<std::vector<Events::RrcEvent>, ParserError> LteParser::parse_ml1_c
     const size_t earfcn_w = wide ? 4u : 2u;
     size_t o = body_off;
     if (o + earfcn_w + 2 > start + ssize) return;
-    const uint32_t earfcn =
-        wide ? Converter::read_le<uint32_t>(payload.data(), o)
-             : Converter::read_le<uint16_t>(payload.data(), o);
+    const uint32_t earfcn = wide ? Converter::read_le<uint32_t>(payload.data(), o)
+                                 : Converter::read_le<uint16_t>(payload.data(), o);
     o += earfcn_w;
     const uint16_t nc_raw = Converter::read_le<uint16_t>(payload.data(), o);
     o += 2;
@@ -1072,6 +1260,27 @@ std::expected<std::vector<Events::RrcEvent>, ParserError> LteParser::parse_ml1_c
 }
 
 // ============================================================================
+// 0xB114 — LL1 Serving Cell Frame Timing (TA index → serving radio)
+// ============================================================================
+// No EARFCN/PCI in packet — QualcomParser binds empty key to current serving.
+
+std::expected<std::vector<Events::RrcEvent>, ParserError> LteParser::parse_ll1_frame_timing(
+    std::span<const uint8_t> payload) {
+  const auto hdr = Wire::B114::decode_header(BinaryCursor{payload});
+  if (!hdr) {
+    if (payload.size() < Wire::B114::kHeaderSize)
+      return std::unexpected(ParserError::PacketTooShort);
+    return std::vector<Events::RrcEvent>{};  // unknown version — fail-closed
+  }
+  // TA 0 is valid (very close) but our merge treats 0 as unset; skip emit.
+  if (hdr->timing_advance == 0) return std::vector<Events::RrcEvent>{};
+
+  Events::RadioParamsEvent<LteRadioParams> rev;
+  rev.data.timing_advance = hdr->timing_advance;
+  return std::vector<Events::RrcEvent>{Events::RrcEvent{std::move(rev)}};
+}
+
+// ============================================================================
 // 0xB113 / 0xB123 — LL1 PSS / Neighbor CER
 // ============================================================================
 // SIM8300 dumps: correlation / energy buffers with no stable EARFCN|PCI fields.
@@ -1090,10 +1299,13 @@ std::expected<std::vector<Events::RrcEvent>, ParserError> LteParser::parse_ll1_n
 }
 
 // ============================================================================
-// 0xB115 — LL1 SSS / freq confirm (SIM8300)
+// 0xB115 — LL1 SSS Results (SIM8300 ver=122 / 0x7A)
 // ============================================================================
-// EARFCN u32 @4 when len>=8. No PCI in short frames → attach as inter-freq
-// carrier on serving (does not invent PCI rows).
+// Short (8B): EARFCN u32 @4 — freq confirm only.
+// Long: EARFCN @4, then N×16B detected-cell records @8.
+//   PCI = (u16 LE @ record+2) & 0x1FF  (QXDM Physical Cell ID, 9 bits)
+//   N   = payload[1] >> 5  (live: 0x80→4, 0x60→3, 0x20→1), capped by length.
+// During AT+COPS=? this is the dominant cell-minting firehose on SIM8300.
 
 std::expected<std::vector<Events::RrcEvent>, ParserError> LteParser::parse_ll1_sss(
     std::span<const uint8_t> payload) {
@@ -1101,9 +1313,30 @@ std::expected<std::vector<Events::RrcEvent>, ParserError> LteParser::parse_ll1_s
   const uint32_t earfcn = Converter::read_le<uint32_t>(payload.data(), 4);
   if (!valid_lte_earfcn(earfcn)) return std::vector<Events::RrcEvent>{};
 
-  Events::InterFreqCarriersEvent carriers;
-  carriers.carriers.push_back(InterFreqCarrier{.earfcn = earfcn});
-  return std::vector<Events::RrcEvent>{std::move(carriers)};
+  std::vector<Events::RrcEvent> events;
+  size_t n_hint = static_cast<size_t>(payload[1] >> 5);
+  const size_t n_fit = (payload.size() > 8) ? (payload.size() - 8) / 16 : 0;
+  if (n_hint == 0 || n_hint > n_fit) n_hint = n_fit;
+  if (n_hint > 16) n_hint = 16;
+
+  for (size_t i = 0; i < n_hint; ++i) {
+    const size_t off = 8 + i * 16;
+    const uint16_t pci =
+        static_cast<uint16_t>(Converter::read_le<uint16_t>(payload.data(), off + 2) & 0x1FF);
+    if (!valid_lte_pci(pci) || pci == 0) continue;
+    Events::RadioParamsEvent<LteRadioParams> rev;
+    rev.data.earfcn = earfcn;
+    rev.data.pci = pci;
+    events.push_back(Events::RrcEvent{std::move(rev)});
+  }
+
+  if (events.empty()) {
+    // Freq-only confirm — still useful as SIB5-style carrier hint on serving.
+    Events::InterFreqCarriersEvent carriers;
+    carriers.carriers.push_back(InterFreqCarrier{.earfcn = earfcn});
+    events.push_back(std::move(carriers));
+  }
+  return events;
 }
 
 // ============================================================================

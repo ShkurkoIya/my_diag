@@ -228,6 +228,7 @@ std::expected<std::vector<Events::RrcEvent>, ParserError> GsmParser::parse_cell_
   rev.data.bsic = static_cast<uint16_t>(((ncc & 0x07) << 3) | (bcc & 0x07));
   rev.data.ncc = ncc & 0x07;
   rev.data.bcc = bcc & 0x07;
+  rev.data.band_class = static_cast<uint8_t>((arfcn_band >> 12) & 0x0F);
   rev.data.ncc_permitted = (payload.size() >= 13) ? p[12] : 0xFF;
   events.push_back(Events::RrcEvent{std::move(rev)});
 

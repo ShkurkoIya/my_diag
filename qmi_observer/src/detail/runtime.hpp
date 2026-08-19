@@ -5,7 +5,7 @@
 #include <functional>
 #include <memory>
 
-namespace qmi_observer::detail {
+namespace QCom::Qmi::detail {
 
 struct GErrorDeleter {
   void operator()(GError* e) const noexcept {
@@ -35,4 +35,4 @@ inline void run_main_loop(const std::function<void(GMainLoop*)>& kickoff) {
   g_main_loop_run(loop);
 }
 
-}  // namespace qmi_observer::detail
+}  // namespace QCom::Qmi::detail

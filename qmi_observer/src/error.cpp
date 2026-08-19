@@ -1,6 +1,6 @@
-#include "qmi_observer/error.hpp"
+#include <qcom/qmi/error.hpp>
 
-namespace qmi_observer {
+namespace QCom::Qmi {
 
 std::string_view to_string(Errc e) noexcept {
   switch (e) {
@@ -22,4 +22,4 @@ std::string_view to_string(Errc e) noexcept {
   return "unknown error";
 }
 
-}  // namespace qmi_observer
+}  // namespace QCom::Qmi

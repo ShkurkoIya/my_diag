@@ -12,10 +12,10 @@
 #include <string_view>
 #include <vector>
 
-#include "core/Events.h"
-#include "core/ParserInterface.h"
-#include "core/Types.h"
-#include "core/Utils.h"
+#include <observer/model/Events.h>
+#include <observer/model/ParserInterface.h>
+#include <observer/model/Types.h>
+#include <observer/model/Utils.h>
 
 namespace QCom::Gsm {
 

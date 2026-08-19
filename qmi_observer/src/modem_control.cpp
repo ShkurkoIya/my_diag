@@ -1,6 +1,6 @@
-#include "qmi_observer/modem_control.hpp"
+#include <qcom/qmi/modem_control.hpp>
 
-#include "qmi_observer/session.hpp"
+#include <qcom/qmi/session.hpp>
 
 #include "detail/plmn.hpp"
 #include "detail/runtime.hpp"
@@ -11,7 +11,7 @@
 #include <chrono>
 #include <thread>
 
-namespace qmi_observer {
+namespace QCom::Qmi {
 namespace {
 
 QmiNasRatModePreference to_qmi_modes(const std::vector<Rat>& modes) {
@@ -236,4 +236,4 @@ Result<void> ModemControl::try_recover_online() {
   return set_mode(QMI_DMS_OPERATING_MODE_ONLINE);
 }
 
-}  // namespace qmi_observer
+}  // namespace QCom::Qmi

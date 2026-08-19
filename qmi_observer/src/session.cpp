@@ -1,9 +1,9 @@
-#include "qmi_observer/session.hpp"
+#include <qcom/qmi/session.hpp>
 
-#include "qmi_observer/health_monitor.hpp"
-#include "qmi_observer/modem_control.hpp"
-#include "qmi_observer/nas_reader.hpp"
-#include "qmi_observer/scan_controller.hpp"
+#include <qcom/qmi/health_monitor.hpp>
+#include <qcom/qmi/modem_control.hpp>
+#include <qcom/qmi/nas_reader.hpp>
+#include <qcom/qmi/scan_controller.hpp>
 
 #include "detail/plmn.hpp"
 #include "detail/runtime.hpp"
@@ -14,7 +14,7 @@
 #include <filesystem>
 #include <utility>
 
-namespace qmi_observer {
+namespace QCom::Qmi {
 
 Session::Session(Settings settings) : impl_(std::make_unique<Impl>()) {
   impl_->settings = std::move(settings);
@@ -328,4 +328,4 @@ Result<ModemIdentity> Session::identity() {
 
 Result<ModemHealth> Session::refresh_health() { return health().refresh(); }
 
-}  // namespace qmi_observer
+}  // namespace QCom::Qmi

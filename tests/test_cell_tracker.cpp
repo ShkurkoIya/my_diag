@@ -2,9 +2,9 @@
 
 #include <algorithm>
 
-#include "core/CellIdentity.h"
-#include "core/CellTracker.h"
-#include "core/Events.h"
+#include <observer/model/CellIdentity.h>
+#include <observer/model/CellTracker.h>
+#include <observer/model/Events.h>
 
 using namespace QCom;
 
@@ -170,10 +170,12 @@ TEST_CASE("CellTracker: PLMN fans out to same-EARFCN PCI rows", "[tracker][lte-m
   auto with_cid = std::find_if(snap.begin(), snap.end(),
                                [](const CellIdentity& c) { return c.passport.cell_id == 9; });
   REQUIRE(with_cid != snap.end());
+  CHECK_FALSE(with_cid->passport.plmn_soft);  // hard SIB/B0C2 bind
   auto neigh = std::find_if(snap.begin(), snap.end(),
                             [](const CellIdentity& c) { return c.radio.pci_bsic() == 107; });
   REQUIRE(neigh != snap.end());
   CHECK(neigh->passport.cell_id == 0);  // CID not copied
+  CHECK(neigh->passport.plmn_soft);     // same-EARFCN fan-out only
 }
 
 TEST_CASE("CellTracker: inter-freq carriers stored", "[tracker]") {

@@ -3,8 +3,9 @@
 use crate::enrich::{self, DiffSide, Enrichment, ExtStatus};
 use crate::icons::{self, expand_toggle, nest_toggle};
 use crate::model::{
-    format_scan_span, format_scan_time_rel, Document, FlatTower, Rat, Tower,
+    format_scan_span, format_scan_time_rel, Completeness, Document, FlatTower, Rat, Tower,
 };
+use crate::scanner::{ScannerControl, SurveyMode};
 use crate::theme::{brand_color, SurfaceState, Theme};
 use eframe::egui::{
     self, Align, Color32, CornerRadius, Frame, Key, Layout, Margin, Pos2, Rect, RichText,
@@ -13,6 +14,8 @@ use eframe::egui::{
 use egui_extras::{Column, TableBuilder};
 use std::collections::{BTreeMap, BTreeSet, HashMap};
 use std::f32::consts::TAU;
+use std::fs::File;
+use std::io::{Read, Seek, SeekFrom};
 use std::path::PathBuf;
 use std::time::{Duration, Instant, SystemTime};
 
@@ -24,6 +27,8 @@ pub enum LiveView {
     /// Operator → eNB → cell hierarchy.
     Tree,
     Graph,
+    /// Full live_scanner note stream (file tail, not the JSON snippet).
+    Log,
 }
 
 impl LiveView {
@@ -31,7 +36,8 @@ impl LiveView {
         match self {
             Self::Table => Self::Tree,
             Self::Tree => Self::Graph,
-            Self::Graph => Self::Table,
+            Self::Graph => Self::Log,
+            Self::Log => Self::Table,
         }
     }
 
@@ -40,6 +46,7 @@ impl LiveView {
             Self::Table => "Table",
             Self::Tree => "List",
             Self::Graph => "Graph",
+            Self::Log => "Log",
         }
     }
 
@@ -48,6 +55,7 @@ impl LiveView {
             Self::Table => icons::TABLE,
             Self::Tree => icons::LIST_BULLETS,
             Self::Graph => icons::SHARE_NETWORK,
+            Self::Log => icons::TERMINAL,
         }
     }
 
@@ -56,6 +64,7 @@ impl LiveView {
             Self::Table => "All RF cells in one table",
             Self::Tree => "Operators · sites · carriers",
             Self::Graph => "Force-directed site graph",
+            Self::Log => "live_scanner notes — hop / AT / DIAG",
         }
     }
 }
@@ -262,6 +271,8 @@ pub struct LiveState {
     pub view: LiveView,
     /// Free-text search (CID, eNB, EARFCN, PCI, PLMN, brand, key…).
     pub search_query: String,
+    /// Completeness chip filter (RADIO / FULL / Camped…).
+    pub completeness: Completeness,
     /// Index into current match list for Next/Prev.
     search_cursor: usize,
     /// Request ScrollArea to bring the selected tree row into view.
@@ -284,12 +295,19 @@ pub struct LiveState {
     enrich: Enrichment,
     /// Flat index for graph right-click reveal menu.
     graph_ctx_flat: Option<usize>,
+    /// Spawn/stop live_scanner (LTE / WCDMA / IRAT).
+    pub scanner: ScannerControl,
+    /// Tailed live_scanner log (primary `--scanner-log` file).
+    log_lines: Vec<String>,
+    log_offset: u64,
+    log_follow: bool,
 }
 
 impl LiveState {
     pub fn new() -> Self {
+        let scanner = ScannerControl::new();
         Self {
-            path: PathBuf::from("/tmp/qcom_live_towers.json"),
+            path: scanner.live_json.clone(),
             watching: true,
             last_err: String::new(),
             last_mtime: None,
@@ -303,6 +321,7 @@ impl LiveState {
             selected: None,
             view: LiveView::Tree,
             search_query: String::new(),
+            completeness: Completeness::All,
             search_cursor: 0,
             scroll_to_selected: false,
             focus_graph_selected: false,
@@ -317,6 +336,10 @@ impl LiveState {
             graph_settled: false,
             enrich: Enrichment::new(),
             graph_ctx_flat: None,
+            scanner,
+            log_lines: Vec::new(),
+            log_offset: 0,
+            log_follow: true,
         }
     }
 
@@ -345,17 +368,28 @@ impl LiveState {
         !self.search_query.trim().is_empty()
     }
 
-    /// Flat indices matching the current query (order = feed order).
+    fn filter_active(&self) -> bool {
+        self.search_active() || self.completeness != Completeness::All
+    }
+
+    /// Flat indices matching search + completeness (order = feed order).
     fn search_matches(&self) -> Vec<usize> {
         let q = self.search_query.trim().to_lowercase();
-        if q.is_empty() {
-            return Vec::new();
-        }
-        let tokens: Vec<&str> = q.split_whitespace().collect();
+        let tokens: Vec<&str> = if q.is_empty() {
+            Vec::new()
+        } else {
+            q.split_whitespace().collect()
+        };
         self.flat
             .iter()
             .enumerate()
             .filter(|(_, ft)| {
+                if !ft.tower.matches_completeness(self.completeness) {
+                    return false;
+                }
+                if tokens.is_empty() {
+                    return true;
+                }
                 let hay = tower_search_haystack(ft);
                 tokens.iter().all(|tok| hay.contains(tok))
             })
@@ -363,8 +397,17 @@ impl LiveState {
             .collect()
     }
 
+    /// Visible rows for table/tree (all when no filter).
+    fn visible_indices(&self) -> Vec<usize> {
+        if !self.filter_active() {
+            (0..self.flat.len()).collect()
+        } else {
+            self.search_matches()
+        }
+    }
+
     fn match_set(&self) -> BTreeSet<usize> {
-        self.search_matches().into_iter().collect()
+        self.visible_indices().into_iter().collect()
     }
 
     /// Expand tree path + select + scroll (stays on / switches to List).
@@ -420,7 +463,7 @@ impl LiveState {
     }
 
     fn sync_search_cursor(&mut self, ix: usize) {
-        let matches = self.search_matches();
+        let matches = self.visible_indices();
         if let Some(pos) = matches.iter().position(|&m| m == ix) {
             self.search_cursor = pos;
         }
@@ -431,6 +474,7 @@ impl LiveState {
             LiveView::Table => self.reveal_in_table(ix),
             LiveView::Tree => self.reveal_in_tree(ix),
             LiveView::Graph => self.reveal_in_graph(ix),
+            LiveView::Log => {}
         }
     }
 
@@ -501,7 +545,7 @@ impl LiveState {
     /// Jump along matches and reveal in the active view.
     /// If the current selection is already a match, move by `delta`; otherwise land on cursor.
     fn jump_search_cursor(&mut self, delta: isize) {
-        let matches = self.search_matches();
+        let matches = self.visible_indices();
         if matches.is_empty() {
             return;
         }
@@ -567,8 +611,13 @@ impl LiveState {
         graph_busy || self.enrich.has_pending()
     }
 
+    pub fn wants_log_repaint(&self) -> bool {
+        self.watching && self.view == LiveView::Log
+    }
+
     pub fn tick(&mut self, dt: f32) {
         self.enrich.poll_results();
+        self.scanner.tick();
         if !self.flat.is_empty() {
             self.enrich.enqueue_flat(&self.flat);
         }
@@ -579,6 +628,7 @@ impl LiveState {
         if !self.watching {
             return;
         }
+        self.poll_log();
         let due = self
             .last_load
             .map(|t| t.elapsed() >= Duration::from_millis(500))
@@ -620,8 +670,61 @@ impl LiveState {
                 // Do NOT touch expanded — user controls open/closed state across reloads.
             }
             Err(e) => {
-                self.last_err = e;
+                // Atomic rename can still race a half-read; keep the last good feed.
+                if self.doc.is_none() {
+                    self.last_err = e;
+                }
             }
+        }
+    }
+
+    fn poll_log(&mut self) {
+        const MAX_LINES: usize = 5000;
+        const TAIL_BYTES: u64 = 384 * 1024;
+        let path = &self.scanner.scanner_log;
+        let Ok(meta) = std::fs::metadata(path) else {
+            return;
+        };
+        let len = meta.len();
+        if len < self.log_offset {
+            self.log_offset = 0;
+            self.log_lines.clear();
+        }
+        if len == self.log_offset {
+            return;
+        }
+        let Ok(mut f) = File::open(path) else {
+            return;
+        };
+        let mut start = self.log_offset;
+        let mut skip_partial = false;
+        if start == 0 && self.log_lines.is_empty() && len > TAIL_BYTES {
+            start = len - TAIL_BYTES;
+            skip_partial = true;
+        }
+        if f.seek(SeekFrom::Start(start)).is_err() {
+            return;
+        }
+        let mut buf = Vec::new();
+        if f.read_to_end(&mut buf).is_err() {
+            return;
+        }
+        self.log_offset = len;
+        let text = String::from_utf8_lossy(&buf);
+        let mut lines = text.lines();
+        if skip_partial {
+            lines.next();
+        }
+        for line in lines {
+            let line = line.trim_end_matches('\r');
+            if line.is_empty() {
+                continue;
+            }
+            self.log_lines.push(line.to_string());
+        }
+        if self.log_lines.len() > MAX_LINES {
+            let extra = self.log_lines.len() - MAX_LINES;
+            self.log_lines.drain(..extra);
         }
     }
 
@@ -643,13 +746,14 @@ impl LiveState {
                 other_rat.push(i);
                 continue;
             }
-            let plmn = normalize_plmn(ft.tower.plmn());
+            // Soft PLMN (same-EARFCN guess) without CID → ungrouped Heard RF.
+            let plmn = normalize_plmn(ft.tower.plmn_trusted());
             let enb = ft.tower.get_id("enb_id");
             let cid = ft.tower.get_id("cid");
-            let r = parse_f32(ft.tower.rxl());
+            let r = parse_f32(ft.tower.rsrp_display());
 
             if plmn.is_empty() {
-                // No PLMN: never nest under an eNB/operator.
+                // No trusted PLMN: never nest under an eNB/operator.
                 unknown_lte.push(i);
                 continue;
             }
@@ -702,8 +806,8 @@ impl LiveState {
             sb.cmp(&sa)
                 .then_with(|| cb.cmp(&ca))
                 .then_with(|| {
-                    parse_f32(flat[b].tower.rxl())
-                        .partial_cmp(&parse_f32(flat[a].tower.rxl()))
+                    parse_f32(flat[b].tower.rsrp_display())
+                        .partial_cmp(&parse_f32(flat[a].tower.rsrp_display()))
                         .unwrap_or(std::cmp::Ordering::Equal)
                 })
         };
@@ -1283,6 +1387,63 @@ fn operator_dot(ui: &mut Ui, color: Color32, radius: f32) {
     );
 }
 
+fn split_log_line(raw: &str) -> (&str, &str, &str) {
+    let s = raw.trim_end();
+    if s.starts_with('#') {
+        return ("", "", s);
+    }
+    let (time, rest) = if let Some(i) = s.find("  ") {
+        if i >= 19 && s.as_bytes().get(4) == Some(&b'-') {
+            let ts = &s[..i];
+            let time = if ts.len() >= 19 { &ts[11..19] } else { "" };
+            (time, s[i + 2..].trim_start())
+        } else {
+            ("", s)
+        }
+    } else {
+        ("", s)
+    };
+    if rest.starts_with('[') {
+        if let Some(end) = rest.find(']') {
+            return (time, &rest[1..end], rest[end + 1..].trim_start());
+        }
+    }
+    (time, "", rest)
+}
+
+fn log_tag_color(th: &Theme, tag: &str, line: &str) -> Color32 {
+    let t = tag.to_ascii_lowercase();
+    if t == "kick" || line.contains("FULL+camp") || line.contains("FULL on ") {
+        return th.serving;
+    }
+    if t == "rat-guard"
+        || line.contains("timed out")
+        || line.contains("timeout")
+        || line.contains("MISMATCH")
+        || line.contains("STILL OFF-RAT")
+        || line.contains("failed")
+        || line.contains("ERROR")
+        || line.contains("USB-reset")
+        || line.contains("airplane")
+    {
+        return th.warning;
+    }
+    if t == "ghost" || t == "cmgrmi" {
+        return th.lte;
+    }
+    if t == "fplmn" || t == "diag-mask" || t == "stderr" || line.starts_with('#') {
+        return th.muted;
+    }
+    if t == "earfcn-hop" || t == "full-walk" || t == "survey" || t == "hop-cops" || t == "lte-pin"
+    {
+        return th.accent;
+    }
+    if t.contains("qmi") || t == "wcdma-hop" || t == "wcdma-pin" {
+        return th.wcdma;
+    }
+    th.text
+}
+
 fn metric_card(ui: &mut Ui, th: &Theme, label: &str, value: &str, accent: Color32) {
     Frame::new()
         .fill(th.panel)
@@ -1497,35 +1658,87 @@ pub fn render_live(ui: &mut Ui, th: &Theme, live: &mut LiveState) {
             .filter(|ft| ft.tower.is_serving())
             .count()
             .to_string();
+        let pci_nb = live
+            .flat
+            .iter()
+            .map(|ft| ft.tower.pci_neighbor_count())
+            .sum::<usize>()
+            .to_string();
         let hf = if m.hop_fulls.is_empty() {
             "-".into()
         } else {
             m.hop_fulls.clone()
+        };
+        let hk = if m.hop_kicks.is_empty() {
+            "-".into()
+        } else {
+            m.hop_kicks.clone()
+        };
+        let hit = if m.hop_hit_rate.is_empty() {
+            if !m.hop_kicks.is_empty() && m.hop_kicks != "0" && !m.hop_fulls.is_empty() {
+                let kicks: f32 = m.hop_kicks.parse().unwrap_or(0.0);
+                let fulls: f32 = m.hop_fulls.parse().unwrap_or(0.0);
+                if kicks > 0.0 {
+                    format!("{:.0}%", 100.0 * fulls / kicks)
+                } else {
+                    "-".into()
+                }
+            } else {
+                "-".into()
+            }
+        } else {
+            m.hop_hit_rate.clone()
         };
         let hc = if m.hop_cops.is_empty() {
             "-".into()
         } else {
             m.hop_cops.clone()
         };
+        let hg = if m.hop_ghosts.is_empty() {
+            "-".into()
+        } else {
+            m.hop_ghosts.clone()
+        };
+        let phase = if m.survey_phase.is_empty() {
+            "-"
+        } else {
+            m.survey_phase.as_str()
+        };
+        let rf_meta = if m.rf_unique.is_empty() {
+            rf_n.as_str()
+        } else {
+            m.rf_unique.as_str()
+        };
+        let full_meta = if m.full_passport.is_empty() {
+            full.as_str()
+        } else {
+            m.full_passport.as_str()
+        };
 
         ui.horizontal(|ui| {
+            metric_card(ui, th, "Phase", phase, th.accent2);
+            ui.add_space(10.0);
+            metric_card(ui, th, "RF to FULL", &format!("{rf_meta} > {full_meta}"), th.serving);
+            ui.add_space(10.0);
             metric_card(ui, th, "Operators", &ops_n, th.accent);
             ui.add_space(10.0);
             metric_card(ui, th, "Sites", &sites_n, th.lte);
             ui.add_space(10.0);
-            metric_card(ui, th, "RF cells", &rf_n, th.text);
-            ui.add_space(10.0);
-            metric_card(ui, th, "FULL", &full, th.serving);
-            ui.add_space(10.0);
             metric_card(ui, th, "Heard RF", &radio_n, th.muted);
-            ui.add_space(10.0);
-            metric_card(ui, th, "Serving", &serving, th.serving);
             ui.add_space(10.0);
             metric_card(ui, th, "Camped", &camped, th.warning);
             ui.add_space(10.0);
-            metric_card(ui, th, "Hop FULLs", &hf, th.wcdma);
+            metric_card(ui, th, "Serving", &serving, th.serving);
+            ui.add_space(10.0);
+            metric_card(ui, th, "PCI neigh", &pci_nb, th.accent);
+            ui.add_space(10.0);
+            metric_card(ui, th, "Hit rate", &hit, th.wcdma);
+            ui.add_space(10.0);
+            metric_card(ui, th, "FULL/kicks", &format!("{hf}/{hk}"), th.wcdma);
             ui.add_space(10.0);
             metric_card(ui, th, "COPS", &hc, th.accent2);
+            ui.add_space(10.0);
+            metric_card(ui, th, "Ghost", &hg, th.accent2);
             ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
                 // File mtime → “3s ago” (situation_as_of is a raw diag tick, not wall clock).
                 if let Some(mtime) = live.last_mtime {
@@ -1539,6 +1752,7 @@ pub fn render_live(ui: &mut Ui, th: &Theme, live: &mut LiveState) {
         });
         let qmi_bits: Vec<String> = [
             (!m.qmi_reg.is_empty()).then(|| format!("reg {}", m.qmi_reg)),
+            (!m.qmi_cs.is_empty()).then(|| format!("cs {}", m.qmi_cs)),
             (!m.qmi_ps.is_empty()).then(|| format!("ps {}", m.qmi_ps)),
             (!m.qmi_radio.is_empty()).then(|| format!("rat {}", m.qmi_radio)),
             (!m.qmi_plmn.is_empty()).then(|| {
@@ -1548,9 +1762,13 @@ pub fn render_live(ui: &mut Ui, th: &Theme, live: &mut LiveState) {
                     format!("plmn {} ({})", m.qmi_plmn, m.qmi_plmn_name)
                 }
             }),
+            (!m.qmi_roam.is_empty()).then(|| format!("roam {}", m.qmi_roam)),
             (!m.qmi_rsrp.is_empty()).then(|| format!("rsrp {} dBm", m.qmi_rsrp)),
             (!m.qmi_rsrq.is_empty()).then(|| format!("rsrq {} dB", m.qmi_rsrq)),
+            (!m.qmi_rssi.is_empty()).then(|| format!("rssi {} dBm", m.qmi_rssi)),
             (!m.qmi_snr.is_empty()).then(|| format!("snr {} dB", m.qmi_snr)),
+            (!m.qmi_wcdma_rssi.is_empty()).then(|| format!("w-rssi {} dBm", m.qmi_wcdma_rssi)),
+            (!m.qmi_wcdma_ecio.is_empty()).then(|| format!("w-ecio {} dB", m.qmi_wcdma_ecio)),
             (!m.qmi_hop_snaps.is_empty()).then(|| format!("hop-qmi {}", m.qmi_hop_snaps)),
         ]
         .into_iter()
@@ -1564,10 +1782,59 @@ pub fn render_live(ui: &mut Ui, th: &Theme, live: &mut LiveState) {
                     .color(th.muted),
             );
         }
+        let rat_bits: Vec<String> = [
+            (!m.survey_mode.is_empty()).then(|| format!("mode {}", m.survey_mode)),
+            (!m.job.is_empty()).then(|| format!("job {}", m.job)),
+            (!m.survey_phase.is_empty()).then(|| format!("phase {}", m.survey_phase)),
+            (!m.rf_unique.is_empty()).then(|| format!("rf {}", m.rf_unique)),
+            (!m.full_passport.is_empty()).then(|| format!("full {}", m.full_passport)),
+            (!m.wcdma_rf.is_empty()).then(|| format!("w-rf {}", m.wcdma_rf)),
+            (!m.wcdma_full.is_empty()).then(|| format!("w-full {}", m.wcdma_full)),
+            (!m.wcdma_walk_kicks.is_empty()).then(|| {
+                format!("w-walk {}/{}", m.wcdma_walk_fulls, m.wcdma_walk_kicks)
+            }),
+            (!m.diag_top.is_empty()).then(|| {
+                let s = &m.diag_top;
+                format!(
+                    "diag {}",
+                    if s.len() > 72 {
+                        format!("{}…", &s[..72])
+                    } else {
+                        s.clone()
+                    }
+                )
+            }),
+            (!m.observed_rat.is_empty()).then(|| format!("cpsi {}", m.observed_rat)),
+            (!m.scan_rat_ok.is_empty()).then(|| {
+                format!(
+                    "scan_rat {}",
+                    if m.scan_rat_ok == "1" { "ok" } else { "wait" }
+                )
+            }),
+            (!m.fplmn_wipes.is_empty()).then(|| format!("fplmn×{}", m.fplmn_wipes)),
+            (!m.rat_guard_trips.is_empty()).then(|| format!("guard×{}", m.rat_guard_trips)),
+            (!m.hop_kicks.is_empty()).then(|| format!("hops {}", m.hop_kicks)),
+            (!m.hop_hit_rate.is_empty()).then(|| format!("hit {}", m.hop_hit_rate)),
+            (!m.hop_locks.is_empty()).then(|| format!("locks {}", m.hop_locks)),
+            (!m.cpsi_ok.is_empty()).then(|| format!("cpsi_ok {}", m.cpsi_ok)),
+        ]
+        .into_iter()
+        .flatten()
+        .collect();
+        if !rat_bits.is_empty() {
+            ui.add_space(4.0);
+            ui.label(
+                RichText::new(format!("RAT  {}", rat_bits.join(" · ")))
+                    .size(12.5)
+                    .color(th.muted),
+            );
+        }
         ui.add_space(12.0);
     } else {
         ui.add_space(8.0);
     }
+
+    render_scanner_bar(ui, th, live);
 
     if !live.last_err.is_empty() {
         Frame::new()
@@ -1586,9 +1853,8 @@ pub fn render_live(ui: &mut Ui, th: &Theme, live: &mut LiveState) {
                 ui.label(RichText::new(&live.last_err).size(14.0).color(th.muted));
                 ui.add_space(10.0);
                 ui.label(
-                    RichText::new("./build/live_scanner --earfcn-hop --duration 300")
+                    RichText::new("Start LTE / WCDMA / IRAT above, or run live_scanner manually")
                         .size(14.0)
-                        .monospace()
                         .color(th.text),
                 );
             });
@@ -1597,6 +1863,30 @@ pub fn render_live(ui: &mut Ui, th: &Theme, live: &mut LiveState) {
 
     // ── Workspace: shared tools + view body + inspector ──
     let avail = ui.available_size();
+    if live.view == LiveView::Log {
+        Frame::new()
+            .fill(th.panel)
+            .stroke(Stroke::new(1.0, th.stroke))
+            .corner_radius(CornerRadius::same(14))
+            .inner_margin(Margin::symmetric(12, 12))
+            .show(ui, |ui| {
+                ui.set_min_height(ui.available_height());
+                ui.set_min_width(ui.available_width());
+                render_workspace_toolbar(ui, th, live);
+                ui.add_space(10.0);
+                Frame::new()
+                    .fill(th.bg)
+                    .stroke(Stroke::new(1.0, th.stroke))
+                    .corner_radius(CornerRadius::same(10))
+                    .inner_margin(Margin::symmetric(10, 8))
+                    .show(ui, |ui| {
+                        ui.set_min_height((ui.available_height() - 4.0).max(200.0));
+                        render_log_view(ui, th, live);
+                    });
+            });
+        return;
+    }
+
     let detail_w = 380.0_f32.clamp(avail.x * 0.30, avail.x * 0.42);
 
     ui.horizontal(|ui| {
@@ -1624,6 +1914,7 @@ pub fn render_live(ui: &mut Ui, th: &Theme, live: &mut LiveState) {
                                     LiveView::Table => render_table_view(ui, th, live),
                                     LiveView::Graph => render_graph_view(ui, th, live),
                                     LiveView::Tree => render_tree_view(ui, th, live),
+                                    LiveView::Log => {}
                                 }
                             });
                     });
@@ -1694,6 +1985,7 @@ pub fn render_live(ui: &mut Ui, th: &Theme, live: &mut LiveState) {
                                     LiveView::Graph => {
                                         "Click a node · right-click to Reveal in Table / List."
                                     }
+                                    LiveView::Log => "Scanner notes occupy this tab.",
                                 })
                                 .size(13.0)
                                 .color(Color32::from_rgb(100, 112, 128)),
@@ -1727,24 +2019,273 @@ fn render_workspace_toolbar(ui: &mut Ui, th: &Theme, live: &mut LiveState) {
     ui.horizontal(|ui| {
         render_view_switcher(ui, th, live);
         ui.add_space(12.0);
-        ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
-            ui.label(
-                RichText::new(live.enrich.status_line())
-                    .size(11.5)
-                    .color(if live.enrich.has_key() {
-                        th.muted
-                    } else {
-                        th.wash(th.muted, 160)
-                    }),
-            );
-        });
+        if live.view == LiveView::Log {
+            ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
+                ui.label(
+                    RichText::new(live.scanner.scanner_log.display().to_string())
+                        .size(11.0)
+                        .monospace()
+                        .color(th.muted),
+                );
+            });
+        } else {
+            ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
+                ui.label(
+                    RichText::new(live.enrich.status_line())
+                        .size(11.5)
+                        .color(if live.enrich.has_key() {
+                            th.muted
+                        } else {
+                            th.wash(th.muted, 160)
+                        }),
+                );
+            });
+        }
     });
+    if live.view == LiveView::Log {
+        ui.add_space(8.0);
+        render_log_toolbar(ui, th, live);
+        return;
+    }
     ui.add_space(8.0);
+    render_completeness_chips(ui, th, live);
+    ui.add_space(6.0);
     render_search_field(ui, th, live);
 }
 
+fn render_completeness_chips(ui: &mut Ui, th: &Theme, live: &mut LiveState) {
+    let chips = [
+        Completeness::All,
+        Completeness::Radio,
+        Completeness::Full,
+        Completeness::Camped,
+        Completeness::Serving,
+    ];
+    ui.horizontal(|ui| {
+        ui.label(RichText::new("Show").size(11.5).color(th.muted));
+        ui.add_space(6.0);
+        ui.spacing_mut().item_spacing.x = 4.0;
+        for c in chips {
+            let n = live
+                .flat
+                .iter()
+                .filter(|ft| ft.tower.matches_completeness(c))
+                .count();
+            let active = live.completeness == c;
+            let fill = if active {
+                th.wash(th.accent, 48)
+            } else {
+                th.bg
+            };
+            let col = if active { th.accent } else { th.muted };
+            let label = if c == Completeness::All {
+                format!("{} ({})", c.label(), live.flat.len())
+            } else {
+                format!("{} {n}", c.label())
+            };
+            let btn = ui
+                .add(
+                    egui::Button::new(RichText::new(label).size(12.0).strong().color(col))
+                        .fill(fill)
+                        .stroke(Stroke::new(
+                            1.0,
+                            if active {
+                                th.wash(th.accent, 100)
+                            } else {
+                                th.stroke
+                            },
+                        ))
+                        .corner_radius(CornerRadius::same(8))
+                        .min_size(Vec2::new(0.0, 28.0)),
+                )
+                .on_hover_text(match c {
+                    Completeness::All => "All RF rows",
+                    Completeness::Radio => "Heard EARFCN|PCI without CID",
+                    Completeness::Full => "CID present (passport)",
+                    Completeness::Camped => "Camped with identity this session",
+                    Completeness::Serving => "Current serving cell",
+                });
+            if btn.clicked() {
+                live.completeness = c;
+                live.search_cursor = 0;
+            }
+        }
+    });
+}
+
+fn render_scanner_bar(ui: &mut Ui, th: &Theme, live: &mut LiveState) {
+    use crate::scanner::ScannerPhase;
+    let _ = live.scanner.tick();
+    let phase = live.scanner.phase;
+    let busy = matches!(phase, ScannerPhase::Starting | ScannerPhase::Stopping);
+    let show_stop = matches!(
+        phase,
+        ScannerPhase::Running | ScannerPhase::Starting | ScannerPhase::Stopping
+    );
+    Frame::new()
+        .fill(th.panel)
+        .stroke(Stroke::new(1.0, th.stroke))
+        .corner_radius(CornerRadius::same(12))
+        .inner_margin(Margin::symmetric(12, 10))
+        .show(ui, |ui| {
+            ui.horizontal(|ui| {
+                ui.label(
+                    RichText::new("Scanner")
+                        .strong()
+                        .size(14.0)
+                        .color(th.muted),
+                );
+                ui.add_space(10.0);
+                for mode in [SurveyMode::Lte, SurveyMode::Wcdma, SurveyMode::Irat] {
+                    let active = live.scanner.mode == mode;
+                    let col = match mode {
+                        SurveyMode::Lte => th.lte,
+                        SurveyMode::Wcdma => th.wcdma,
+                        SurveyMode::Irat => th.accent,
+                    };
+                    let fill = if active {
+                        th.wash(col, 40)
+                    } else {
+                        Color32::TRANSPARENT
+                    };
+                    let btn = ui
+                        .add_enabled(
+                            phase == ScannerPhase::Idle,
+                            egui::Button::new(
+                                RichText::new(mode.label())
+                                    .strong()
+                                    .size(13.0)
+                                    .color(if active { col } else { th.muted }),
+                            )
+                            .fill(fill)
+                            .stroke(if active {
+                                Stroke::new(1.0, th.wash(col, 100))
+                            } else {
+                                Stroke::NONE
+                            })
+                            .corner_radius(CornerRadius::same(8))
+                            .min_size(Vec2::new(110.0, 32.0)),
+                        )
+                        .on_hover_text(mode.hint());
+                    if btn.clicked() {
+                        live.scanner.mode = mode;
+                    }
+                }
+                ui.add_space(12.0);
+                if show_stop {
+                    let label = match phase {
+                        ScannerPhase::Stopping => format!("{}  Stopping…", icons::PAUSE),
+                        ScannerPhase::Starting => format!("{}  Starting…", icons::PLAY),
+                        _ => format!("{}  Stop", icons::PAUSE),
+                    };
+                    let stop_btn = ui
+                        .add_enabled(
+                            phase == ScannerPhase::Running || phase == ScannerPhase::Starting,
+                            egui::Button::new(
+                                RichText::new(label)
+                                    .strong()
+                                    .size(13.0)
+                                    .color(th.warning),
+                            )
+                            .fill(th.wash(th.warning, 36))
+                            .corner_radius(CornerRadius::same(8))
+                            .min_size(Vec2::new(110.0, 32.0)),
+                        )
+                        .on_hover_text(
+                            "Stop live_scanner (async; may ask pkexec once for root kill)",
+                        );
+                    if stop_btn.clicked() {
+                        live.scanner.stop();
+                    }
+                } else {
+                    let start_btn = ui
+                        .add(
+                            egui::Button::new(
+                                RichText::new(format!("{}  Start", icons::PLAY))
+                                    .strong()
+                                    .size(13.0)
+                                    .color(th.serving),
+                            )
+                            .fill(th.wash(th.serving, 36))
+                            .corner_radius(CornerRadius::same(8))
+                            .min_size(Vec2::new(96.0, 32.0)),
+                        )
+                        .on_hover_text(format!(
+                            "{}{}\n--survey-mode {}",
+                            if live.scanner.use_pkexec {
+                                "pkexec "
+                            } else {
+                                ""
+                            },
+                            live.scanner.binary.display(),
+                            live.scanner.mode.cli(),
+                        ));
+                    if start_btn.clicked() {
+                        // Never point the scanner at a dump the user opened for browsing.
+                        if live_feed_path(&live.path) {
+                            live.scanner.live_json = live.path.clone();
+                        }
+                        live.watching = true;
+                        live.scanner.start();
+                        live.path = live.scanner.live_json.clone();
+                        live.last_mtime = None;
+                    }
+                }
+                ui.add_space(8.0);
+                ui.add_enabled_ui(!busy && phase == ScannerPhase::Idle, |ui| {
+                    ui.checkbox(
+                        &mut live.scanner.use_pkexec,
+                        RichText::new("pkexec").size(12.0).color(th.muted),
+                    )
+                    .on_hover_text(
+                        "Off (default): run as you. Start will polkit-chmod /dev/cdc-wdm* if it is 0600.\n\
+                         On: whole live_scanner as root (also fixes QMI; logs may become root-owned).",
+                    );
+                });
+                ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
+                    let missing = !live.scanner.binary.is_file();
+                    let st = if missing {
+                        format!("no binary: {}", live.scanner.binary.display())
+                    } else if live.scanner.last_err.is_empty() {
+                        live.scanner.status.clone()
+                    } else {
+                        live.scanner.last_err.clone()
+                    };
+                    let col = if missing {
+                        th.warning
+                    } else {
+                        match phase {
+                            ScannerPhase::Running => th.serving,
+                            ScannerPhase::Stopping | ScannerPhase::Starting => th.warning,
+                            ScannerPhase::Idle => {
+                                if live.scanner.last_err.is_empty() {
+                                    th.muted
+                                } else {
+                                    th.warning
+                                }
+                            }
+                        }
+                    };
+                    let hover = if missing {
+                        format!(
+                            "Build the scanner, then Start:\n  cmake --build build --target observer_app\nlooking at {}",
+                            live.scanner.binary.display()
+                        )
+                    } else if !live.scanner.last_err.is_empty() {
+                        live.scanner.last_err.clone()
+                    } else {
+                        format!("{} · {}", live.scanner.status, live.scanner.binary.display())
+                    };
+                    ui.label(RichText::new(st).size(12.0).monospace().color(col))
+                        .on_hover_text(hover);
+                });
+            });
+        });
+    ui.add_space(10.0);
+}
+
 fn render_view_switcher(ui: &mut Ui, th: &Theme, live: &mut LiveState) {
-    let views = [LiveView::Table, LiveView::Tree, LiveView::Graph];
+    let views = [LiveView::Table, LiveView::Tree, LiveView::Graph, LiveView::Log];
     Frame::new()
         .fill(th.bg)
         .stroke(Stroke::new(1.0, th.stroke))
@@ -1776,7 +2317,7 @@ fn render_view_switcher(ui: &mut Ui, th: &Theme, live: &mut LiveState) {
                                 Stroke::NONE
                             })
                             .corner_radius(CornerRadius::same(8))
-                            .min_size(Vec2::new(92.0, 32.0)),
+                            .min_size(Vec2::new(80.0, 32.0)),
                         )
                         .on_hover_text(format!("{} (Tab)", v.hint()));
                     if btn.clicked() && live.view != v {
@@ -1793,12 +2334,232 @@ fn render_view_switcher(ui: &mut Ui, th: &Theme, live: &mut LiveState) {
         });
 }
 
+fn render_log_toolbar(ui: &mut Ui, th: &Theme, live: &mut LiveState) {
+    ui.horizontal(|ui| {
+        ui.label(
+            RichText::new(icons::MAGNIFYING_GLASS)
+                .size(15.0)
+                .color(if live.search_query.trim().is_empty() {
+                    th.muted
+                } else {
+                    th.accent
+                }),
+        );
+        ui.add_space(4.0);
+        let te = egui::TextEdit::singleline(&mut live.search_query)
+            .id(egui::Id::new("live_log_filter"))
+            .desired_width(280.0)
+            .hint_text("Filter: kick, COPS, 200/224, QMI…")
+            .font(egui::TextStyle::Monospace);
+        let resp = ui.add(te);
+        if live.focus_search {
+            resp.request_focus();
+            live.focus_search = false;
+        }
+        if !live.search_query.is_empty() {
+            if ui
+                .add(
+                    egui::Button::new(RichText::new(icons::X_CIRCLE).size(14.0).color(th.muted))
+                        .fill(Color32::TRANSPARENT)
+                        .min_size(Vec2::splat(26.0)),
+                )
+                .on_hover_text("Clear filter")
+                .clicked()
+            {
+                live.search_query.clear();
+            }
+        }
+        ui.add_space(10.0);
+        let follow = live.log_follow;
+        let follow_col = if follow { th.serving } else { th.muted };
+        if ui
+            .add(
+                egui::Button::new(
+                    RichText::new(if follow { "Follow" } else { "Paused" })
+                        .strong()
+                        .size(12.0)
+                        .color(follow_col),
+                )
+                .fill(if follow {
+                    th.wash(th.serving, 32)
+                } else {
+                    Color32::TRANSPARENT
+                })
+                .stroke(Stroke::new(1.0, th.wash(follow_col, 90)))
+                .corner_radius(CornerRadius::same(8))
+                .min_size(Vec2::new(72.0, 28.0)),
+            )
+            .on_hover_text("Stick to newest lines")
+            .clicked()
+        {
+            live.log_follow = !live.log_follow;
+        }
+        if ui
+            .add(
+                egui::Button::new(
+                    RichText::new("Copy")
+                        .size(12.0)
+                        .color(th.muted),
+                )
+                .fill(Color32::TRANSPARENT)
+                .stroke(Stroke::new(1.0, th.stroke))
+                .corner_radius(CornerRadius::same(8))
+                .min_size(Vec2::new(56.0, 28.0)),
+            )
+            .on_hover_text("Copy visible lines")
+            .clicked()
+        {
+            let q = live.search_query.trim().to_lowercase();
+            let text: String = live
+                .log_lines
+                .iter()
+                .filter(|l| q.is_empty() || l.to_lowercase().contains(&q))
+                .cloned()
+                .collect::<Vec<_>>()
+                .join("\n");
+            ui.ctx().copy_text(text);
+        }
+        ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
+            let n = live.log_lines.len();
+            ui.label(
+                RichText::new(format!("{n} lines"))
+                    .size(12.0)
+                    .monospace()
+                    .color(th.muted),
+            );
+        });
+    });
+}
+
+fn render_log_view(ui: &mut Ui, th: &Theme, live: &mut LiveState) {
+    let q = live.search_query.trim().to_lowercase();
+    let boot = live.scanner.boot_notes();
+    let idxs: Vec<usize> = live
+        .log_lines
+        .iter()
+        .enumerate()
+        .filter(|(_, l)| q.is_empty() || l.to_lowercase().contains(&q))
+        .map(|(i, _)| i)
+        .collect();
+    let json_tail: Vec<String> = if live.log_lines.is_empty() {
+        live.doc
+            .as_ref()
+            .map(|d| {
+                d.meta
+                    .scanner_log
+                    .lines()
+                    .filter(|l| !l.is_empty())
+                    .map(str::to_string)
+                    .collect()
+            })
+            .unwrap_or_default()
+    } else {
+        Vec::new()
+    };
+
+    ScrollArea::both()
+        .id_salt("live_scanner_log_full")
+        .auto_shrink([false, false])
+        .stick_to_bottom(live.log_follow)
+        .show(ui, |ui| {
+            ui.set_min_width(ui.available_width().max(640.0));
+            if !boot.is_empty() {
+                ui.label(
+                    RichText::new("stderr · boot")
+                        .size(11.0)
+                        .strong()
+                        .color(th.muted),
+                );
+                ui.add_space(4.0);
+                for line in &boot {
+                    render_log_row(ui, th, "", "stderr", line);
+                }
+                ui.add_space(10.0);
+            }
+            if idxs.is_empty() && json_tail.is_empty() {
+                ui.add_space(48.0);
+                ui.vertical_centered(|ui| {
+                    ui.label(
+                        RichText::new(icons::TERMINAL)
+                            .size(28.0)
+                            .color(th.wash(th.accent, 140)),
+                    );
+                    ui.add_space(8.0);
+                    ui.label(
+                        RichText::new("Waiting for scanner notes")
+                            .strong()
+                            .size(16.0)
+                            .color(th.muted),
+                    );
+                    ui.add_space(4.0);
+                    ui.label(
+                        RichText::new("Start LTE — hop / AT / DIAG lines land here.")
+                            .size(13.0)
+                            .color(th.wash(th.muted, 180)),
+                    );
+                });
+                return;
+            }
+            for &i in &idxs {
+                let raw = &live.log_lines[i];
+                let (time, tag, msg) = split_log_line(raw);
+                let body = if msg.is_empty() { raw.as_str() } else { msg };
+                render_log_row(ui, th, time, tag, body);
+            }
+            for raw in &json_tail {
+                let (time, tag, msg) = split_log_line(raw);
+                let body = if msg.is_empty() { raw.as_str() } else { msg };
+                render_log_row(ui, th, time, tag, body);
+            }
+            ui.add_space(12.0);
+        });
+}
+
+fn render_log_row(ui: &mut Ui, th: &Theme, time: &str, tag: &str, msg: &str) {
+    let col = log_tag_color(th, tag, msg);
+    ui.horizontal(|ui| {
+        ui.spacing_mut().item_spacing.x = 10.0;
+        ui.label(
+            RichText::new(if time.is_empty() { "        " } else { time })
+                .size(11.5)
+                .monospace()
+                .color(th.wash(th.muted, 200)),
+        );
+        let tag_lab = if tag.is_empty() { "note" } else { tag };
+        let bg = Color32::from_rgba_unmultiplied(col.r(), col.g(), col.b(), 28);
+        Frame::new()
+            .fill(bg)
+            .corner_radius(CornerRadius::same(4))
+            .inner_margin(Margin::symmetric(6, 1))
+            .show(ui, |ui| {
+                ui.set_min_width(92.0);
+                ui.label(
+                    RichText::new(tag_lab)
+                        .size(10.5)
+                        .strong()
+                        .monospace()
+                        .color(col),
+                );
+            });
+        ui.add(
+            egui::Label::new(
+                RichText::new(msg)
+                    .size(13.0)
+                    .monospace()
+                    .color(if msg.starts_with('#') { th.muted } else { th.text }),
+            )
+            .wrap(),
+        );
+    });
+}
+
 /// Compact search pill — icon + field + match chip + prev/next.
 fn render_search_field(ui: &mut Ui, th: &Theme, live: &mut LiveState) {
-    let matches = live.search_matches();
+    let matches = live.visible_indices();
     if live.search_cursor >= matches.len() && !matches.is_empty() {
         live.search_cursor = 0;
     }
+    let nav_active = live.filter_active();
 
     Frame::new()
         .fill(th.bg)
@@ -1861,19 +2622,19 @@ fn render_search_field(ui: &mut Ui, th: &Theme, live: &mut LiveState) {
                     }
                 }
 
-                let chip = if !live.search_active() {
+                let chip = if !nav_active {
                     format!("{} RF", live.flat.len())
                 } else if matches.is_empty() {
                     "0".into()
                 } else {
                     format!(
                         "{}/{}",
-                        live.search_cursor.min(matches.len() - 1) + 1,
+                        live.search_cursor.min(matches.len().saturating_sub(1)) + 1,
                         matches.len()
                     )
                 };
                 Frame::new()
-                    .fill(th.wash(th.accent, if live.search_active() { 36 } else { 18 }))
+                    .fill(th.wash(th.accent, if nav_active { 36 } else { 18 }))
                     .corner_radius(CornerRadius::same(6))
                     .inner_margin(Margin::symmetric(8, 4))
                     .show(ui, |ui| {
@@ -1881,18 +2642,14 @@ fn render_search_field(ui: &mut Ui, th: &Theme, live: &mut LiveState) {
                             RichText::new(chip)
                                 .size(12.0)
                                 .strong()
-                                .color(if live.search_active() {
-                                    th.accent
-                                } else {
-                                    th.muted
-                                }),
+                                .color(if nav_active { th.accent } else { th.muted }),
                         );
                     });
 
                 ui.add_space(4.0);
                 let prev = ui
                     .add_enabled(
-                        !matches.is_empty(),
+                        nav_active && !matches.is_empty(),
                         egui::Button::new(
                             RichText::new(icons::ARROW_LEFT)
                                 .size(14.0)
@@ -1942,7 +2699,7 @@ fn render_tree_view(ui: &mut Ui, th: &Theme, live: &mut LiveState) {
             }
 
             let hits = live.match_set();
-            let filtering = live.search_active();
+            let filtering = live.filter_active();
 
             for op in live.operators.clone() {
                 if filtering && !op_has_match(&op, &hits) {
@@ -1994,13 +2751,7 @@ fn render_tree_view(ui: &mut Ui, th: &Theme, live: &mut LiveState) {
 
 /// Stable table order by tower.key — values update, row positions don't jump.
 fn stable_table_rows(live: &LiveState) -> Vec<usize> {
-    let filtering = live.search_active();
-    let hits = live.match_set();
-    let mut rows: Vec<usize> = if filtering {
-        hits.iter().copied().collect()
-    } else {
-        (0..live.flat.len()).collect()
-    };
+    let mut rows = live.visible_indices();
     rows.sort_by(|&a, &b| {
         let ka = live.flat.get(a).map(|f| f.tower.key.as_str()).unwrap_or("");
         let kb = live.flat.get(b).map(|f| f.tower.key.as_str()).unwrap_or("");
@@ -2022,6 +2773,7 @@ fn reveal_context_menu(ui: &mut Ui, th: &Theme, live: &mut LiveState, ix: usize)
         (LiveView::Table, "Table", "Flat RF table"),
         (LiveView::Tree, "List", "Operator / eNB tree"),
         (LiveView::Graph, "Graph", "Site graph"),
+        (LiveView::Log, "Log", "Scanner notes"),
     ];
     for (view, lab, tip) in items {
         let active = live.view == view;
@@ -2046,6 +2798,7 @@ fn reveal_context_menu(ui: &mut Ui, th: &Theme, live: &mut LiveState, ix: usize)
                 LiveView::Table => live.reveal_in_table(ix),
                 LiveView::Tree => live.reveal_in_tree(ix),
                 LiveView::Graph => live.reveal_in_graph(ix),
+                LiveView::Log => live.view = LiveView::Log,
             }
             ui.close_menu();
         }
@@ -2053,7 +2806,7 @@ fn reveal_context_menu(ui: &mut Ui, th: &Theme, live: &mut LiveState, ix: usize)
 }
 
 fn render_table_view(ui: &mut Ui, th: &Theme, live: &mut LiveState) {
-    let filtering = live.search_active();
+    let filtering = live.filter_active();
     let rows = stable_table_rows(live);
     let now = live
         .doc
@@ -2085,7 +2838,7 @@ fn render_table_view(ui: &mut Ui, th: &Theme, live: &mut LiveState) {
         ui.vertical_centered(|ui| {
             ui.label(
                 RichText::new(if filtering {
-                    "No towers match this search"
+                    "No towers match this filter"
                 } else {
                     "No RF cells in feed yet"
                 })
@@ -2161,9 +2914,10 @@ fn render_table_view(ui: &mut Ui, th: &Theme, live: &mut LiveState) {
                     row.set_selected(true);
                 }
                 let (fill, fill_c) = fill_label(th, t);
-                let rsrp = parse_f32(t.rxl());
+                let rsrp = parse_f32(t.rsrp_display());
                 let rsrq = parse_f32(t.get_sig("rsrq"));
                 let rssi = parse_f32(t.get_sig("rssi"));
+                let snr = parse_f32(t.get_sig("snr"));
                 let serving = t.is_serving();
                 let camped = t.was_identity_camped() && !serving;
                 let plmn = normalize_plmn(t.plmn());
@@ -2319,8 +3073,14 @@ fn render_table_view(ui: &mut Ui, th: &Theme, live: &mut LiveState) {
                         if rsrq > -200.0 {
                             bits.push(format!("Q {rsrq:.1}"));
                         }
+                        if snr > -200.0 {
+                            bits.push(format!("S {snr:.1}"));
+                        }
                         if rssi > -200.0 {
                             bits.push(format!("I {rssi:.0}"));
+                        }
+                        if !t.rsrp_filt().is_empty() {
+                            bits.push("filt".into());
                         }
                         if !bits.is_empty() {
                             ui.label(
@@ -2333,8 +3093,15 @@ fn render_table_view(ui: &mut Ui, th: &Theme, live: &mut LiveState) {
                 });
                 row.col(|ui| {
                     if nb_n > 0 {
+                        let pci_n = t.pci_neighbor_count();
+                        let stub_n = t.freq_stub_neighbor_count();
+                        let label = if pci_n > 0 {
+                            format!("{pci_n}p/{stub_n}f")
+                        } else {
+                            format!("{nb_n}")
+                        };
                         ui.label(
-                            RichText::new(format!("{nb_n}"))
+                            RichText::new(label)
                                 .strong()
                                 .size(12.5)
                                 .color(th.accent),
@@ -2569,7 +3336,7 @@ fn render_graph_view(ui: &mut Ui, th: &Theme, live: &mut LiveState) {
                 None
             });
 
-            let filtering = live.search_active();
+            let filtering = live.filter_active();
             let hits = live.match_set();
             let node_is_hit: Vec<bool> = live
                 .graph_nodes
@@ -3161,7 +3928,7 @@ fn render_cell_row(ui: &mut Ui, th: &Theme, live: &mut LiveState, ix: usize, dep
     let ft = live.flat[ix].clone();
     let t = &ft.tower;
     let (fill, fill_c) = fill_label(th, t);
-    let rsrp = parse_f32(t.rxl());
+    let rsrp = parse_f32(t.rsrp_display());
     let serving = t.is_serving();
     let camped = t.was_identity_camped() && !serving;
     let selected = live.selected == Some(ix);
@@ -3293,7 +4060,15 @@ fn render_cell_row(ui: &mut Ui, th: &Theme, live: &mut LiveState, ix: usize, dep
                         let nb_btn = ui
                             .add(
                                 egui::Button::new(
-                                    RichText::new(format!("NB {nb_n}"))
+                                    RichText::new(if t.pci_neighbor_count() > 0 {
+                                        format!(
+                                            "PCI {} · freq {}",
+                                            t.pci_neighbor_count(),
+                                            t.freq_stub_neighbor_count()
+                                        )
+                                    } else {
+                                        format!("NB {nb_n}")
+                                    })
                                         .size(12.0)
                                         .strong()
                                         .color(if nb_open {
@@ -3309,9 +4084,9 @@ fn render_cell_row(ui: &mut Ui, th: &Theme, live: &mut LiveState, ix: usize, dep
                                     if nb_open { 40 } else { 18 },
                                 ))
                                 .corner_radius(CornerRadius::same(6))
-                                .min_size(Vec2::new(52.0, 26.0)),
+                                .min_size(Vec2::new(88.0, 26.0)),
                             )
-                            .on_hover_text("SIB / meas neighbor hints");
+                            .on_hover_text("PCI neighbors vs SIB5 EARFCN-only stubs");
                         if nb_btn.clicked() {
                             toggle_nb = true;
                         }
@@ -3390,41 +4165,40 @@ fn render_cell_row(ui: &mut Ui, th: &Theme, live: &mut LiveState, ix: usize, dep
             .show(ui, |ui| {
                 ui.label(
                     RichText::new(format!(
-                        "Neighbor hints ({nb_n}) - SIB5 / meas, often EARFCN-only"
+                        "Neighbor hints ({nb_n}) — PCI cells vs SIB5 EARFCN-only"
                     ))
                     .size(12.0)
                     .color(th.muted),
                 );
                 ui.add_space(6.0);
-                for n in t
-                    .neighbors
-                    .nb_lte
-                    .iter()
-                    .chain(t.neighbors.nb_nr.iter())
-                    .chain(t.neighbors.nb_umts.iter())
-                    .chain(t.neighbors.nb_gsm.iter())
-                    .take(24)
+                for n in {
+                    let mut xs: Vec<_> = t
+                        .neighbors
+                        .nb_lte
+                        .iter()
+                        .chain(t.neighbors.nb_nr.iter())
+                        .chain(t.neighbors.nb_umts.iter())
+                        .chain(t.neighbors.nb_gsm.iter())
+                        .collect();
+                    xs.sort_by_key(|n| !n.has_phy_id());
+                    xs
+                }
+                .into_iter()
+                .take(24)
                 {
                     let rat = if !n.rat.is_empty() {
                         n.rat.as_str()
                     } else {
                         "LTE"
                     };
-                    let ch = n
-                        .radio
-                        .get("earfcn")
-                        .or_else(|| n.radio.get("uarfcn"))
-                        .or_else(|| n.radio.get("arfcn"))
-                        .map(|s| s.as_str())
-                        .unwrap_or("?");
-                    let pci = n
-                        .radio
-                        .get("pci")
-                        .or_else(|| n.radio.get("psc"))
-                        .or_else(|| n.radio.get("bsic"))
-                        .map(|s| s.as_str())
-                        .filter(|s| !s.is_empty())
-                        .unwrap_or("-");
+                    let pci = n.phy_id();
+                    let ch = n.channel();
+                    let ch = if ch.is_empty() { "?" } else { ch };
+                    let title = if n.has_phy_id() {
+                        format!("PCI {pci} @ {ch}")
+                    } else {
+                        format!("{ch} (SIB5)")
+                    };
                     let rxl = n.signal.get("rxl").map(|s| s.as_str()).unwrap_or("-");
                     Frame::new()
                         .fill(Color32::from_rgb(28, 34, 42))
@@ -3440,10 +4214,10 @@ fn render_cell_row(ui: &mut Ui, th: &Theme, live: &mut LiveState, ix: usize, dep
                                 );
                                 ui.add_space(8.0);
                                 ui.label(
-                                    RichText::new(format!("{ch} / {pci}"))
+                                    RichText::new(title)
                                         .size(13.0)
                                         .strong()
-                                        .color(th.text),
+                                        .color(if n.has_phy_id() { th.text } else { th.muted }),
                                 );
                                 ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
                                     ui.label(
@@ -3514,6 +4288,45 @@ fn render_detail(ui: &mut Ui, th: &Theme, ft: &FlatTower, ext: &ExtStatus, now: 
         render_ext_compare(ui, th, ft, ext);
     });
 
+    // Access / SIB1 flags as compact badges
+    {
+        let mut flags: Vec<(&str, Color32)> = Vec::new();
+        if t.get_id("cell_barred") == "1" {
+            flags.push(("BARRED", th.danger));
+        }
+        if t.get_id("csg_ind") == "1" {
+            flags.push(("CSG", th.warning));
+        }
+        if t.get_radio("ac_barr_mo_data") == "1" {
+            flags.push(("AC-MO-DATA", th.warning));
+        }
+        if t.get_radio("ac_barr_mo_signaling") == "1" {
+            flags.push(("AC-MO-SIG", th.warning));
+        }
+        if t.get_radio("ac_barr_emergency") == "1" {
+            flags.push(("AC-EMERG", th.danger));
+        }
+        if t.has_full_passport() {
+            flags.push(("PASSPORT", th.serving));
+        } else if t.has_cid() {
+            flags.push(("CID", th.accent));
+        } else {
+            flags.push(("RADIO", th.muted));
+        }
+        if t.plmn_is_soft() {
+            flags.push(("PLMN~", th.warning));
+        }
+        if !flags.is_empty() {
+            ui.add_space(6.0);
+            ui.horizontal_wrapped(|ui| {
+                ui.spacing_mut().item_spacing.x = 4.0;
+                for (lab, col) in flags {
+                    badge(ui, lab, col);
+                }
+            });
+        }
+    }
+
     ui.add_space(6.0);
     egui::CollapsingHeader::new(
         RichText::new("Identity")
@@ -3524,7 +4337,12 @@ fn render_detail(ui: &mut Ui, th: &Theme, ft: &FlatTower, ext: &ExtStatus, now: 
     .default_open(true)
     .show(ui, |ui| {
         let plmn = normalize_plmn(t.plmn());
-        kv_row(ui, th, "PLMN", &plmn);
+        let plmn_label = if t.plmn_is_soft() && !plmn.is_empty() {
+            format!("{plmn}  (soft · same EARFCN)")
+        } else {
+            plmn.clone()
+        };
+        kv_row(ui, th, "PLMN", &plmn_label);
         let (brand, _) = operator_brand(&plmn);
         if !brand.is_empty() {
             kv_row(ui, th, "Operator", brand);
@@ -3539,6 +4357,25 @@ fn render_detail(ui: &mut Ui, th: &Theme, ft: &FlatTower, ext: &ExtStatus, now: 
                 e
             }
         });
+        kv_row(ui, th, "Sector (ncell)", t.get_id("ncell_id"));
+        kv_row(ui, th, "qRxLevMin", t.get_id("q_rx_lev_min"));
+        kv_row(
+            ui,
+            th,
+            "Intra reselect",
+            match t.get_id("intra_freq_reselection_allowed") {
+                "1" => "allowed",
+                "0" => "blocked",
+                _ => "—",
+            },
+        );
+        match t.get_id("cell_reserved_for_operator") {
+            "1" => kv_row(ui, th, "PLMN reserved", "reserved"),
+            "0" => kv_row(ui, th, "PLMN reserved", "not reserved"),
+            _ => {}
+        }
+        kv_row(ui, th, "Band ind (SIB1)", t.get_id("freq_band_ind"));
+        kv_row(ui, th, "MNC digits", t.get_id("mnc_digits"));
     });
 
     ui.add_space(4.0);
@@ -3550,12 +4387,208 @@ fn render_detail(ui: &mut Ui, th: &Theme, ft: &FlatTower, ext: &ExtStatus, now: 
     )
     .default_open(true)
     .show(ui, |ui| {
-        kv_row(ui, th, "Channel", t.channel());
-        kv_row(ui, th, "Code", t.cell_code());
+        kv_row(ui, th, "EARFCN / ch", t.channel());
+        kv_row(ui, th, "PCI / code", t.cell_code());
         kv_row(ui, th, "Band", t.band());
-        kv_row(ui, th, "RSRP", t.rxl());
-        kv_row(ui, th, "RSRQ", t.get_sig("rsrq"));
+        kv_row(ui, th, "Duplex", t.get_radio("duplex_type"));
+        let bw = t.get_radio("bandwidth");
+        let ul_bw = t.get_radio("ul_bw");
+        kv_row(
+            ui,
+            th,
+            "Bandwidth",
+            &if !bw.is_empty() && !ul_bw.is_empty() && bw != ul_bw {
+                format!("{bw} / {ul_bw} MHz DL/UL")
+            } else if !bw.is_empty() {
+                format!("{bw} MHz")
+            } else {
+                "—".into()
+            },
+        );
+        kv_row(ui, th, "DL MHz", t.get_radio("dl_freq"));
+        kv_row(ui, th, "UL MHz", t.get_radio("ul_freq"));
+        kv_row(ui, th, "UL EARFCN", t.get_radio("ul_earfcn"));
+        {
+            let sfn = t.get_radio("sfn");
+            let sf = t.get_radio("subframe");
+            if !sfn.is_empty() && !sf.is_empty() {
+                kv_row(ui, th, "SFN / SF", &format!("{sfn} / {sf}"));
+            } else {
+                kv_row(ui, th, "SFN", sfn);
+            }
+        }
+        kv_row(ui, th, "SCS kHz", t.get_radio("scs_khz"));
+        // ML1 B193: show inst + filtered when both present.
+        {
+            let inst = t.rsrp_inst();
+            let filt = t.rsrp_filt();
+            if !inst.is_empty() && !filt.is_empty() && inst != filt {
+                kv_row(ui, th, "RSRP inst", inst);
+                kv_row(ui, th, "RSRP filt", filt);
+            } else {
+                kv_row(ui, th, "RSRP", t.rsrp_display());
+            }
+        }
+        {
+            let inst = t.get_sig("rsrq");
+            let filt = t.get_sig("rsrq_filt");
+            if !inst.is_empty() && !filt.is_empty() && inst != filt {
+                kv_row(ui, th, "RSRQ inst", inst);
+                kv_row(ui, th, "RSRQ filt", filt);
+            } else {
+                kv_row(ui, th, "RSRQ", inst);
+            }
+        }
+        kv_row(ui, th, "RSSI", t.get_sig("rssi"));
+        {
+            let snr = t.get_sig("snr");
+            let s0 = t.get_sig("sinr_rx0");
+            let s1 = t.get_sig("sinr_rx1");
+            if !s0.is_empty() || !s1.is_empty() {
+                kv_row(
+                    ui,
+                    th,
+                    "SNR",
+                    &match (!snr.is_empty(), !s0.is_empty(), !s1.is_empty()) {
+                        (_, true, true) => format!("{snr}  (Rx0 {s0} / Rx1 {s1})"),
+                        (_, true, false) => format!("{snr}  (Rx0 {s0})"),
+                        (_, false, true) => format!("{snr}  (Rx1 {s1})"),
+                        (true, _, _) => snr.to_string(),
+                        _ => "—".into(),
+                    },
+                );
+            } else {
+                kv_row(ui, th, "SNR", snr);
+            }
+        }
+        match t.get_radio("valid_rx") {
+            "1" => kv_row(ui, th, "Valid Rx", "RX0"),
+            "3" => kv_row(ui, th, "Valid Rx", "RX0+RX1"),
+            "" => {}
+            v => kv_row(ui, th, "Valid Rx", v),
+        }
+        match t.get_radio("serving_cell_index") {
+            "" => {}
+            "0" => kv_row(ui, th, "Serving index", "PCell"),
+            v => kv_row(ui, th, "Serving index", &format!("SCell {v}")),
+        }
+        if t.get_radio("is_restricted") == "1" {
+            kv_row(ui, th, "Restricted", "yes");
+        }
+        if !t.get_radio("p_max").is_empty() {
+            kv_row(ui, th, "p-Max", t.get_radio("p_max"));
+        }
+        match t.get_radio("allowed_access") {
+            "1" => kv_row(ui, th, "Allowed access", "yes"),
+            "0" => kv_row(ui, th, "Allowed access", "no"),
+            _ => {}
+        }
+        let rrc = t.get_radio("rrc_state_name");
+        if rrc.is_empty() {
+            match t.get_radio("rrc_state") {
+                "" => {}
+                "0" => kv_row(ui, th, "RRC state", "Inactive"),
+                "1" => kv_row(ui, th, "RRC state", "Idle Not Camped"),
+                "2" => kv_row(ui, th, "RRC state", "Idle Camped"),
+                "3" => kv_row(ui, th, "RRC state", "Connecting"),
+                "4" => kv_row(ui, th, "RRC state", "Connected"),
+                "5" => kv_row(ui, th, "RRC state", "Suspend"),
+                "6" => kv_row(ui, th, "RRC state", "IRAT To LTE Started"),
+                "7" => kv_row(ui, th, "RRC state", "Closing"),
+                v => kv_row(ui, th, "RRC state", v),
+            }
+        } else {
+            kv_row(ui, th, "RRC state", rrc);
+        }
+        let emm = t.get_radio("emm_state");
+        if !emm.is_empty() {
+            let name = match emm {
+                "0" => "NULL",
+                "1" => "DEREGISTERED",
+                "2" => "REGISTERED_INITIATED",
+                "3" => "REGISTERED",
+                "4" => "TAU_INITIATED",
+                "5" => "SERVICE_REQUEST_INITIATED",
+                "6" => "DEREGISTERED_INITIATED",
+                _ => emm,
+            };
+            let sub = t.get_radio("emm_substate");
+            let label = if emm == "3" && (sub.is_empty() || sub == "0") {
+                format!("{name} / NORMAL_SERVICE")
+            } else if !sub.is_empty() && sub != "0" {
+                format!("{name} (sub {sub})")
+            } else {
+                name.to_string()
+            };
+            kv_row(ui, th, "EMM state", &label);
+            let emcc = t.get_radio("emm_mcc");
+            let emnc = t.get_radio("emm_mnc");
+            if !emcc.is_empty() {
+                kv_row(ui, th, "EMM PLMN", &format!("{emcc}-{emnc}"));
+            }
+            let mg = t.get_radio("mme_group_id");
+            let mc = t.get_radio("mme_code");
+            if !mg.is_empty() {
+                kv_row(ui, th, "MME", &format!("group {mg} / code {mc}"));
+            }
+        }
+        let ta = t.get_radio("timing_advance");
+        if !ta.is_empty() {
+            let dist = t.get_radio("ta_distance_m");
+            kv_row(
+                ui,
+                th,
+                "Timing advance",
+                &if !dist.is_empty() {
+                    format!("{ta}  (~{dist} m)")
+                } else if let Ok(idx) = ta.parse::<u32>() {
+                    format!("{ta}  (~{:.0} m)", idx as f64 * 78.125)
+                } else {
+                    ta.to_string()
+                },
+            );
+        }
     });
+
+    // SIB3 / NAS reselection — only when present
+    let has_sib3 = [
+        "q_hyst",
+        "t_resel_eutra",
+        "s_intra_search",
+        "s_non_intra_search",
+        "thresh_serving_low",
+        "cell_resel_prio",
+        "thresh_x_high",
+        "thresh_x_low",
+        "nas_idle",
+    ]
+    .iter()
+    .any(|k| !t.get_radio(k).is_empty());
+    if has_sib3 {
+        ui.add_space(4.0);
+        egui::CollapsingHeader::new(
+            RichText::new("Reselection / NAS")
+                .strong()
+                .size(13.5)
+                .color(th.text),
+        )
+        .default_open(false)
+        .show(ui, |ui| {
+            kv_row(ui, th, "q-Hyst", t.get_radio("q_hyst"));
+            kv_row(ui, th, "t-Reselection", t.get_radio("t_resel_eutra"));
+            kv_row(ui, th, "s-IntraSearch", t.get_radio("s_intra_search"));
+            kv_row(ui, th, "s-NonIntraSearch", t.get_radio("s_non_intra_search"));
+            kv_row(ui, th, "threshServingLow", t.get_radio("thresh_serving_low"));
+            kv_row(ui, th, "cellReselPrio", t.get_radio("cell_resel_prio"));
+            kv_row(ui, th, "threshX-High", t.get_radio("thresh_x_high"));
+            kv_row(ui, th, "threshX-Low", t.get_radio("thresh_x_low"));
+            match t.get_radio("nas_idle") {
+                "1" => kv_row(ui, th, "NAS idle", "idle"),
+                "0" => kv_row(ui, th, "NAS idle", "connected"),
+                _ => {}
+            }
+        });
+    }
 
     ui.add_space(4.0);
     egui::CollapsingHeader::new(
@@ -3586,52 +4619,148 @@ fn render_detail(ui: &mut Ui, th: &Theme, ft: &FlatTower, ext: &ExtStatus, now: 
         kv_row(ui, th, "In session", &span);
     });
 
-    let nb = t.neighbor_count();
-    if nb > 0 {
+    // Everything present in JSON maps — catches fields not wired into named rows above.
+    let raw_n = t.identity.len() + t.radio.len() + t.signal.len();
+    if raw_n > 0 {
         ui.add_space(4.0);
         egui::CollapsingHeader::new(
-            RichText::new(format!("Neighbor hints ({nb})"))
+            RichText::new(format!("All fields ({raw_n})"))
                 .strong()
                 .size(13.5)
                 .color(th.text),
         )
         .default_open(false)
         .show(ui, |ui| {
+            dump_field_map(ui, th, "identity", &t.identity);
+            dump_field_map(ui, th, "radio", &t.radio);
+            dump_field_map(ui, th, "signal", &t.signal);
+        });
+    }
+
+    let nb = t.neighbor_count();
+    if nb > 0 {
+        ui.add_space(4.0);
+        egui::CollapsingHeader::new(
+            RichText::new(format!("Neighbors / carriers ({nb})"))
+                .strong()
+                .size(13.5)
+                .color(th.text),
+        )
+        .default_open(true)
+        .show(ui, |ui| {
             ui.label(
-                RichText::new("Often EARFCN-only (SIB5) - not full towers until PCI+CID land")
+                RichText::new("SIB5 = EARFCN carriers · meas/SIB4 = PCI neighbors")
                     .size(12.0)
                     .color(th.muted),
             );
             ui.add_space(8.0);
-            for n in t.neighbors.nb_lte.iter().take(40) {
-                let ch = n.radio.get("earfcn").map(|s| s.as_str()).unwrap_or("?");
-                let pci = n
-                    .radio
-                    .get("pci")
-                    .map(|s| s.as_str())
-                    .filter(|s| !s.is_empty())
-                    .unwrap_or("-");
-                let rxl = n.signal.get("rxl").map(|s| s.as_str()).unwrap_or("-");
-                Frame::new()
-                    .fill(th.panel2)
-                    .corner_radius(CornerRadius::same(8))
-                    .inner_margin(Margin::symmetric(10, 8))
-                    .show(ui, |ui| {
-                        ui.horizontal(|ui| {
-                            ui.label(
-                                RichText::new(format!("{ch} / {pci}"))
-                                    .size(14.0)
-                                    .strong()
-                                    .color(th.text),
-                            );
-                            ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
-                                ui.label(RichText::new(rxl).size(14.0).color(th.accent));
-                            });
-                        });
-                    });
+            render_neighbor_list(ui, th, &t.neighbors.nb_lte, "LTE");
+            if !t.neighbors.nb_umts.is_empty() {
+                ui.add_space(8.0);
+                ui.label(RichText::new("UTRA (SIB6)").size(12.0).strong().color(th.muted));
                 ui.add_space(4.0);
+                render_neighbor_list(ui, th, &t.neighbors.nb_umts, "UMTS");
+            }
+            if !t.neighbors.nb_gsm.is_empty() {
+                ui.add_space(8.0);
+                ui.label(RichText::new("GERAN (SIB7)").size(12.0).strong().color(th.muted));
+                ui.add_space(4.0);
+                render_neighbor_list(ui, th, &t.neighbors.nb_gsm, "GSM");
             }
         });
+    }
+}
+
+fn render_neighbor_list(ui: &mut Ui, th: &Theme, list: &[crate::model::Neighbor], _rat: &str) {
+    for n in list.iter().take(48) {
+        let kind = n
+            .radio
+            .get("sib_kind")
+            .map(|s| s.as_str())
+            .unwrap_or("");
+        let ch = n
+            .radio
+            .get("earfcn")
+            .or_else(|| n.radio.get("uarfcn"))
+            .or_else(|| n.radio.get("arfcn"))
+            .map(|s| s.as_str())
+            .unwrap_or("?");
+        let pci = n
+            .radio
+            .get("pci")
+            .or_else(|| n.radio.get("psc"))
+            .or_else(|| n.radio.get("bsic"))
+            .map(|s| s.as_str())
+            .filter(|s| !s.is_empty())
+            .unwrap_or("—");
+        let rxl = n.signal.get("rxl").map(|s| s.as_str()).unwrap_or("");
+        let prio = n.radio.get("cell_resel_prio").map(|s| s.as_str()).unwrap_or("");
+        let thr_h = n.radio.get("thresh_x_high").map(|s| s.as_str()).unwrap_or("");
+        let thr_l = n.radio.get("thresh_x_low").map(|s| s.as_str()).unwrap_or("");
+        let qmin = n.radio.get("q_rx_lev_min").map(|s| s.as_str()).unwrap_or("");
+        let bw = n.radio.get("allowed_meas_bw").map(|s| s.as_str()).unwrap_or("");
+        let resolved = n.resolved == "1";
+
+        let title = if n.has_phy_id() {
+            format!("PCI {pci} @ {ch}")
+        } else {
+            format!("{ch}  (SIB5)")
+        };
+        let mut bits: Vec<String> = Vec::new();
+        if !kind.is_empty() {
+            bits.push(kind.to_string());
+        }
+        if !prio.is_empty() {
+            bits.push(format!("prio {prio}"));
+        }
+        if !thr_h.is_empty() || !thr_l.is_empty() {
+            bits.push(format!("thr {thr_h}/{thr_l}"));
+        }
+        if !qmin.is_empty() {
+            bits.push(format!("qRx {qmin}"));
+        }
+        if !bw.is_empty() {
+            bits.push(format!("bw {bw}"));
+        }
+        if resolved {
+            bits.push("resolved".into());
+        }
+
+        Frame::new()
+            .fill(th.panel2)
+            .corner_radius(CornerRadius::same(8))
+            .inner_margin(Margin::symmetric(10, 8))
+            .show(ui, |ui| {
+                ui.horizontal(|ui| {
+                    ui.label(
+                        RichText::new(title)
+                            .size(13.5)
+                            .strong()
+                            .monospace()
+                            .color(th.text),
+                    );
+                    ui.with_layout(Layout::right_to_left(Align::Center), |ui| {
+                        if !rxl.is_empty() {
+                            ui.label(RichText::new(rxl).size(13.5).color(th.accent));
+                        }
+                    });
+                });
+                if !bits.is_empty() {
+                    ui.label(
+                        RichText::new(bits.join(" · "))
+                            .size(11.5)
+                            .color(th.muted),
+                    );
+                }
+            });
+        ui.add_space(4.0);
+    }
+    if list.len() > 48 {
+        ui.label(
+            RichText::new(format!("…and {} more", list.len() - 48))
+                .size(11.5)
+                .color(th.muted),
+        );
     }
 }
 
@@ -3962,6 +5091,41 @@ fn kv_row(ui: &mut Ui, th: &Theme, k: &str, v: &str) {
     ui.add_space(4.0);
 }
 
+fn dump_field_map(
+    ui: &mut Ui,
+    th: &Theme,
+    title: &str,
+    map: &std::collections::BTreeMap<String, String>,
+) {
+    if map.is_empty() {
+        return;
+    }
+    ui.label(
+        RichText::new(title)
+            .size(12.0)
+            .strong()
+            .color(th.muted),
+    );
+    ui.add_space(2.0);
+    for (k, v) in map {
+        if v.is_empty() {
+            continue;
+        }
+        kv_row(ui, th, k, v);
+    }
+    ui.add_space(4.0);
+}
+
+fn live_feed_path(p: &std::path::Path) -> bool {
+    // Live writer lives under /tmp. Dump files are also named qcom_live_towers.json —
+    // never point Start at a dump the user opened for browsing.
+    p.starts_with("/tmp")
+        && p.file_name()
+            .and_then(|s| s.to_str())
+            .map(|n| n.starts_with("qcom_live_towers") && n.ends_with(".json"))
+            .unwrap_or(false)
+}
+
 fn dash(s: &str) -> &str {
     if s.is_empty() {
         "-"
@@ -3988,5 +5152,25 @@ fn format_mtime_ago(mtime: SystemTime) -> String {
             format!("{body} ago")
         }
         Err(_) => "just now".into(),
+    }
+}
+
+#[cfg(test)]
+mod live_feed_tests {
+    use super::live_feed_path;
+    use std::path::Path;
+
+    #[test]
+    fn tmp_feed_is_live() {
+        assert!(live_feed_path(Path::new("/tmp/qcom_live_towers.json")));
+        assert!(live_feed_path(Path::new("/tmp/qcom_live_towers_user.json")));
+    }
+
+    #[test]
+    fn dump_is_not_live() {
+        assert!(!live_feed_path(Path::new(
+            "/home/x/scan_dumps/live_20260807/qcom_live_towers.json"
+        )));
+        assert!(!live_feed_path(Path::new("/tmp/other.json")));
     }
 }

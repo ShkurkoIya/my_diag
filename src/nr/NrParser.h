@@ -9,7 +9,7 @@
 #include <vector>
 
 #include "core/BaseRatParser.h"
-#include "core/Events.h"
+#include <observer/model/Events.h>
 #include "srsran/asn1/rrc_nr.h"
 
 namespace QCom::Nr {
@@ -60,6 +60,8 @@ class NrParser : public BaseRatParser<NrParser> {
 public:
   // Qualcomm NR DIAG log codes
   static constexpr LogCode NR_RRC_OTA = 0xB821;
+  static constexpr LogCode NR_RRC_MIB = 0xB822;
+  static constexpr LogCode NR_RRC_SERVING = 0xB823;
   static constexpr LogCode NR_PLMN_SEARCH_REQ = 0xB827;
   static constexpr LogCode NR_PLMN_SEARCH_RSP = 0xB828;
   static constexpr LogCode NR_DETECTED_CELL = 0xB82B;
@@ -98,6 +100,14 @@ public:
     return std::vector<Events::RrcEvent>{};
   }
 
+  /// 0xB822 — NR RRC MIB Info (scat layouts v0.3 / v2.0).
+  std::expected<std::vector<Events::RrcEvent>, ParserError> parse_rrc_mib(
+      std::span<const uint8_t> payload);
+
+  /// 0xB823 — NR RRC Serving Cell Info (scat layouts 0.4 / 3.x).
+  std::expected<std::vector<Events::RrcEvent>, ParserError> parse_serv_cell_info(
+      std::span<const uint8_t> payload);
+
   [[nodiscard]] std::vector<Events::RrcEvent> on_message_unpacked(BcchMsg& msg);
   [[nodiscard]] std::vector<Events::RrcEvent> on_message_unpacked(DlCcchMsg& msg);
   [[nodiscard]] std::vector<Events::RrcEvent> on_message_unpacked(DlDcchMsg& msg);
@@ -106,6 +116,9 @@ public:
 
   static constexpr std::array kLogTable = {
       LogEntry<NrParser>{NR_RRC_OTA, &NrParser::parse_rrc_ota, "NR RRC OTA (0xB821)"},
+      LogEntry<NrParser>{NR_RRC_MIB, &NrParser::parse_rrc_mib, "NR RRC MIB (0xB822)"},
+      LogEntry<NrParser>{NR_RRC_SERVING, &NrParser::parse_serv_cell_info,
+                         "NR RRC Serving Cell (0xB823)"},
       LogEntry<NrParser>{NR_PLMN_SEARCH_REQ, &NrParser::parse_plmn_search_stub,
                          "NR PLMN Search Req (0xB827)"},
       LogEntry<NrParser>{NR_PLMN_SEARCH_RSP, &NrParser::parse_plmn_search_stub,

@@ -1,6 +1,6 @@
-#include <qmi_observer/device/catalog.hpp>
-#include <qmi_observer/device/probe.hpp>
-#include <qmi_observer/version.hpp>
+#include <qcom/qmi/device/catalog.hpp>
+#include <qcom/qmi/device/probe.hpp>
+#include <qcom/qmi/version.hpp>
 
 #include <iostream>
 #include <string>
@@ -16,7 +16,7 @@ void print_usage(const char* argv0) {
       << "Документация: qmi_observer/docs/ru/device_manager.md\n";
 }
 
-void print_endpoint(const qmi_observer::device::ModemReport& r) {
+void print_endpoint(const QCom::Qmi::device::ModemReport& r) {
   const auto& e = r.endpoint;
   std::cout << "id=" << e.id << "  " << std::hex << e.vid << ':' << e.pid << std::dec
             << "  usb=" << e.usb_path << '\n';
@@ -30,7 +30,7 @@ void print_endpoint(const qmi_observer::device::ModemReport& r) {
     std::cout << "  at=" << *a << '\n';
   }
   for (const auto& p : e.ports) {
-    std::cout << "    port " << qmi_observer::device::to_string(p.role) << " " << p.path;
+    std::cout << "    port " << QCom::Qmi::device::to_string(p.role) << " " << p.path;
     if (p.usb_interface) {
       std::cout << " iface=" << unsigned(*p.usb_interface);
     }
@@ -39,12 +39,12 @@ void print_endpoint(const qmi_observer::device::ModemReport& r) {
   if (r.dossier) {
     const auto& d = *r.dossier;
     std::cout << "  dossier: qmi_ok=" << d.qmi_open_ok << " at_ok=" << d.at_ok
-              << " probe=" << qmi_observer::device::to_string(d.deepest_probe) << '\n';
+              << " probe=" << QCom::Qmi::device::to_string(d.deepest_probe) << '\n';
     if (d.dms_model) {
       std::cout << "    dms model=" << *d.dms_model << '\n';
     }
     if (d.last_phase) {
-      std::cout << "    phase=" << qmi_observer::to_string(*d.last_phase) << '\n';
+      std::cout << "    phase=" << QCom::Qmi::to_string(*d.last_phase) << '\n';
     }
     if (!d.last_error.empty()) {
       std::cout << "    err=" << d.last_error << '\n';
@@ -55,7 +55,7 @@ void print_endpoint(const qmi_observer::device::ModemReport& r) {
 }  // namespace
 
 int main(int argc, char** argv) {
-  using namespace qmi_observer::device;
+  using namespace QCom::Qmi::device;
 
   EnumerateOptions en;
   std::string dossier;
@@ -93,7 +93,7 @@ int main(int argc, char** argv) {
     return 2;
   }
 
-  std::cout << "qmi_observer " << qmi_observer::version() << " — device catalog\n";
+  std::cout << "qmi_observer " << QCom::Qmi::version() << " — device catalog\n";
 
   DeviceCatalog catalog;
   if (!dossier.empty()) {

@@ -9,10 +9,10 @@
 #include <thread>
 #include <vector>
 
-#include "transport/DiagSourceConfig.h"
-#include "transport/LinuxSource.h"
-#include "transport/ScannerEngine.h"
-#include "transport/SourceFactory.h"
+#include <qcom/protocol/DiagSourceConfig.h>
+#include <qcom/linux/LinuxSource.h>
+#include <qcom/io/ScannerEngine.h>
+#include <qcom/linux/SourceFactory.h>
 
 int main(int argc, char** argv) {
   const char* dev = argc > 1 ? argv[1] : "/dev/ttyUSB0";

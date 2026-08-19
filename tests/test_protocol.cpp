@@ -4,8 +4,8 @@
 #include <span>
 #include <vector>
 
-#include "transport/Crc16.h"
-#include "transport/HdlcCodec.h"
+#include <qcom/protocol/Crc16.h>
+#include <qcom/protocol/HdlcCodec.h>
 
 using namespace QCom;
 
@@ -152,9 +152,9 @@ TEST_CASE("HdlcDeframer: reset clears state", "[protocol][hdlc]") {
   CHECK(deframer.frames_bad_crc() == 0);
 }
 
-#include "transport/JournalSource.h"
-#include "transport/LogFrameAdapter.h"
-#include "transport/ScannerEngine.h"
+#include <qcom/linux/JournalSource.h>
+#include <qcom/protocol/LogFrameAdapter.h>
+#include <qcom/io/ScannerEngine.h>
 
 TEST_CASE("adapt_log_f_frame extracts code and payload", "[transport][adapter]") {
   // Minimal LOG_F short layout: header 14 + 2 payload bytes
@@ -217,7 +217,8 @@ TEST_CASE("adapt_log_f_frame skips non-LOG_F", "[transport][adapter]") {
   CHECK_FALSE(adapt_log_f_frame(raw).has_value());
 }
 
-#include "transport/DiagSerialDemux.h"
+#include <qcom/protocol/DiagCommands.h>
+#include <qcom/protocol/DiagSerialDemux.h>
 
 TEST_CASE("DiagSerialDemux length-prefixed LOG_F", "[transport][demux]") {
   // [len=24][type=1][LOG_F short 14 + 2 payload]
@@ -266,4 +267,29 @@ TEST_CASE("JournalSource + RadioScannerEngine deliver packets", "[transport][eng
   // Cell callback is optional depending on tracker merge; ensure engine path works.
   CHECK(engine.source()->name() == "journal");
   (void)callbacks;
+}
+
+TEST_CASE("LTE search pack has RRC/SSS and omits PSS/TA flood", "[protocol][diag-mask]") {
+  auto ids = lte_diag_item_ids(LteDiagPack::Search);
+  auto pkt = DiagSession::build_set_mask(DiagEquip::LTE, kLteMaskLastItem, ids);
+  CHECK(DiagSession::set_mask_has_item(pkt, DiagItem::LTE_RRC_OTA));
+  CHECK(DiagSession::set_mask_has_item(pkt, DiagItem::LTE_RRC_MIB));
+  CHECK(DiagSession::set_mask_has_item(pkt, DiagItem::LTE_RRC_SERVING_CELL));
+  CHECK(DiagSession::set_mask_has_item(pkt, DiagItem::LTE_LL1_SSS_RESULTS));
+  CHECK(DiagSession::set_mask_has_item(pkt, DiagItem::LTE_ML1_SERVING_INFO));
+  CHECK_FALSE(DiagSession::set_mask_has_item(pkt, DiagItem::LTE_LL1_PSS_RESULTS));
+  CHECK_FALSE(DiagSession::set_mask_has_item(pkt, DiagItem::LTE_LL1_FRAME_TIMING));
+  CHECK_FALSE(DiagSession::set_mask_has_item(pkt, DiagItem::LTE_LL1_NCELL_CER));
+  CHECK(DiagSession::set_mask_has_item(pkt, DiagItem::NR_RRC_OTA));  // 0x821 < last_item 0x09FF
+}
+
+TEST_CASE("LTE serving pack keeps RRC and adds B114 TA", "[protocol][diag-mask]") {
+  auto ids = lte_diag_item_ids(LteDiagPack::Serving);
+  auto pkt = DiagSession::build_set_mask(DiagEquip::LTE, kLteMaskLastItem, ids);
+  CHECK(DiagSession::set_mask_has_item(pkt, DiagItem::LTE_RRC_OTA));
+  CHECK(DiagSession::set_mask_has_item(pkt, DiagItem::LTE_LL1_SSS_RESULTS));
+  CHECK(DiagSession::set_mask_has_item(pkt, DiagItem::LTE_LL1_FRAME_TIMING));
+  CHECK_FALSE(DiagSession::set_mask_has_item(pkt, DiagItem::LTE_LL1_PSS_RESULTS));
+  CHECK(std::strcmp(lte_diag_pack_name(LteDiagPack::Search), "search") == 0);
+  CHECK(std::strcmp(lte_diag_pack_name(LteDiagPack::Serving), "serving") == 0);
 }

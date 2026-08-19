@@ -8,7 +8,7 @@
 #include <optional>
 #include <vector>
 
-#include "lte/LteRrcOta.h"
+#include <qcom/lte/LteRrcOta.h>
 #include "srsran/asn1/rrc/meascfg.h"
 #include "srsran/asn1/rrc/rr_common.h"
 
@@ -191,9 +191,7 @@ std::expected<std::vector<Events::RrcEvent>, ParserError> LteParser::parse_mib_m
   asn1::cbit_ref bref(mib_asn1.data(), mib_asn1.size());
 
   asn1::rrc::mib_s mib_msg;
-  if (mib_msg.unpack(bref) != asn1::SRSASN_SUCCESS) {
-    return std::vector<Events::RrcEvent>{};
-  }
+  if (mib_msg.unpack(bref) != asn1::SRSASN_SUCCESS) { return std::vector<Events::RrcEvent>{}; }
 
   uint8_t dl_mhz = rb_to_mhz(mib_msg.dl_bw);
   if (dl_mhz == 0) return std::vector<Events::RrcEvent>{};
@@ -334,11 +332,15 @@ std::vector<Events::RrcEvent> LteParser::extract_sib1(const asn1::rrc::sib_type1
   if (info.plmn_id_list.size() == 0) {
     events.push_back(Events::PassportEvent{.passport = passport});
   } else {
+    using ReservedOpts = asn1::rrc::plmn_id_info_s::cell_reserved_for_oper_opts;
     for (size_t i = 0; i < info.plmn_id_list.size(); ++i) {
       CellPassport p = passport;
-      const auto& plmn = info.plmn_id_list[i].plmn_id;
+      const auto& entry = info.plmn_id_list[i];
+      const auto& plmn = entry.plmn_id;
       if (plmn.mcc_present) p.mcc = Utils::Converter::digits_to_number(plmn.mcc);
       p.mnc = Utils::Converter::digits_to_number(plmn.mnc);
+      p.mnc_digits = static_cast<uint8_t>(plmn.mnc.size() >= 3 ? 3 : 2);
+      p.cell_reserved_for_operator = (entry.cell_reserved_for_oper.value == ReservedOpts::reserved);
       events.push_back(Events::PassportEvent{.passport = std::move(p)});
     }
   }
@@ -407,6 +409,7 @@ std::vector<Events::RrcEvent> LteParser::extract_sys_info(const asn1::rrc::sys_i
       if (sib3.cell_resel_serving_freq_info.s_non_intra_search_present)
         ev.data.s_non_intra_search =
             static_cast<int8_t>(sib3.cell_resel_serving_freq_info.s_non_intra_search);
+      ev.data.cell_resel_prio = sib3.cell_resel_serving_freq_info.cell_resel_prio;
       events.push_back(Events::RrcEvent{std::move(ev)});
     }
 

@@ -6,55 +6,36 @@
 #pragma once
 
 #include <algorithm>
-#include <cstdio>
 #include <cstdint>
+#include <fmt/format.h>
 #include <fstream>
+#include <glaze/glaze.hpp>
+#include <glaze/json/generic.hpp>
 #include <iostream>
 #include <map>
 #include <set>
-#include <sstream>
 #include <string>
 #include <string_view>
-#include <type_traits>
 #include <vector>
 
-#include "core/BandInfo.h"
-#include "core/CellIdentity.h"
+#include <observer/model/BandInfo.h>
+#include <observer/model/CellIdentity.h>
+#include <observer/model/Utils.h>
+#include <observer/engine/SurveyProjection.h>
+#include "lte/LteQcomLayouts.h"
 
 namespace QCom::Tools {
 
 namespace tower_detail {
 
-inline std::string esc(std::string_view s) {
-  std::string out;
-  out.reserve(s.size() + 8);
-  for (char c : s) {
-    switch (c) {
-      case '"': out += "\\\""; break;
-      case '\\': out += "\\\\"; break;
-      case '\n': out += "\\n"; break;
-      case '\r': out += "\\r"; break;
-      case '\t': out += "\\t"; break;
-      default: out += c; break;
-    }
-  }
-  return out;
-}
-
 inline std::string num_or_empty(bool ok, auto v) {
   if (!ok) return {};
-  if constexpr (std::is_floating_point_v<decltype(v)>) {
-    std::ostringstream oss;
-    oss << v;
-    return oss.str();
-  } else {
-    return std::to_string(v);
-  }
+  return fmt::format("{}", v);
 }
 
 inline std::string i_or_empty(auto v) {
   if (v == 0) return {};
-  return std::to_string(v);
+  return fmt::format("{}", v);
 }
 
 inline void put_extra(std::map<std::string, std::string>& m, const char* k, std::string v) {
@@ -74,56 +55,51 @@ inline void merge_extra_maps(std::map<std::string, std::string>& dest,
 }
 
 /// 3GPP MNC is 2 or 3 digits — never emit bare "1" for MTS (250-01).
-inline std::string format_mnc(uint16_t mnc) {
-  if (mnc >= 100) {
-    std::string s = std::to_string(mnc);
-    while (s.size() < 3) s.insert(s.begin(), '0');
-    return s;
-  }
-  std::string s = std::to_string(mnc);
-  while (s.size() < 2) s.insert(s.begin(), '0');
-  return s;
+inline std::string format_mnc(uint16_t mnc, uint8_t digits = 0) {
+  const int width = (digits == 3 || mnc >= 100) ? 3 : 2;
+  return fmt::format("{:0{}}", mnc, width);
 }
 
-inline std::string format_mcc_mnc(uint16_t mcc, uint16_t mnc) {
+inline std::string format_mcc_mnc(uint16_t mcc, uint16_t mnc, uint8_t digits = 0) {
   if (!mcc) return {};
-  return std::to_string(mcc) + "-" + format_mnc(mnc);
+  return fmt::format("{}-{}", mcc, format_mnc(mnc, digits));
 }
 
+/// Nested JSON object; all leaf values are strings (GUI contract qcom.towers.v5).
 struct JsonObj {
-  std::vector<std::pair<std::string, std::string>> fields;   // values already JSON-encoded
-  std::vector<std::pair<std::string, std::string>> objects;  // nested raw JSON
-  std::vector<std::pair<std::string, std::string>> arrays;
+  glz::generic v;
 
-  void str(std::string_view k, std::string_view v) {
-    fields.emplace_back(std::string(k), std::string("\"") + esc(v) + "\"");
-  }
-  void raw(std::string_view k, std::string_view json_val) {
-    fields.emplace_back(std::string(k), std::string(json_val));
-  }
-  void obj(std::string_view k, std::string json) {
-    objects.emplace_back(std::string(k), std::move(json));
-  }
-  void arr(std::string_view k, std::string json) {
-    arrays.emplace_back(std::string(k), std::move(json));
+  JsonObj() { v = glz::generic::object_t{}; }
+
+  void ensure_object() {
+    // Brace-init `generic{object_t{}}` hits glaze's initializer_list ctor and
+    // becomes a 1-element array; operator[] then throws bad_variant_access.
+    if (!v.is_object()) v = glz::generic::object_t{};
   }
 
-  [[nodiscard]] std::string dump(int indent, int level) const {
-    std::ostringstream oss;
-    const std::string pad(static_cast<size_t>(indent * level), ' ');
-    const std::string pad2(static_cast<size_t>(indent * (level + 1)), ' ');
-    oss << "{\n";
-    bool first = true;
-    auto emit = [&](std::string_view k, std::string_view v) {
-      if (!first) oss << ",\n";
-      first = false;
-      oss << pad2 << '"' << esc(k) << "\": " << v;
-    };
-    for (const auto& [k, v] : fields) emit(k, v);
-    for (const auto& [k, v] : objects) emit(k, v);
-    for (const auto& [k, v] : arrays) emit(k, v);
-    oss << '\n' << pad << '}';
-    return oss.str();
+  void str(std::string_view k, std::string_view val) {
+    if (k.empty()) return;
+    ensure_object();
+    v[std::string(k)] = std::string(val);
+  }
+  void obj(std::string_view k, JsonObj nested) {
+    if (k.empty()) return;
+    ensure_object();
+    v[std::string(k)] = std::move(nested.v);
+  }
+  void arr(std::string_view k, std::vector<JsonObj> items) {
+    if (k.empty()) return;
+    ensure_object();
+    glz::generic::array_t a;
+    a.reserve(items.size());
+    for (auto& i : items) a.push_back(std::move(i.v));
+    v[std::string(k)] = std::move(a);
+  }
+
+  [[nodiscard]] std::string dump() const {
+    std::string out;
+    if (const auto ec = glz::write<glz::opts{.prettify = true}>(v, out); ec) return "{}";
+    return out;
   }
 };
 
@@ -183,10 +159,14 @@ inline void fill_passport_extras(TowerFields& f, const CellPassport& p) {
   put_bool(f.identity_extra, "cell_barred", p.cell_barred);
   put_bool(f.identity_extra, "csg_ind", p.csg_ind);
   put_bool(f.identity_extra, "intra_freq_reselection_allowed", p.intra_freq_reselection_allowed);
+  put_bool(f.identity_extra, "cell_reserved_for_operator", p.cell_reserved_for_operator);
+  if (p.plmn_soft) put_bool(f.identity_extra, "plmn_soft", true);
   put_extra(f.identity_extra, "q_rx_lev_min", i_or_empty(p.q_rx_lev_min));
   put_extra(f.identity_extra, "q_rx_lev_min_offset", i_or_empty(p.q_rx_lev_min_offset));
   put_extra(f.identity_extra, "csg_id", i_or_empty(p.csg_id));
   put_extra(f.identity_extra, "freq_band_ind", i_or_empty(p.freq_band_ind));
+  put_extra(f.identity_extra, "mnc_digits", i_or_empty(p.mnc_digits));
+  put_extra(f.identity_extra, "rac", i_or_empty(p.rac));
 }
 
 inline TowerFields fields_from_cell(const CellIdentity& c) {
@@ -198,8 +178,8 @@ inline TowerFields fields_from_cell(const CellIdentity& c) {
   f.first_seen = c.first_seen;
   f.last_seen = c.last_seen;
   f.mcc = i_or_empty(c.passport.mcc);
-  f.mnc = c.passport.mcc ? format_mnc(c.passport.mnc) : "";
-  if (c.passport.mcc) f.mcc_mnc = format_mcc_mnc(c.passport.mcc, c.passport.mnc);
+  f.mnc = c.passport.mcc ? format_mnc(c.passport.mnc, c.passport.mnc_digits) : "";
+  if (c.passport.mcc) f.mcc_mnc = format_mcc_mnc(c.passport.mcc, c.passport.mnc, c.passport.mnc_digits);
   f.lac_tac = i_or_empty(c.passport.tac);
   f.cid = i_or_empty(c.passport.cell_id);
   fill_passport_extras(f, c.passport);
@@ -234,6 +214,12 @@ inline TowerFields fields_from_cell(const CellIdentity& c) {
     put_extra(f.radio_extra, "phich_resource",
               lte->phich_resource || lte->phich_duration ? std::to_string(lte->phich_resource) : "");
     put_extra(f.radio_extra, "sfn", i_or_empty(lte->sfn));
+    if (lte->has_sfn_sf) {
+      put_extra(f.radio_extra, "subframe", std::to_string(lte->subframe));
+      put_extra(f.radio_extra, "serving_cell_index", std::to_string(lte->serving_cell_index));
+      put_bool(f.radio_extra, "is_restricted", lte->is_restricted);
+    }
+    if (lte->valid_rx) put_extra(f.radio_extra, "valid_rx", std::to_string(lte->valid_rx));
     if (lte->p_max_present) put_extra(f.radio_extra, "p_max", std::to_string(lte->p_max));
     put_bool(f.radio_extra, "ac_barr_emergency", lte->ac_barr_emergency);
     put_bool(f.radio_extra, "ac_barr_mo_signaling", lte->ac_barr_mo_signaling);
@@ -243,10 +229,41 @@ inline TowerFields fields_from_cell(const CellIdentity& c) {
     put_extra(f.radio_extra, "s_intra_search", i_or_empty(lte->s_intra_search));
     put_extra(f.radio_extra, "s_non_intra_search", i_or_empty(lte->s_non_intra_search));
     put_extra(f.radio_extra, "thresh_serving_low", i_or_empty(lte->thresh_serving_low));
+    put_extra(f.radio_extra, "cell_resel_prio", i_or_empty(lte->cell_resel_prio));
+    put_extra(f.radio_extra, "thresh_x_high", i_or_empty(lte->thresh_x_high));
+    put_extra(f.radio_extra, "thresh_x_low", i_or_empty(lte->thresh_x_low));
+    put_extra(f.radio_extra, "timing_advance", i_or_empty(lte->timing_advance));
+    if (lte->timing_advance) {
+      // One-way estimate: TA_index × 78.125 m (LTE Ts×16 round-trip / 2).
+      const int meters = static_cast<int>(lte->timing_advance * 78.125 + 0.5);
+      put_extra(f.radio_extra, "ta_distance_m", std::to_string(meters));
+    }
+    if (lte->nas_idle >= 0) put_bool(f.radio_extra, "nas_idle", lte->nas_idle != 0);
+    if (lte->allowed_access >= 0) put_bool(f.radio_extra, "allowed_access", lte->allowed_access != 0);
+    if (lte->emm_state >= 0) {
+      put_extra(f.radio_extra, "emm_state", std::to_string(lte->emm_state));
+      put_extra(f.radio_extra, "emm_substate", std::to_string(lte->emm_substate));
+      if (lte->emm_mcc) {
+        put_extra(f.radio_extra, "emm_mcc", std::to_string(lte->emm_mcc));
+        put_extra(f.radio_extra, "emm_mnc", std::to_string(lte->emm_mnc));
+        if (lte->emm_mnc_digits)
+          put_extra(f.radio_extra, "emm_mnc_digits", std::to_string(lte->emm_mnc_digits));
+      }
+      if (lte->mme_present) {
+        put_extra(f.radio_extra, "mme_group_id", std::to_string(lte->mme_group_id));
+        put_extra(f.radio_extra, "mme_code", std::to_string(lte->mme_code));
+      }
+    }
+    if (lte->rrc_state >= 0) {
+      put_extra(f.radio_extra, "rrc_state", std::to_string(lte->rrc_state));
+      put_extra(f.radio_extra, "rrc_state_name",
+                std::string(Lte::Wire::Evt1606::name(static_cast<uint8_t>(lte->rrc_state))));
+    }
   } else if (auto* w = c.radio_as_if<WcdmaRadioParams>()) {
     f.arfcn = i_or_empty(w->dl_uarfcn);
     f.ul_arfcn = i_or_empty(w->ul_uarfcn);
-    f.pci = i_or_empty(w->psc);
+    // PSC 0 is valid — do not drop via i_or_empty.
+    f.pci = w->dl_uarfcn ? std::to_string(w->psc) : "";
     f.dl_code = f.pci;
     f.ul_code = f.pci;
     auto bi = BandInfo::umts_from_uarfcn(w->dl_uarfcn);
@@ -258,8 +275,16 @@ inline TowerFields fields_from_cell(const CellIdentity& c) {
       f.enb_rnc_id = std::to_string(c.passport.rnc_id());
       f.ncell_id = std::to_string(c.passport.umts_cid16());
     }
+    put_extra(f.radio_extra, "ura_id", i_or_empty(w->ura_id));
+    put_extra(f.radio_extra, "access", i_or_empty(w->access));
+    put_extra(f.radio_extra, "flags", i_or_empty(w->flags));
     put_extra(f.radio_extra, "q_rx_lev_min_rscp", i_or_empty(w->q_rx_lev_min_rscp));
     put_extra(f.radio_extra, "q_qual_min_ecno", i_or_empty(w->q_qual_min_ecno));
+    if (w->last_rrc_channel != 0xFF) {
+      put_extra(f.radio_extra, "rrc_channel", std::to_string(w->last_rrc_channel));
+      put_extra(f.radio_extra, "rrc_len", i_or_empty(w->last_rrc_len));
+    }
+    if (bi.band) put_extra(f.radio_extra, "umts_band", std::to_string(bi.band));
   } else if (auto* g = c.radio_as_if<GsmRadioParams>()) {
     f.arfcn = i_or_empty(g->arfcn);
     f.bsic = i_or_empty(g->bsic);
@@ -281,27 +306,41 @@ inline TowerFields fields_from_cell(const CellIdentity& c) {
       put_extra(f.radio_extra, "temporary_offset", std::to_string(g->temporary_offset));
       put_extra(f.radio_extra, "penalty_time", std::to_string(g->penalty_time));
     }
+    put_extra(f.radio_extra, "timing_advance", i_or_empty(g->timing_advance));
   } else if (auto* nr = c.radio_as_if<NrRadioParams>()) {
     f.arfcn = i_or_empty(nr->nrarfcn);
+    f.ul_arfcn = i_or_empty(nr->ul_nrarfcn);
     f.pci = i_or_empty(nr->pci);
     f.dl_code = f.pci;
     f.ul_code = f.pci;
     f.bandwidth = i_or_empty(nr->dl_bw);
     f.ul_bw = i_or_empty(nr->ul_bw);
+    if (nr->band) f.band = "n" + std::to_string(nr->band);
     put_extra(f.radio_extra, "q_rx_lev_min", i_or_empty(nr->q_rx_lev_min));
     put_extra(f.radio_extra, "q_qual_min", i_or_empty(nr->q_qual_min));
     put_extra(f.radio_extra, "q_hyst", i_or_empty(nr->q_hyst));
     put_extra(f.radio_extra, "ranac", i_or_empty(nr->ranac));
+    put_extra(f.radio_extra, "sfn", i_or_empty(nr->sfn));
+    put_extra(f.radio_extra, "scs_khz", i_or_empty(nr->scs_khz));
+    put_extra(f.radio_extra, "band", i_or_empty(nr->band));
+    if (nr->allowed_access >= 0) put_bool(f.radio_extra, "allowed_access", nr->allowed_access != 0);
   }
 
   if (c.signal.signal_data.index() != 0) {
     float lvl = c.signal.main_level();
-    if (lvl != 0.0f) f.rxl = std::to_string(static_cast<int>(lvl));
+    if (lvl != 0.0f) f.rxl = num_or_empty(true, lvl);
   }
   if (auto* ls = c.signal_as_if<LteSignalParams>()) {
+    if (Utils::valid_lte_rsrp(ls->rsrp)) f.rxl = num_or_empty(true, ls->rsrp);
     if (ls->rsrq != 0.0f) f.rsrq = num_or_empty(true, ls->rsrq);
     if (ls->has_sinr) f.snr = num_or_empty(true, ls->sinr);
     if (ls->has_rssi) f.rssi = num_or_empty(true, ls->rssi);
+    if (ls->has_rsrp_filt) put_extra(f.signal_extra, "rsrp_filt", num_or_empty(true, ls->rsrp_filt));
+    if (ls->has_rsrq_filt) put_extra(f.signal_extra, "rsrq_filt", num_or_empty(true, ls->rsrq_filt));
+    if (ls->has_sinr_per_rx) {
+      put_extra(f.signal_extra, "sinr_rx0", num_or_empty(true, ls->sinr_rx0));
+      put_extra(f.signal_extra, "sinr_rx1", num_or_empty(true, ls->sinr_rx1));
+    }
   } else if (auto* ws = c.signal_as_if<WcdmaSignalParams>()) {
     if (ws->has_ecio) {
       f.rsrq = num_or_empty(true, ws->ecio);
@@ -358,16 +397,15 @@ inline void fill_empty_field(std::string& dest, const std::string& src) {
 
 inline void apply_meas_signal(TowerFields& f, const NeighborMeasResult& n) {
   using namespace tower_detail;
-  if (n.has_rsrp) f.rxl = std::to_string(static_cast<int>(n.rsrp_dbm));
-  if (n.has_rsrq) {
-    std::ostringstream oss;
-    oss << n.rsrq_db;
-    f.rsrq = oss.str();
-  }
-  if (n.has_sinr) {
-    std::ostringstream oss;
-    oss << n.sinr_db;
-    f.snr = oss.str();
+  if (n.has_rsrp) f.rxl = num_or_empty(true, n.rsrp_dbm);
+  if (n.has_rsrq) f.rsrq = num_or_empty(true, n.rsrq_db);
+  if (n.has_sinr) f.snr = num_or_empty(true, n.sinr_db);
+  if (n.has_rssi) f.rssi = num_or_empty(true, n.rssi_dbm);
+  if (n.has_rsrp_filt) put_extra(f.signal_extra, "rsrp_filt", num_or_empty(true, n.rsrp_filt));
+  if (n.has_rsrq_filt) put_extra(f.signal_extra, "rsrq_filt", num_or_empty(true, n.rsrq_filt));
+  if (n.has_sinr_per_rx) {
+    put_extra(f.signal_extra, "sinr_rx0", num_or_empty(true, n.sinr_rx0));
+    put_extra(f.signal_extra, "sinr_rx1", num_or_empty(true, n.sinr_rx1));
   }
   if (n.has_cgi) {
     fill_empty_field(f.mcc, i_or_empty(n.cgi.mcc));
@@ -609,8 +647,7 @@ inline std::vector<TowerNode> build_towers(const std::vector<CellIdentity>& cell
 }
 
 /// Encode identity/radio/signal with RAT-specific keys (SDR + Vlad + ours).
-inline void encode_rat_sections(tower_detail::JsonObj& o, RatType rat, const TowerFields& f,
-                                int indent, int level) {
+inline void encode_rat_sections(tower_detail::JsonObj& o, RatType rat, const TowerFields& f) {
   using namespace tower_detail;
   JsonObj id;
   JsonObj radio;
@@ -659,6 +696,8 @@ inline void encode_rat_sections(tower_detail::JsonObj& o, RatType rat, const Tow
     id.str("cid", f.cid);
     id.str("rnc_id", f.enb_rnc_id);
     id.str("cid16", f.ncell_id);
+    if (auto it = f.identity_extra.find("rac"); it != f.identity_extra.end())
+      id.str("rac", it->second);
 
     radio.str("uarfcn", f.arfcn);
     radio.str("ul_uarfcn", f.ul_arfcn);
@@ -720,69 +759,60 @@ inline void encode_rat_sections(tower_detail::JsonObj& o, RatType rat, const Tow
     put_extras_into(sig, f.signal_extra);
   }
 
-  o.obj("meta", meta.dump(indent, level + 1));
-  o.obj("identity", id.dump(indent, level + 1));
-  o.obj("radio", radio.dump(indent, level + 1));
-  o.obj("signal", sig.dump(indent, level + 1));
+  o.obj("meta", std::move(meta));
+  o.obj("identity", std::move(id));
+  o.obj("radio", std::move(radio));
+  o.obj("signal", std::move(sig));
 }
 
-inline std::string encode_neighbor(const NeighborRef& n, int indent, int level) {
+inline tower_detail::JsonObj encode_neighbor(const NeighborRef& n) {
   using namespace tower_detail;
   JsonObj o;
   o.str("rat", to_string(n.rat));
   o.str("resolved", n.resolved ? "1" : "0");
-  encode_rat_sections(o, n.rat, n.fields, indent, level);
-  return o.dump(indent, level);
+  encode_rat_sections(o, n.rat, n.fields);
+  return o;
 }
 
-inline std::string encode_neighbors_for_rat(RatType parent, const std::vector<NeighborRef>& lte,
-                                            const std::vector<NeighborRef>& gsm,
-                                            const std::vector<NeighborRef>& umts,
-                                            const std::vector<NeighborRef>& nr, int indent,
-                                            int level) {
-  using namespace tower_detail;
-  auto arr = [&](const std::vector<NeighborRef>& xs) {
-    std::ostringstream oss;
-    const std::string pad(static_cast<size_t>(indent * (level + 1)), ' ');
-    const std::string pad2(static_cast<size_t>(indent * (level + 2)), ' ');
-    oss << "[\n";
-    for (size_t i = 0; i < xs.size(); ++i) {
-      if (i) oss << ",\n";
-      oss << pad2 << encode_neighbor(xs[i], indent, level + 2);
-    }
-    if (!xs.empty()) oss << '\n';
-    oss << pad << ']';
-    return oss.str();
-  };
+inline std::vector<tower_detail::JsonObj> encode_nb_list(const std::vector<NeighborRef>& xs) {
+  std::vector<tower_detail::JsonObj> items;
+  items.reserve(xs.size());
+  for (const auto& n : xs) items.push_back(encode_neighbor(n));
+  return items;
+}
 
+inline tower_detail::JsonObj encode_neighbors_for_rat(RatType parent, const std::vector<NeighborRef>& lte,
+                                                      const std::vector<NeighborRef>& gsm,
+                                                      const std::vector<NeighborRef>& umts,
+                                                      const std::vector<NeighborRef>& nr) {
+  using namespace tower_detail;
   JsonObj o;
   if (parent == RatType::LTE) {
-    o.arr("nb_lte", arr(lte));
-    o.arr("nb_gsm", arr(gsm));
-    o.arr("nb_umts", arr(umts));
-    o.arr("nb_nr", arr(nr));
+    o.arr("nb_lte", encode_nb_list(lte));
+    o.arr("nb_gsm", encode_nb_list(gsm));
+    o.arr("nb_umts", encode_nb_list(umts));
+    o.arr("nb_nr", encode_nb_list(nr));
   } else if (parent == RatType::WCDMA) {
-    o.arr("nb_gsm", arr(gsm));
-    o.arr("nb_umts", arr(umts));
+    o.arr("nb_gsm", encode_nb_list(gsm));
+    o.arr("nb_umts", encode_nb_list(umts));
   } else if (parent == RatType::GSM) {
-    o.arr("nb_gsm", arr(gsm));
+    o.arr("nb_gsm", encode_nb_list(gsm));
   } else {
-    o.arr("nb_lte", arr(lte));
-    o.arr("nb_gsm", arr(gsm));
-    o.arr("nb_umts", arr(umts));
-    o.arr("nb_nr", arr(nr));
+    o.arr("nb_lte", encode_nb_list(lte));
+    o.arr("nb_gsm", encode_nb_list(gsm));
+    o.arr("nb_umts", encode_nb_list(umts));
+    o.arr("nb_nr", encode_nb_list(nr));
   }
-  return o.dump(indent, level);
+  return o;
 }
 
-inline std::string encode_tower(const TowerNode& t, int indent, int level) {
+inline tower_detail::JsonObj encode_tower(const TowerNode& t) {
   using namespace tower_detail;
   JsonObj o;
   o.str("key", t.key);
-  encode_rat_sections(o, t.rat, t.fields, indent, level);
-  o.obj("neighbors", encode_neighbors_for_rat(t.rat, t.nb_lte, t.nb_gsm, t.nb_umts, t.nb_nr,
-                                              indent, level + 1));
-  return o.dump(indent, level);
+  encode_rat_sections(o, t.rat, t.fields);
+  o.obj("neighbors", encode_neighbors_for_rat(t.rat, t.nb_lte, t.nb_gsm, t.nb_umts, t.nb_nr));
+  return o;
 }
 
 inline bool tower_newer(const TowerNode& a, const TowerNode& b) {
@@ -954,22 +984,14 @@ inline TowersByRat group_towers_by_rat(const std::vector<TowerNode>& towers) {
   return g;
 }
 
-inline std::string encode_tower_array(const std::vector<TowerNode>& xs, int indent, int level) {
-  std::ostringstream oss;
-  const std::string pad(static_cast<size_t>(indent * level), ' ');
-  const std::string pad2(static_cast<size_t>(indent * (level + 1)), ' ');
-  oss << "[\n";
-  for (size_t i = 0; i < xs.size(); ++i) {
-    if (i) oss << ",\n";
-    oss << pad2 << encode_tower(xs[i], indent, level + 1);
-  }
-  if (!xs.empty()) oss << '\n';
-  oss << pad << ']';
-  return oss.str();
+inline std::vector<tower_detail::JsonObj> encode_tower_list(const std::vector<TowerNode>& xs) {
+  std::vector<tower_detail::JsonObj> items;
+  items.reserve(xs.size());
+  for (const auto& t : xs) items.push_back(encode_tower(t));
+  return items;
 }
 
-inline std::string encode_document(const std::vector<TowerNode>& towers, std::string_view source,
-                                   int indent = 2) {
+inline std::string encode_document(const std::vector<TowerNode>& towers, std::string_view source) {
   using namespace tower_detail;
   auto unique = unique_complete_towers(towers);
   auto by_rat = group_towers_by_rat(unique);
@@ -998,15 +1020,15 @@ inline std::string encode_document(const std::vector<TowerNode>& towers, std::st
   meta.str("schema", "qcom.towers.v5");
 
   JsonObj towers_obj;
-  towers_obj.arr("gsm", encode_tower_array(by_rat.gsm, indent, 2));
-  towers_obj.arr("lte", encode_tower_array(by_rat.lte, indent, 2));
-  towers_obj.arr("wcdma", encode_tower_array(by_rat.wcdma, indent, 2));
-  towers_obj.arr("nr", encode_tower_array(by_rat.nr, indent, 2));
+  towers_obj.arr("gsm", encode_tower_list(by_rat.gsm));
+  towers_obj.arr("lte", encode_tower_list(by_rat.lte));
+  towers_obj.arr("wcdma", encode_tower_list(by_rat.wcdma));
+  towers_obj.arr("nr", encode_tower_list(by_rat.nr));
 
   JsonObj root;
-  root.obj("meta", meta.dump(indent, 1));
-  root.obj("towers", towers_obj.dump(indent, 1));
-  return root.dump(indent, 0) + '\n';
+  root.obj("meta", std::move(meta));
+  root.obj("towers", std::move(towers_obj));
+  return root.dump() + '\n';
 }
 
 inline bool write_towers_json(const std::string& path, const std::vector<CellIdentity>& cells,
@@ -1047,8 +1069,7 @@ inline std::vector<TowerNode> unique_survey_towers(const std::vector<TowerNode>&
 
 inline std::string encode_document_survey(const std::vector<TowerNode>& towers,
                                           std::string_view source,
-                                          const std::map<std::string, std::string>& extra_meta = {},
-                                          int indent = 2) {
+                                          const std::map<std::string, std::string>& extra_meta = {}) {
   using namespace tower_detail;
   auto survey = unique_survey_towers(towers);
   auto by_rat = group_towers_by_rat(survey);
@@ -1081,15 +1102,15 @@ inline std::string encode_document_survey(const std::vector<TowerNode>& towers,
   for (const auto& [k, v] : extra_meta) meta.str(k, v);
 
   JsonObj towers_obj;
-  towers_obj.arr("gsm", encode_tower_array(by_rat.gsm, indent, 2));
-  towers_obj.arr("lte", encode_tower_array(by_rat.lte, indent, 2));
-  towers_obj.arr("wcdma", encode_tower_array(by_rat.wcdma, indent, 2));
-  towers_obj.arr("nr", encode_tower_array(by_rat.nr, indent, 2));
+  towers_obj.arr("gsm", encode_tower_list(by_rat.gsm));
+  towers_obj.arr("lte", encode_tower_list(by_rat.lte));
+  towers_obj.arr("wcdma", encode_tower_list(by_rat.wcdma));
+  towers_obj.arr("nr", encode_tower_list(by_rat.nr));
 
   JsonObj root;
-  root.obj("meta", meta.dump(indent, 1));
-  root.obj("towers", towers_obj.dump(indent, 1));
-  return root.dump(indent, 0) + '\n';
+  root.obj("meta", std::move(meta));
+  root.obj("towers", std::move(towers_obj));
+  return root.dump() + '\n';
 }
 
 /// Atomic survey write (tmp + rename) for live GUI polling.
@@ -1097,11 +1118,19 @@ inline bool write_towers_json_survey(const std::string& path, const std::vector<
                                      std::string_view source,
                                      const std::map<std::string, std::string>& extra_meta = {}) {
   auto towers = build_towers(cells);
+  auto extra = extra_meta;
+  {
+    const auto r = QCom::Engine::project_lte(cells);
+    extra.try_emplace("rf_unique", std::to_string(r.stats.lte_rf_unique));
+    extra.try_emplace("full_passport", std::to_string(r.stats.lte_full));
+    extra.try_emplace("lte_sites", std::to_string(r.stats.lte_sites));
+    extra.try_emplace("lte_serving", std::to_string(r.stats.lte_serving));
+  }
   const std::string tmp = path + ".tmp";
   {
     std::ofstream out(tmp);
     if (!out) return false;
-    out << encode_document_survey(towers, source, extra_meta);
+    out << encode_document_survey(towers, source, extra);
     if (!out.flush()) return false;
   }
   return std::rename(tmp.c_str(), path.c_str()) == 0;

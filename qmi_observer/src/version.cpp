@@ -1,10 +1,10 @@
-#include "qmi_observer/version.hpp"
+#include <qcom/qmi/version.hpp>
 
 #include <libqmi-glib.h>
 
 #include <sstream>
 
-namespace qmi_observer {
+namespace QCom::Qmi {
 
 std::string_view version() noexcept { return kVersion; }
 
@@ -14,4 +14,4 @@ std::string libqmi_version_string() {
   return oss.str();
 }
 
-}  // namespace qmi_observer
+}  // namespace QCom::Qmi

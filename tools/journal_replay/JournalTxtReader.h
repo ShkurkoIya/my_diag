@@ -10,8 +10,8 @@
 #include <string_view>
 #include <vector>
 
-#include "core/Types.h"
-#include "lte/LteRrcOta.h"
+#include <observer/model/Types.h>
+#include <qcom/lte/LteRrcOta.h>
 
 namespace QCom::Tools {
 

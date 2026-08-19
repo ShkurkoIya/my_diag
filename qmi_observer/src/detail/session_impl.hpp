@@ -1,12 +1,10 @@
 #pragma once
 
-#pragma once
-
-#include "qmi_observer/callbacks.hpp"
-#include "qmi_observer/error.hpp"
-#include "qmi_observer/health.hpp"
-#include "qmi_observer/session.hpp"
-#include "qmi_observer/settings.hpp"
+#include <qcom/qmi/callbacks.hpp>
+#include <qcom/qmi/error.hpp>
+#include <qcom/qmi/health.hpp>
+#include <qcom/qmi/session.hpp>
+#include <qcom/qmi/settings.hpp>
 
 #include "detail/runtime.hpp"
 
@@ -14,7 +12,7 @@
 
 #include <memory>
 
-namespace qmi_observer {
+namespace QCom::Qmi {
 
 class HealthMonitor;
 class ModemControl;
@@ -54,4 +52,4 @@ struct Session::Impl {
   }
 };
 
-}  // namespace qmi_observer
+}  // namespace QCom::Qmi
